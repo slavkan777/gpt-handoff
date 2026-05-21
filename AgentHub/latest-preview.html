@@ -2,34 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AgentHub UI Contact Sheet &mdash; Vertical Rework &mdash; 2026-05-21</title>
+<title>AgentHub UI Screens &mdash; Individual Screenshot Handoff &mdash; 2026-05-21</title>
 <style>
   html, body { margin: 0; padding: 0; }
-  body { font-family: system-ui, "Segoe UI", sans-serif; color: #1a1a1a; background: #f4f4f7; padding: 24px; max-width: 1680px; }
+  body { font-family: system-ui, "Segoe UI", sans-serif; color: #1a1a1a; background: #f4f4f7; padding: 24px; max-width: 1600px; }
   h1 { margin: 0 0 4px; font-size: 22px; }
+  h2 { margin: 32px 0 8px; font-size: 18px; }
   .meta { color: #555; font-size: 13px; margin-bottom: 18px; }
   table { border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; background: #fff; }
-  th, td { border: 1px solid #d8d8df; padding: 6px 12px; text-align: left; }
+  th, td { border: 1px solid #d8d8df; padding: 6px 12px; text-align: left; vertical-align: top; }
   th { background: #efeff3; }
   code { font-family: Consolas, monospace; color: #444; }
   .urls { margin: 8px 0 18px; font-size: 13px; line-height: 1.7; }
   .urls a { color: #1758c4; text-decoration: none; }
   .urls a:hover { text-decoration: underline; }
-  img.sheet { display: block; width: 100%; max-width: 1600px; height: auto; border: 1px solid #ccc; background: #fff; }
-  .footer { color: #777; font-size: 12px; margin-top: 16px; }
+  .screen-card { background: #fff; border: 1px solid #d8d8df; padding: 18px 18px 22px; margin: 16px 0; border-radius: 6px; }
+  .screen-card h3 { margin: 0 0 4px; font-size: 18px; }
+  .screen-card .route { font-family: Consolas, monospace; color: #555; font-size: 13px; margin: 0 0 12px; }
+  .screen-card img { display: block; width: 100%; max-width: 1440px; height: auto; border: 1px solid #ccc; background: #fafafc; }
   .pill { display: inline-block; padding: 2px 8px; background: #e7f3ea; color: #1b6d36; border-radius: 8px; font-size: 12px; font-weight: 600; }
+  .pill.deprecated { background: #f3e7e7; color: #6d1b1b; }
+  .deprecated-block { margin: 32px 0 0; padding: 18px; border: 1px dashed #c88; background: #faf2f2; border-radius: 6px; font-size: 13px; color: #6d1b1b; }
+  .deprecated-block code { color: #6d1b1b; }
+  .footer { color: #777; font-size: 12px; margin-top: 24px; }
 </style>
 </head>
 <body>
-<h1>AgentHub UI Contact Sheet <span class="pill">vertical rework</span></h1>
-<p class="meta">Project: <strong>AgentHub</strong> &middot; Captured: 2026-05-21 &middot; 10 screenshots at 1440 &times; native-height viewport (fullPage) &middot; Layout: <strong>1-column vertical, 10 sections</strong> &middot; Composition status: <strong>PASS</strong> (no passwords / tokens / JWT / cookies / API keys / auth headers / connection strings / source code visible).</p>
+<h1>AgentHub UI Screens <span class="pill">individual screenshots</span> <span class="pill deprecated">contact sheet deprecated</span></h1>
+<p class="meta">Project: <strong>AgentHub</strong> &middot; Captured: 2026-05-21 &middot; 10 screenshots at 1440 &times; native fullPage viewport &middot; Primary visual: <strong>10 individual raw PNG screenshots</strong> &middot; Contact sheet: <strong>DEPRECATED, NOT PRIMARY</strong> &middot; Composition status: <strong>PASS</strong>.</p>
 
 <div class="urls">
-  Raw image:
-  <a href="latest-contact-sheet.jpg">latest-contact-sheet.jpg</a> &nbsp;|&nbsp;
-  <a href="latest-contact-sheet.png">latest-contact-sheet.png</a>
-  <br>
-  Other artifacts:
+  Companion artifacts:
   <a href="latest-report.md">latest-report.md</a> &nbsp;|&nbsp;
   <a href="latest-summary.json">latest-summary.json</a> &nbsp;|&nbsp;
   <a href="latest-visual-index.md">latest-visual-index.md</a> &nbsp;|&nbsp;
@@ -37,26 +40,75 @@
   <a href="latest-package.zip">latest-package.zip</a>
 </div>
 
-<table>
-  <thead><tr><th>#</th><th>Section title</th><th>Route</th><th>Source PNG</th><th>Source size</th><th>Display size</th></tr></thead>
-  <tbody>
-    <tr><td>1</td><td>01 Login</td><td><code>/login</code></td><td>01-login.png</td><td>1440 &times; 900</td><td>1440 &times; 900</td></tr>
-    <tr><td>2</td><td>02 Dashboard</td><td><code>/</code></td><td>02-dashboard.png</td><td>1440 &times; 1282</td><td>1440 &times; 1282</td></tr>
-    <tr><td>3</td><td>03 Agent Library</td><td><code>/agents</code></td><td>03-agents-list.png</td><td>1440 &times; 1096</td><td>1440 &times; 1096</td></tr>
-    <tr><td>4</td><td>04 Create Agent Type</td><td><code>/agents/new</code></td><td>04-agent-form-create.png</td><td>1440 &times; 1145</td><td>1440 &times; 1145</td></tr>
-    <tr><td>5</td><td>05 Agent Details</td><td><code>/agents/2</code></td><td>05-agent-details.png</td><td>1440 &times; 900</td><td>1440 &times; 900</td></tr>
-    <tr><td>6</td><td>06 Agent Edit</td><td><code>/agents/2/edit</code></td><td>06-agent-edit.png</td><td>1440 &times; 901</td><td>1440 &times; 901</td></tr>
-    <tr><td>7</td><td>07 Run Form</td><td><code>/agents/2/runs/new</code></td><td>07-run-form.png</td><td>1440 &times; 1009</td><td>1440 &times; 1009</td></tr>
-    <tr><td>8</td><td>08 Run Details</td><td><code>/agents/2/runs/5</code></td><td>08-run-details.png</td><td>1440 &times; 1396</td><td>1440 &times; 1396</td></tr>
-    <tr><td>9</td><td>09 Run Results</td><td><code>/agents/2/runs/5/results</code></td><td>09-run-results.png</td><td>1440 &times; 900</td><td>1440 &times; 900</td></tr>
-    <tr><td>10</td><td>10 Audit Log</td><td><code>/audit-log</code></td><td>10-audit-log.png</td><td>1440 &times; 1826</td><td>1183 &times; 1500 (proportional height cap, aspect preserved)</td></tr>
-  </tbody>
-</table>
+<h2>Screen gallery (primary)</h2>
 
-<p class="meta">Canvas: 1600 &times; 13769 px &middot; JPG q85 &asymp; 1.37 MB &middot; PNG lossless &asymp; 0.90 MB (smaller than JPG: white card margins compress to near-zero in PNG).</p>
+<div class="screen-card">
+  <h3>01 Login</h3>
+  <p class="route"><code>/login</code></p>
+  <img src="latest-screens/01-login.png" alt="01 Login screenshot">
+</div>
 
-<img class="sheet" src="latest-contact-sheet.jpg" alt="AgentHub UI contact sheet — 1 column, 10 vertical sections, title and route above each image">
+<div class="screen-card">
+  <h3>02 Dashboard</h3>
+  <p class="route"><code>/</code></p>
+  <img src="latest-screens/02-dashboard.png" alt="02 Dashboard screenshot">
+</div>
 
-<p class="footer">Self-contained static HTML. No scripts. No external CSS / JS / fonts. The image is referenced by relative path, so opening this file from a clone of the repo works the same as opening it via the raw GitHub URL above.</p>
+<div class="screen-card">
+  <h3>03 Agent Library</h3>
+  <p class="route"><code>/agents</code></p>
+  <img src="latest-screens/03-agent-library.png" alt="03 Agent Library screenshot">
+</div>
+
+<div class="screen-card">
+  <h3>04 Create Agent Type</h3>
+  <p class="route"><code>/agents/new</code></p>
+  <img src="latest-screens/04-create-agent-type.png" alt="04 Create Agent Type screenshot">
+</div>
+
+<div class="screen-card">
+  <h3>05 Agent Details</h3>
+  <p class="route"><code>/agents/2</code></p>
+  <img src="latest-screens/05-agent-details.png" alt="05 Agent Details screenshot">
+</div>
+
+<div class="screen-card">
+  <h3>06 Agent Edit</h3>
+  <p class="route"><code>/agents/2/edit</code></p>
+  <img src="latest-screens/06-agent-edit.png" alt="06 Agent Edit screenshot">
+</div>
+
+<div class="screen-card">
+  <h3>07 Run Form</h3>
+  <p class="route"><code>/agents/2/runs/new</code></p>
+  <img src="latest-screens/07-run-form.png" alt="07 Run Form screenshot">
+</div>
+
+<div class="screen-card">
+  <h3>08 Run Details</h3>
+  <p class="route"><code>/agents/2/runs/5</code></p>
+  <img src="latest-screens/08-run-details.png" alt="08 Run Details screenshot">
+</div>
+
+<div class="screen-card">
+  <h3>09 Run Results</h3>
+  <p class="route"><code>/agents/2/runs/5/results</code></p>
+  <img src="latest-screens/09-run-results.png" alt="09 Run Results screenshot">
+</div>
+
+<div class="screen-card">
+  <h3>10 Audit Log</h3>
+  <p class="route"><code>/audit-log</code></p>
+  <img src="latest-screens/10-audit-log.png" alt="10 Audit Log screenshot">
+</div>
+
+<div class="deprecated-block">
+  <strong>DEPRECATED &mdash; NOT PRIMARY:</strong> the files
+  <code>latest-contact-sheet.jpg</code> and <code>latest-contact-sheet.png</code>
+  remain in this repo for history but are <strong>no longer the primary visual artifact</strong>.
+  GPT visual review should use the 10 individual raw screenshots above, not the contact sheets.
+</div>
+
+<p class="footer">Self-contained static HTML. No scripts. No external CSS / JS / fonts. All images referenced by relative paths, so opening this file from a clone of the repo works the same as opening it via the raw GitHub URL.</p>
 </body>
 </html>

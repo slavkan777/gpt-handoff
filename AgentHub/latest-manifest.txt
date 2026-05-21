@@ -1,22 +1,38 @@
-# AgentHub GitHub visual handoff â€” rework â€” 2026-05-21
-# Project:   AgentHub
-# Task:      github-visual-handoff-vertical-rework
-# Repo:      slavkan777/gpt-handoff (main)
-# Status:    READY_FOR_GPT_AUDIT
-# Generated: 2026-05-21
+# AgentHub GitHub individual-screenshot handoff -- 2026-05-21
+# Project:        AgentHub
+# Task:           individual-screenshot-handoff
+# Repo:           slavkan777/gpt-handoff (main)
+# Status:         READY_FOR_GPT_AUDIT
+# Visual primary: individual-raw-screenshots (10 PNGs under latest-screens/)
+# Contact sheet:  DEPRECATED, NOT PRIMARY
 
-# Each row:  <sha256>  <bytes>  <filename>  -->  <raw URL>
+# Row:  <sha256>  <bytes>  <path>  -->  <raw URL>
 
-bdfb1a38ab45d688be267967190433b1c7583a6bbfae4dcf5d8ed8a24d97b11d     1,373,942 B  latest-contact-sheet.jpg  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-contact-sheet.jpg
-419d29ab3a74e7e71d7c1ed18b503d96abf37e0cda8a3e0018b4c59a5839aa08       897,951 B  latest-contact-sheet.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-contact-sheet.png
-af9453c1333eaf3a1e3e5dfac4905c330f30bd3b40b3278475879037382009b5         6,175 B  latest-report.md  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-report.md
-4c00c99c531b41df38ccb2e8e87af647d0d2501b9a813d6ab00d2e1b5c2dcaba           759 B  latest-summary.json  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-summary.json
-39932b45995d946308aa9802e784ef7229a247d1918ea4fed0fae0ede7b90835         4,697 B  latest-visual-index.md  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-visual-index.md
-f47663cee19259cd875c897aed4133d3a2f13ab2345b30c84fb212ee08cad086         4,613 B  latest-preview.html  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-preview.html
-3e4676191fb930d8738e7e3ad2872ba7d4179fa1a8d754114b021e823bf0d621     1,419,611 B  latest-package.zip  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-package.zip
+## Individual screenshots (PRIMARY)
+d3a07083f40b6beaf98fb95d6a9e3d95afd293fd06a07cd2f1b101f24b849c12     10,837 B  latest-screens/01-login.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/01-login.png
+1c785c83729bc1c849dfbcc9e9340708c8f7239552cb7c58d9496a0c40c7a609     62,705 B  latest-screens/02-dashboard.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/02-dashboard.png
+9556948ed030e597b1cbd1f4cc1ef5b055c62ce56e92f8ae3509606c22530a9d     53,284 B  latest-screens/03-agent-library.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/03-agent-library.png
+a4b3a287486770b2dc7c015eddbd44872d13bd5d72d416315d5c1673a4d17891     41,008 B  latest-screens/04-create-agent-type.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/04-create-agent-type.png
+57a7d2b4edcae09d28a1b3eee02f87d9d4a139234e727f853bea861fd404da38     28,494 B  latest-screens/05-agent-details.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/05-agent-details.png
+7d3dd627e357bb164cb87c9ed880c5cb88960e6ea688f605276beecdd5cf44e5     25,914 B  latest-screens/06-agent-edit.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/06-agent-edit.png
+713cb61aa3f218602f1b6281672c06f659206c8fa3c4af58fccdf5d208a85229     30,380 B  latest-screens/07-run-form.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/07-run-form.png
+d310fa9b9481019fe988948d47c9fc3f8ad1c3b20da2bf6701aa0d52bc8a754e     42,253 B  latest-screens/08-run-details.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/08-run-details.png
+06ac72a97262968eea1d5990bd9d82d1b5cd42a66f785469b57d1f7465943397     34,068 B  latest-screens/09-run-results.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/09-run-results.png
+21207ece429676dadc36dd5eb44262696d69cd589c94427415521d4e6e6305c1     69,016 B  latest-screens/10-audit-log.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-screens/10-audit-log.png
 
-# The zip embeds a draft manifest without the zip line (chicken/egg).
-# This live latest-manifest.txt is the authoritative one.
+## Top-level text artifacts
+841d7d6426340bef77026f90e86c622ab3b183859889d48b3fa10967bcc7a8ab      5,452 B  latest-report.md  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-report.md
+9764ed3b43ee5f2a42f9226d10bf45d547ff1c1a0e6807ce6785e5cf07ddc5e0        535 B  latest-summary.json  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-summary.json
+3dc4958021912b80723ad820c6a99d8a7d41013bd23210e3baf0ccdedae14814      5,220 B  latest-visual-index.md  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-visual-index.md
+15a8bb2885b291eebdb6a5bfb163e4e2652b663d7d6b02d69891072a63ee122d      5,246 B  latest-preview.html  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-preview.html
+
+## DEPRECATED artifacts (NOT PRIMARY; kept for history only)
+bdfb1a38ab45d688be267967190433b1c7583a6bbfae4dcf5d8ed8a24d97b11d  1,373,942 B  latest-contact-sheet.jpg  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-contact-sheet.jpg  [DEPRECATED]
+419d29ab3a74e7e71d7c1ed18b503d96abf37e0cda8a3e0018b4c59a5839aa08    897,951 B  latest-contact-sheet.png  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-contact-sheet.png  [DEPRECATED]
+
+
+## ZIP bundle (contains 10 PNGs in latest-screens/ + 4 top text artifacts + manifest)
+efbeb3098ef4e729a2fc97d49e22c5a0ccf64f4fccec872c86096fd5c7c905fa    350,881 B  latest-package.zip  -->  https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-package.zip
 
 # Self-scan summary (CLEAN):
 #   - no provider token prefix forms
