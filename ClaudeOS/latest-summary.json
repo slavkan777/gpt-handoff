@@ -1,23 +1,25 @@
 ﻿{
   "project": "ClaudeOS",
-  "task": "claude-os-snapshot-2026-05-21",
-  "status": "SNAPSHOT_PUSHED",
+  "task": "claude-os-current-protocol-2026-05-21",
+  "status": "PROTOCOL_UPDATED",
   "handoff": "github",
   "repo": "slavkan777/gpt-handoff",
   "publicSanitized": true,
   "targetRepo": "slavkan777/claude-vault",
   "targetVisibility": "private",
-  "targetCommitSha": "7a82903c88334042708a4b6c98971391d424e7fa",
-  "targetCommitMessage": "backup: add sanitized Claude OS workflow snapshot",
-  "targetNamespace": "claude-os/",
-  "filesCommitted": 18,
-  "safeUpload": 2,
-  "redactAndUpload": 8,
-  "doNotUpload": 6,
+  "targetCommitSha": "6af05f143c4fdd965f73f3d44c49e465325cf0e0",
+  "targetParentSha": "7a82903c88334042708a4b6c98971391d424e7fa",
+  "targetCommitMessage": "docs: add current Claude GPT operating protocol",
+  "fileAdded": "claude-os/CURRENT_PROTOCOL.md",
+  "filesChanged": [
+    "claude-os/CURRENT_PROTOCOL.md",
+    "claude-os/MANIFEST.md",
+    "claude-os/reports/latest-protocol-update-report.md"
+  ],
   "securityScan": "PASS",
   "sourceRepoTouched": false,
   "sourceCommit": false,
   "sourcePush": false,
   "googleDriveUsed": false,
-  "nextGate": "REVIEWER_AUDIT_SNAPSHOT"
+  "nextGate": "REVIEWER_AUDIT_CURRENT_PROTOCOL"
 }
