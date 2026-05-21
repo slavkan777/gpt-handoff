@@ -1,0 +1,25 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Defensive — never commit secrets or local-only files
+*.env
+*.env.*
+*.secret
+*.secrets
+*.pem
+*.key
+*.pfx
+secrets/
+private/
+node_modules/
+.cache/
+
+# Build outputs that have no business in a handoff repo
+bin/
+obj/
+dist/
+build/
