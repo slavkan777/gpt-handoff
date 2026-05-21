@@ -1,0 +1,20 @@
+AgentHub GitHub Handoff Stress Test - Manifest (run snapshot)
+============================================================
+Snapshot of: AgentHub/runs/2026-05-21-github-handoff-stress-test
+Date:        2026-05-21
+Repo:        slavkan777/gpt-handoff
+
+ARTIFACT                        SIZE  SHA-256                                                           SEC      RAW URL
+----------------------  ------------  ----------------------------------------------------------------  -------  --------------------------------------------------------------------------------
+report.md                       5563  174E4E6F715E8BF5C0FAEBB3F06F3F24939520DA5EA2212E05DA360AFE9E353B  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-handoff-stress-test/report.md
+summary.json                     516  B2044A13E371A17BDAF2FD37A2E0B91C66A9DACA2BA0390EF8805807A03ACDB8  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-handoff-stress-test/summary.json
+visual-index.md                 3342  BC2AA717182E6B96543B8C948D186BD8DD6AEBB007069FBE96B4A942D32CCECB  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-handoff-stress-test/visual-index.md
+contact-sheet.jpg             451012  9C881EDD53228C14D1E4EF620419DE074B23CBEAB10486D60F9EE4E43184C18C  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-handoff-stress-test/contact-sheet.jpg
+contact-sheet.png             724789  F655E38DDBE99A8E74D293BD2744559BB87EFB8DE161746AF12CFB5C866F2051  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-handoff-stress-test/contact-sheet.png
+preview.html                    3660  99C416E72303B068C8AC32AAE9D741F5D3C9A4CB3BB38948A3D7AC9D6C7CD4C3  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-handoff-stress-test/preview.html
+package.zip                   954525  5A595E81CA24635E6D44509E3C5ECFC6010883E96281F2C136C8E77F42EAC740  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-handoff-stress-test/package.zip
+manifest.txt                  (self)  (not self-hashed)                                                 CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-handoff-stress-test/manifest.txt
+
+Notes: this snapshot is frozen at the moment of the stress-test commit. The
+corresponding latest-* files at AgentHub/ may be overwritten by later tasks;
+this snapshot will not be.
