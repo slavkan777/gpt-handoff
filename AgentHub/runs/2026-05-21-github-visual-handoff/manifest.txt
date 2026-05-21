@@ -1,0 +1,19 @@
+AgentHub GitHub Visual Handoff - Manifest (run snapshot)
+============================================================
+Snapshot of: AgentHub/runs/2026-05-21-github-visual-handoff
+Date:        2026-05-21
+Repo:        slavkan777/gpt-handoff
+
+ARTIFACT                        SIZE  SHA-256                                                           SEC      RAW URL
+----------------------  ------------  ----------------------------------------------------------------  -------  --------------------------------------------------------------------------------
+report.md                       3703  E52CAFABA9A9495686C57EB7CFE9DD535D003493ED340CEAE43FF6976086CB30  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-visual-handoff/report.md
+summary.json                     592  11370BEED0C64EE0A31FB4CB9F27CE53F3B12DD122E69EC1F7F8C45E7EA1F673  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-visual-handoff/summary.json
+visual-index.md                 3342  BC2AA717182E6B96543B8C948D186BD8DD6AEBB007069FBE96B4A942D32CCECB  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-visual-handoff/visual-index.md
+contact-sheet.jpg             451012  9C881EDD53228C14D1E4EF620419DE074B23CBEAB10486D60F9EE4E43184C18C  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-visual-handoff/contact-sheet.jpg
+contact-sheet.png             724789  F655E38DDBE99A8E74D293BD2744559BB87EFB8DE161746AF12CFB5C866F2051  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-visual-handoff/contact-sheet.png
+preview.html                    3660  99C416E72303B068C8AC32AAE9D741F5D3C9A4CB3BB38948A3D7AC9D6C7CD4C3  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-visual-handoff/preview.html
+package.zip                   953910  303C341DC831F0DC2745EA0230EF2C6BC8DD5B8CE4D85A30877EDE3AD6A7A830  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-visual-handoff/package.zip
+manifest.txt                  (self)  (not self-hashed)                                                 CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/runs/2026-05-21-github-visual-handoff/manifest.txt
+
+Notes: this snapshot is frozen at commit time. Sibling latest-* may be overwritten
+by later tasks; this snapshot will not be.

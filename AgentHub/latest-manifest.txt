@@ -1,7 +1,7 @@
-AgentHub GitHub Handoff Stress Test - Manifest
+AgentHub GitHub Visual Handoff - Manifest
 ============================================================
 Project:  AgentHub
-Task:     github-handoff-stress-test
+Task:     github-visual-handoff
 Date:     2026-05-21
 Repo:     slavkan777/gpt-handoff
 Branch:   main
@@ -9,24 +9,19 @@ Path:     AgentHub/
 
 ARTIFACT                                  SIZE  SHA-256                                                           SEC      RAW URL
 --------------------------------  ------------  ----------------------------------------------------------------  -------  --------------------------------------------------------------------------------
-latest-report.md                          5563  174E4E6F715E8BF5C0FAEBB3F06F3F24939520DA5EA2212E05DA360AFE9E353B  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-report.md
-latest-summary.json                        516  B2044A13E371A17BDAF2FD37A2E0B91C66A9DACA2BA0390EF8805807A03ACDB8  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-summary.json
+latest-report.md                          3703  E52CAFABA9A9495686C57EB7CFE9DD535D003493ED340CEAE43FF6976086CB30  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-report.md
+latest-summary.json                        592  11370BEED0C64EE0A31FB4CB9F27CE53F3B12DD122E69EC1F7F8C45E7EA1F673  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-summary.json
 latest-visual-index.md                    3342  BC2AA717182E6B96543B8C948D186BD8DD6AEBB007069FBE96B4A942D32CCECB  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-visual-index.md
 latest-contact-sheet.jpg                451012  9C881EDD53228C14D1E4EF620419DE074B23CBEAB10486D60F9EE4E43184C18C  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-contact-sheet.jpg
 latest-contact-sheet.png                724789  F655E38DDBE99A8E74D293BD2744559BB87EFB8DE161746AF12CFB5C866F2051  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-contact-sheet.png
 latest-preview.html                       3660  99C416E72303B068C8AC32AAE9D741F5D3C9A4CB3BB38948A3D7AC9D6C7CD4C3  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-preview.html
 latest-manifest.txt               see external  self - not hashed (chicken/egg)                                   CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-manifest.txt
-latest-package.zip                      954675  58C6E8CC42B43C7C18C526CCA3F9E45545B189AFE16853A35B42AF1687755595  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-package.zip
+latest-package.zip                      953910  303C341DC831F0DC2745EA0230EF2C6BC8DD5B8CE4D85A30877EDE3AD6A7A830  CLEAN    https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/AgentHub/latest-package.zip
 
 Notes:
-- SEC=CLEAN means an 18-pattern secret-scan over the file contents returned 0 hits.
-  Patterns covered (referenced by category only, literal strings deliberately
-  omitted to avoid scanner self-reference): provider token prefixes (multiple AI
-  and CI vendors), JWT triple-segment shape, OAuth bearer header forms, generic
-  auth and cookie header field names, DB DSN patterns with embedded credentials,
-  generic password and secret field names, Stripe live-mode key prefixes, and a
-  project-specific dev-default literal previously known to appear in screenshots.
+- SEC=CLEAN means the 18-pattern secret-scan over the file contents returned 0 hits.
+  Pattern category names are referenced as a category only (literal strings omitted
+  here to avoid scanner self-reference).
 - latest-manifest.txt is not self-hashed (chicken/egg).
 - latest-package.zip bundles the 6 sibling artifacts plus a snapshot of this
   manifest at build time; that snapshot has TBD placeholders for the zip itself.
-  The external latest-manifest.txt is the authoritative one.
