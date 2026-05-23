@@ -2,6 +2,7 @@
   "project": "InsuranceAIPlatform",
   "task": "figma-access-test",
   "status": "FIGMA_ACCESS_TEST_PASSED",
+  "snapshotOf": "latest-summary.json at second publication (passed)",
   "figmaMcpConnected": true,
   "figmaAuthenticated": true,
   "writeAccessVerified": true,
@@ -14,7 +15,7 @@
   "sourceCommit": false,
   "sourcePush": false,
   "securityScan": "PASS",
-  "nextSafeStep": "Run trigger phrase 'продовжуємо Figma InsuranceAIPlatform' — Claude resumes the design build from the locked local spec, creates the file/page/frame at 1440x900 with the 9 documented blocks, applies the frozen tokens, uses Ukrainian labels and synthetic CLM-1006..CLM-1009 demo rows, then republishes latest-report.md with the Figma file/frame URL and an updated screenshot.",
+  "nextSafeStep": "Run trigger phrase 'продовжуємо Figma InsuranceAIPlatform' — Claude resumes the design build from the locked local spec.",
   "figmaMcpServer": {
     "name": "figma",
     "scope": "user",
@@ -22,7 +23,6 @@
     "endpoint": "https://mcp.figma.com/mcp",
     "namespace": "mcp__figma__*",
     "toolCount": 18,
-    "writeToolsPresent": ["create_new_file", "use_figma", "generate_figma_design", "upload_assets", "generate_diagram"],
     "separateFromTeamConnector": true
   },
   "planSanitized": {
@@ -40,14 +40,10 @@
     "nodeId": "1:2",
     "fileUrl": "https://www.figma.com/design/44rgZ4FWOLdBCqGHf60Zaf",
     "frameUrl": "https://www.figma.com/design/44rgZ4FWOLdBCqGHf60Zaf?node-id=1-2",
-    "screenshotRawUrl": "https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/InsuranceAIPlatform/latest-screens/figma-write-test-2026-05-24.png",
+    "screenshotRawUrl": "https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/InsuranceAIPlatform/runs/2026-05-24-figma-access-test-passed/figma-write-test.png",
     "screenshotWidth": 640,
     "screenshotHeight": 360,
     "screenshotBytes": 14839
-  },
-  "previousRun": {
-    "status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL",
-    "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"
   },
   "nextGate": "REVIEWER_AUDIT_ACCESS_TEST_PASSED"
 }
