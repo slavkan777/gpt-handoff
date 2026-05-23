@@ -1,0 +1,41 @@
+{
+  "project": "InsuranceAIPlatform",
+  "task": "figma-design-bootstrap-2026-05-24",
+  "status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL",
+  "handoff": "github",
+  "repo": "slavkan777/gpt-handoff",
+  "publicSanitized": true,
+  "targetRepo": null,
+  "targetVisibility": null,
+  "figmaFileLink": null,
+  "figmaPagesCreated": 0,
+  "figmaFramesCreated": 0,
+  "designSpecPrepared": true,
+  "designSpecLocation": "local handoff (not published)",
+  "uiBlocksPlanned": 9,
+  "canvasTarget": "1440x900",
+  "visualRegister": "Microsoft 365 / Fluent UI / Azure Portal — light enterprise",
+  "language": "Ukrainian UI labels; technical IDs in English",
+  "acceptanceChecks": {
+    "autoInsuranceClaimFocusVisible": "PENDING_CANVAS_BUILD",
+    "chatbotFirstAvoided": "PENDING_CANVAS_BUILD",
+    "aiWorkflowVisible": "PENDING_CANVAS_BUILD",
+    "riskEvidenceVisible": "PENDING_CANVAS_BUILD",
+    "humanReviewVisible": "PENDING_CANVAS_BUILD",
+    "auditCostVisible": "PENDING_CANVAS_BUILD",
+    "ukrainianLabelsUsed": "PENDING_CANVAS_BUILD",
+    "syntheticDemoDataOnly": "YES"
+  },
+  "blockers": [
+    "personal Figma MCP not yet installed in Claude Code",
+    "Anthropic team Figma MCP out of scope per local operating rule",
+    "post-install Figma plan check needed — write to canvas requires Full seat or draft-file fallback"
+  ],
+  "nextSafeStep": "Slava runs `claude plugin install figma@claude-plugins-official`, restarts Claude Code, authenticates via /plugin (figma → Allow access), then says 'продовжуємо Figma InsuranceAIPlatform' to resume the design build against the locked spec.",
+  "securityScan": "PASS",
+  "sourceRepoTouched": false,
+  "sourceCommit": false,
+  "sourcePush": false,
+  "googleDriveUsed": false,
+  "nextGate": "REVIEWER_AUDIT_BLOCKED_BOOTSTRAP_STATUS"
+}
