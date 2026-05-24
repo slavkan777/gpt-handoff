@@ -1,21 +1,35 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "penpot-access-gate",
-  "status": "PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK",
-  "acceptance": "PARTIAL_ACCEPTABLE_FOR_DESIGN_BUILD",
-  "penpotMcpRegistrationPresent": true,
-  "penpotMcpServerHealth": "Connected",
+  "task": "penpot-screen-01-dashboard-build",
+  "status": "PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED",
+  "screenBuilt": "01 — Огляд автострахових випадків",
+  "penpotFileName": "InsuranceAIPlatform — Auto Claim AI Workbench",
+  "boardSize": { "width": 1440, "height": 900 },
+  "boardPositionOnCanvas": { "x": 40, "y": 320 },
+  "shapesInsideBoard": 379,
   "penpotToolsLoadedInSession": true,
   "penpotPluginInstanceConnected": true,
-  "penpotFileReadAttempted": true,
-  "penpotPagesLayersSeen": true,
-  "penpotWriteTestExecuted": true,
-  "penpotTestFrameCreated": true,
-  "penpotExportAttempted": true,
-  "penpotExportPreviewReturned": true,
-  "penpotScreenshotPublished": false,
+  "boardCreated": true,
+  "uiLanguage": "uk-UA",
+  "autoInsuranceFocusVisible": true,
+  "aiWorkflowVisible": true,
+  "riskEvidenceHumanReviewVisible": true,
+  "auditCostGovernanceVisible": true,
+  "exportPreviewReturned": true,
+  "screenshotPublished": false,
   "manualScreenshotRequired": true,
-  "manualScreenshotPath": "InsuranceAIPlatform/latest-screens/penpot-access-test-2026-05-24.png",
+  "manualScreenshotPath": "InsuranceAIPlatform/latest-screens/penpot-screen-01-dashboard-2026-05-24.png",
+  "blocksCovered": [
+    "sidebar-with-brand-nav-and-system-status",
+    "top-command-bar",
+    "kpi-row-5-cards",
+    "claim-lifecycle-strip-6-stages",
+    "claims-table-9-cols-5-rows",
+    "ai-analysis-right-panel-for-selected-case",
+    "automation-guardrails-card",
+    "agent-timeline-7-steps",
+    "audit-and-cost-mini-panel"
+  ],
   "mcpUrlExposed": false,
   "mcpKeyExposed": false,
   "userTokenExposed": false,
@@ -26,24 +40,25 @@
   "securityScan": "PASS",
   "blockerReason": null,
   "manualActionsRequested": [
-    "Optional: if design-build phase needs the access-test PNG published in this repo, capture it manually from Penpot UI and drop it at InsuranceAIPlatform/latest-screens/penpot-access-test-2026-05-24.png. The gate itself does not require this artifact to exist."
+    "Open the Penpot file in browser. Select board '01 — Огляд автострахових випадків'. Export PNG via Penpot UI and save to InsuranceAIPlatform/latest-screens/penpot-screen-01-dashboard-2026-05-24.png. Send to GPT for visual audit: ACCEPT / REWORK / BLOCKED."
   ],
-  "nextSafeStep": "Proceed to InsuranceAIPlatform design build in Penpot. Access Gate has confirmed read, write, and export-preview paths function. Binary-publish path for screenshots will be retried per-frame during design build; manual screenshot is the documented fallback.",
+  "nextSafeStep": "Slava captures manual screenshot, GPT visual-audits. On ACCEPT → Screen 02 build. On REWORK → targeted revision. On BLOCKED → pause and gather requirements.",
   "openWorkstreams": {
     "figmaFileMoveAndScreenshot": {
       "status": "BLOCKED_NEEDS_MANUAL_ACTION",
       "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/",
-      "note": "independent — awaits operator manual UI actions in Figma (access check on Team project, move/duplicate from Drafts, PNG export of dashboard frame)"
+      "note": "independent — Figma parked per operator. Penpot is the active design tool now."
     }
   },
   "previousRuns": [
-    {"status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL",   "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"},
-    {"status": "FIGMA_ACCESS_TEST_PASSED",                         "snapshot": "runs/2026-05-24-figma-access-test-passed/"},
-    {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                       "snapshot": "runs/2026-05-24-figma-design-build-partial/"},
-    {"status": "BLOCKED_NEEDS_MANUAL_ACTION",                      "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/"},
-    {"status": "PENPOT_ACCESS_TEST_BLOCKED",                       "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"},
-    {"status": "PENPOT_ACCESS_TEST_PARTIAL",                       "snapshot": "runs/2026-05-24-penpot-access-gate-partial-restart-needed/"},
-    {"status": "PENPOT_ACCESS_TEST_PARTIAL",                       "snapshot": "runs/2026-05-24-penpot-tools-not-loaded/"}
+    {"status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL",                "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"},
+    {"status": "FIGMA_ACCESS_TEST_PASSED",                                     "snapshot": "runs/2026-05-24-figma-access-test-passed/"},
+    {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                                   "snapshot": "runs/2026-05-24-figma-design-build-partial/"},
+    {"status": "BLOCKED_NEEDS_MANUAL_ACTION",                                  "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/"},
+    {"status": "PENPOT_ACCESS_TEST_BLOCKED",                                   "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"},
+    {"status": "PENPOT_ACCESS_TEST_PARTIAL",                                   "snapshot": "runs/2026-05-24-penpot-access-gate-partial-restart-needed/"},
+    {"status": "PENPOT_ACCESS_TEST_PARTIAL",                                   "snapshot": "runs/2026-05-24-penpot-tools-not-loaded/"},
+    {"status": "PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK",                 "note": "Penpot Access Gate accepted as PARTIAL but usable"}
   ],
-  "nextGate": "REVIEWER_AUDIT_PENPOT_PARTIAL_EXPORT_PREVIEW_OK_AUTHORIZE_DESIGN_BUILD"
+  "nextGate": "MANUAL_VISUAL_AUDIT_OF_PENPOT_SCREEN_01_DASHBOARD"
 }
