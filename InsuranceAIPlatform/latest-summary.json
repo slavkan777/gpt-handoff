@@ -1,9 +1,8 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "penpot-export-cleanup-before-interactions",
-  "status": "PENPOT_EXPORT_ORDER_CLEANED_MANUAL_PDF_REQUIRED",
+  "task": "penpot-final-export-cleanup",
+  "status": "PENPOT_FINAL_EXPORT_CLEANUP_DONE_MANUAL_PDF_REQUIRED",
   "boardOrderLayerArray": [
-    "[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform",
     "01 — Огляд автострахових випадків",
     "02 — Список автострахових випадків",
     "03 — Робоче місце випадку",
@@ -20,20 +19,14 @@
     "row1_y320":  ["01@x40","02@x1520","03@x3000"],
     "row2_y1260": ["04@x40","05@x1520","06@x3000"],
     "row3_y2200": ["07@x40","08@x1520","09@x3000"],
-    "row4_y3140": ["10@x40","11@x1520"],
-    "offCanvas":  ["MCP Access Test @ (-2000,-2000)"]
+    "row4_y3140": ["10@x40","11@x1520"]
   },
-  "reorderMethod": "sendToBack() on each portfolio board in order 01→11 (3 batches of ≤4 boards each, each batch ≤2s), then bringToFront() on MCP Access Test to push it to the end of the page-root children list",
-  "mcpTestFramePosition": { "x": -2000, "y": -2000 },
-  "mcpTestFrameName": "[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform",
-  "mcpTestFrameRedBannerPresent": true,
-  "fallbackForReversedExport": {
-    "trigger": "Penpot reverse children order",
-    "action": "single-call layer-order swap to [test, 11, 10, ..., 01]",
-    "estimatedTime": "~2 minutes, no content rebuild"
-  },
+  "pageRootChildrenCount": 11,
+  "mcpTestFrameDeleted": true,
+  "mcpTestFrameStillPresent": false,
+  "deletionMethod": "shape.remove() on the [DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform frame; Penpot Plugin API call succeeded; post-delete probe confirms zero remaining MCP test frames on the page",
   "contentPreservation": {
-    "method": "per-board children-count probe after reorder",
+    "method": "per-board children-count probe after MCP test deletion",
     "result": "PASS — all 11 boards retain original child counts",
     "counts": {
       "01": 379, "02": 274, "03": 209, "04": 132,
@@ -45,7 +38,7 @@
   "screen02Preserved": true,
   "screen03Preserved": true,
   "boards04To11Preserved": true,
-  "mcpAccessTestExcludedFromPortfolioExport": true,
+  "mcpAccessTestRemovedFromCanvas": true,
   "prototypeInteractionsCreated": false,
   "manualInteractionSetupRequired": true,
   "manualPdfExportRequired": true,
@@ -71,8 +64,8 @@
   "securityScan": "PASS",
   "blockerReason": null,
   "manualActionsRequested": [
-    "Slava: File → Export → PDF. Deselect '[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform'. Keep boards 01–11 in natural list order. Verify PDF page order is 01→11.",
-    "If PDF order is still reversed: send 'Penpot reverse children order' — implementer applies a one-call fix and Slava re-exports."
+    "Slava: File → Export → PDF. Select all 11 portfolio boards 01 → 11. There is no longer a MCP test frame to deselect — it has been removed from the canvas. Verify PDF page count is 11 and page order is 01 → 11.",
+    "If PDF order is still reversed (i.e. 11 → 01): send 'Penpot reverse children order' — implementer applies a one-call children-array swap and Slava re-exports."
   ],
   "nextSafeStep": "Slava re-exports manual PDF, audits page order and content. On accept, authorize PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE.",
   "openWorkstreams": {
@@ -86,7 +79,8 @@
     {"status": "PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE",                    "note": "Screen 01 ACCEPTED"},
     {"status": "PENPOT_FULL_PROTOTYPE_CONTENT_PARTIAL",                        "note": "First fill attempt — only 02/03 retained"},
     {"status": "PENPOT_BOARDS_04_11_CONTENT_FILLED_MANUAL_PDF_REQUIRED",       "note": "Two-call durable fill — partial async rollback hit 08–11+07B later"},
-    {"status": "PENPOT_BOARDS_08_11_REPAIRED_MANUAL_PDF_REQUIRED",             "note": "Forensic repair — all 11 boards verified across multi-phase 60s wait"}
+    {"status": "PENPOT_BOARDS_08_11_REPAIRED_MANUAL_PDF_REQUIRED",             "note": "Forensic repair — all 11 boards verified across multi-phase 60s wait"},
+    {"status": "PENPOT_EXPORT_ORDER_CLEANED_MANUAL_PDF_REQUIRED",              "note": "sendToBack 01→11 + bringToFront on MCP test; portfolio block contiguous at end; PDF audit still showed reversed order"}
   ],
   "nextGate": "PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE"
 }

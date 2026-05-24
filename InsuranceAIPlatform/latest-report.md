@@ -1,20 +1,18 @@
-STATUS: PENPOT_EXPORT_ORDER_CLEANED_MANUAL_PDF_REQUIRED
+STATUS: PENPOT_FINAL_EXPORT_CLEANUP_DONE_MANUAL_PDF_REQUIRED
 
-Task slug: penpot-export-cleanup-before-interactions
-Project gate: Penpot Export Cleanup — boards 01–11 sorted, MCP Access Test isolated
+Task slug: penpot-final-export-cleanup
+Project gate: Penpot Final Export Cleanup — MCP test frame deleted, boards 01–11 in 3×4 grid
 Handoff channel: GitHub (this repo)
 
 # BOARD ORDER
 
-Both axes (layer-order and canvas-position) now agree on `01 → 11`.
+The page root now contains **exactly 11 children**, in natural 01 → 11 order. There is no longer a non-portfolio sibling on the page.
 
 ## Layer order (page root `children[]`)
 
 ```
-[ test (off-canvas), 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11 ]
+[ 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11 ]
 ```
-
-This was reached by calling `sendToBack()` on each portfolio board in order 01→11 (3 small batches), then `bringToFront()` on the test frame. The portfolio block now sits contiguously at the end of the children list, in natural reading order.
 
 ## Canvas position (frame `x`, `y`)
 
@@ -25,25 +23,23 @@ Row 1 (y=320):    01 (x=40)   02 (x=1520)   03 (x=3000)
 Row 2 (y=1260):   04 (x=40)   05 (x=1520)   06 (x=3000)
 Row 3 (y=2200):   07 (x=40)   08 (x=1520)   09 (x=3000)
 Row 4 (y=3140):   10 (x=40)   11 (x=1520)
-Off-canvas:       MCP Access Test at (-2000, -2000)
 ```
 
-Whether Penpot's PDF export uses children-array order, canvas-position order, or top-down/left-right scan, all three converge on `01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11`. The test frame sorts either alongside its `(-2000, -2000)` position (well separated) or at the page-children boundary, and is trivially deselected at the export picker.
+Whether Penpot's PDF export uses children-array order, canvas-position order, or top-down/left-right scan, all three converge on `01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11`. There is no test frame anywhere in the file to deselect or filter out.
 
 ## Note on the previously observed reversed PDF order
 
-The earlier PDF came out `11 → 01`. The cause was unaudited layer order: the boards 02–11 were created in batches AFTER 01 and stacked at the front, while Penpot's PDF appears to honor reverse-children order. This run normalized that.
+The earlier PDF came out `11 → 01`. The cause was unaudited layer order from the original build. The prior cleanup pass normalized the children array to `[test, 01..11]`. This run goes one step further — **the MCP test frame is removed entirely**, so the page root is now `[01..11]` with no decoy sibling.
 
-If the new PDF is **still** reversed (i.e. `11, 10, ..., 01`), Penpot is exporting reverse-children unconditionally. Trigger phrase to apply the one-call fix: `Penpot reverse children order` — the implementer will swap to `[test, 11, 10, ..., 01]` so the reverse-export yields `01, 02, ..., 11`. Two minutes of work; no content rebuild.
+If the new PDF is still reversed (i.e. `11, 10, ..., 01`), Penpot is exporting reverse-children unconditionally. Trigger phrase to apply the one-call fix: `Penpot reverse children order` — the implementer will swap the children array to `[11, 10, ..., 01]` so the reverse-export yields `01, 02, ..., 11`. Two minutes of work; no content rebuild.
 
 # MCP TEST FRAME
 
-- Name: `[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform`
-- Position: `(-2000, -2000)` — well outside any portfolio board area (which sits at `x ∈ [40, 4440]`, `y ∈ [320, 4040]`)
-- The red `DO NOT EXPORT · MCP ACCESS TEST · NOT FOR PORTFOLIO` banner from the previous gate is still inside the frame
-- Not deleted (per operator instruction — keep unless trivial / safe)
+- **DELETED.** The frame previously named `[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform` (and its 5 child shapes including the red banner) was removed from the Penpot file via `shape.remove()`.
+- Post-delete probe confirms `penpotUtils.findShape` returns null for both the prefixed name and the legacy name.
+- The page root now has exactly 11 children — all of them portfolio boards.
 
-# CONTENT PRESERVED (all 11 boards verified post-reorder)
+# CONTENT PRESERVED (all 11 boards verified post-delete)
 
 ```
 01 → 379    07 → 136
@@ -54,7 +50,7 @@ If the new PDF is **still** reversed (i.e. `11, 10, ..., 01`), Penpot is exporti
 06 → 137
 ```
 
-No content was touched in this run — only the layer-order (`children[]` index) of each board on the page root, and the test frame's `bringToFront()` to push it to the end of the page-children list. All shape contents, sizes, positions inside their parent frames remain identical.
+These counts are identical to the pre-delete snapshot. No portfolio content was touched in this run — only the MCP test frame was removed. All shape contents, sizes, positions inside their parent frames remain identical.
 
 # GITHUB HANDOFF
 
@@ -72,16 +68,15 @@ No content was touched in this run — only the layer-order (`children[]` index)
 - source commit: NO.
 - source push: NO.
 - No code, no React, no backend, no deployment.
-- Penpot shape/file IDs omitted.
+- Penpot shape/file IDs omitted from this report (the deleted-frame id appears in the run-trace only, not in the public handoff narrative).
 
 # NEXT SAFE STEP
 
 1. In Penpot: File → Export → PDF.
-2. At the export picker: **deselect** `[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform`.
-3. Keep boards `01 — Огляд автострахових випадків` through `11 — Демо-сценарій` selected, in order.
-4. Export and review.
+2. At the export picker: select all 11 portfolio boards (01 → 11). There is no longer a test frame to deselect.
+3. Export and review.
 
-Expected PDF order: `01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 09 → 10 → 11`. No test frame in the output.
+Expected PDF: 11 pages, ordered `01 → 02 → 03 → 04 → 05 → 06 → 07 → 08 → 09 → 10 → 11`.
 
 If the order is still reversed: send `Penpot reverse children order` — single-call layer-order swap, no content rebuild.
 
