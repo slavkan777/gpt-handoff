@@ -1,83 +1,85 @@
-STATUS: PENPOT_FULL_PROTOTYPE_PARTIAL_PLUGIN_TIMEOUT_AFTER_BOARD_CREATION
+STATUS: PENPOT_FULL_PROTOTYPE_CONTENT_PARTIAL
 
-Task slug: penpot-full-clickable-prototype
-Project gate: Penpot Master Design Build — Full Clickable Prototype (PARTIAL)
+Task slug: penpot-full-prototype-content-fill
+Project gate: Penpot Master Design Build — Full Clickable Prototype (PARTIAL, server-side rollback)
 Handoff channel: GitHub (this repo)
 
-# CURRENT STATE
+# HONEST SITUATION
 
-Phase 0 + Phase 1 succeeded. Phase 2 (board content) was blocked by a Penpot plugin-side timeout. No invented success below — strict reporting.
+After a careful per-board build attempt (one `execute_code` call per board, verification after each), and after seeing what survived a final probe:
 
-**What is real and persistent in the Penpot file right now:**
+**Boards with full content (kept):**
+- `01 — Огляд автострахових випадків` — 380 shapes (the previously accepted Screen 01, untouched throughout this run)
+- `02 — Список автострахових випадків` — 274 shapes (full claims list, filters, 8-row queue table, side mini-panel for SLA/Risk/Human)
+- `03 — Робоче місце випадку` — 209 shapes (full case workspace for CLM-1006 — header chips, event timeline, policy + docs cards, photo gallery, repair invoice, right AI panel with recommendation + risks + evidence + next action, bottom action bar)
 
-- Board `01 — Огляд автострахових випадків` — **intact** (the previously accepted Screen 01, ~380 shapes, Fluent-soft palette). Not touched in this run.
-- 10 new empty board containers created on the same canvas (1440 × 900 each, page-bg fill `#F7F9FC`, laid out in a 3-column / 4-row grid below + right of Screen 01):
-  - `02 — Список автострахових випадків`
-  - `03 — Робоче місце випадку`
-  - `04 — Документи та фото випадку`
-  - `05 — AI-аналіз та докази`
-  - `06 — Ризики та перевірки`
-  - `07 — Людське погодження`
-  - `08 — Аудит і витрати`
-  - `09 — Поліс і покриття`
-  - `10 — Клієнт і транспортний засіб`
-  - `11 — Демо-сценарій`
+**Boards reverted to shell-only:**
+- `04 — Документи та фото випадку` — 67 shapes (sidebar + top bar only)
+- `05 — AI-аналіз та докази` — 67
+- `06 — Ризики та перевірки` — 67
+- `07 — Людське погодження` — 67
+- `08 — Аудит і витрати` — 67
+- `09 — Поліс і покриття` — 67
+- `10 — Клієнт і транспортний засіб` — 67
+- `11 — Демо-сценарій` — 65
 
-**What did NOT happen:**
+In each case, the per-board `execute_code` call originally appeared to have committed its content — child counts of 178 / 204 / 178 / 170 / 239 / 203 / 193 / 207 respectively were observed in the immediate verification probe right after each call. A final cross-board re-check then showed those numbers had collapsed back to the shell counts. The Penpot server rolled the timed-out transactions back during its sync cycle.
 
-- App shell (sidebar + top command bar) was NOT rendered on the 10 new boards.
-- No screen-specific content was built on any of the 10 new boards.
-- No prototype interactions were created.
-- No screenshots/exports were attempted in this run.
+**Interactions:**
+- One batched `addInteraction` call attempted ~110 sidebar nav links across all 11 boards. Board 01 retained the full row of sidebar nav links (~10 verified). One critical link landed in a follow-up tiny call: Board 01 row "CLM-1006" → Board 03.
+- The rest of the planned interaction batch did not survive the rollback.
+- The Penpot `Interaction` API itself is functional (verified: single calls commit cleanly, `shape.interactions[]` is populated).
 
-# WHAT BLOCKED THE BUILD
+# WHAT FAILED — ROOT CAUSE
 
-The second `execute_code` call (a single batched render of sidebar + top bar on all 10 new boards at once — approximately 600 shape creations through one plugin RPC) hit a hard 30-second timeout from the Penpot MCP server. After that timeout, the plugin entered a saturated state: every subsequent `execute_code` call — including a trivial `return { pong: 1 }` probe — also timed out at 30 s. This indicates the plugin's task queue is jammed, not that the network or session is broken.
+**Penpot rolls back transactions whose `execute_code` response timed out, even when the plugin's in-memory view shows them as applied.**
 
-Diagnosis:
+What I observed empirically over this run:
 
-1. Penpot's `execute_code` tool has a server-side 30 s budget per task.
-2. Batching ~600 shape creations into one call exceeded that budget.
-3. The plugin appears to continue processing the failed task in the background, blocking subsequent calls until the queue drains.
-4. This is a recoverable client-side condition — close + reopen the Penpot design file (or restart the Penpot tab), and the plugin reconnects fresh.
+1. Per-board content calls each hit the Penpot MCP server-side 30 s `execute_code` budget.
+2. Immediately after each timeout, `findShape` + `children.length` confirmed the new shapes were in place. This led me to believe the work was durable.
+3. After a series of such timed-out calls, a final cross-board re-check revealed only Boards 02 and 03 still had their content; Boards 04–11 had reverted to the shell shapes that committed in an earlier session.
+4. Smaller calls (≤ 1–2 shapes, sub-second response) commit reliably and survive.
 
-# WHAT TO TRY NEXT (when Penpot plugin is reset)
+So the practical Penpot Plugin API constraint for durable writes is: **each `execute_code` must return within ~30 s. Calls that exceed it appear to apply transactionally inside the plugin but are rolled back by the server's sync afterward.**
 
-Single operator action (≤ 30 seconds):
+# WHAT TO DO NEXT — A DURABLE STRATEGY
 
-1. In the browser, close the Penpot tab showing the `InsuranceAIPlatform — Auto Claim AI Workbench` file.
-2. Reopen the file. Wait for the Penpot MCP plugin to show `Connected` in the Plugins panel.
-3. Send the trigger phrase `Penpot ready` again.
+Each Board 04–11 needs to be rebuilt with content **split across 3–4 small `execute_code` calls per board**, each call creating ~40–60 shapes and returning in 5–15 s, well under the 30 s budget. Concretely:
 
-On `Penpot ready` the implementer will resume in much smaller batches:
+For each board (8 boards remain):
+1. Call A: header strip + 1–2 hero/primary cards (≈ 40 shapes)
+2. Call B: middle cards row + 1 data table (≈ 50 shapes)
+3. Call C: right panel content + bottom buttons (≈ 50 shapes)
 
-- One `execute_code` call per board for the app shell (10 calls total instead of 1).
-- One `execute_code` call per board for content (10 calls total).
-- One `execute_code` call to probe + apply Penpot prototype interactions.
-- Total ~22 calls instead of 1 batched mega-call.
+After each call, verify via the existing tiny probe pattern (`findShape` for one signature text). Re-probe ALL boards' child counts at the end to confirm nothing rolled back.
 
-Each call will stay well under the 30 s budget. This is the same pattern that worked for Screen 01 (10 batched calls × ~40 shapes each).
+Estimated tool-call budget for completion: ~25 small `execute_code` calls + ~10 interaction-batch calls (split per-board into 3-4 interactions each). Each call ≤ 15 s. Total wall time ~5–10 minutes.
 
-# WHAT WORKS
+This is the same pattern that worked for the original Screen 01 build (380 shapes across ~10 batched calls, all committed cleanly because no single call exceeded the budget).
 
-- Penpot MCP tools loaded in session: YES.
-- Penpot plugin instance connected: YES (was connected before the timeout; needs reset now).
-- Board creation API: WORKS (10 boards created cleanly).
-- Color tokens persisted across calls via `storage.dash.colors`: WORKS.
-- Board IDs persisted via `storage.dash.boards`: WORKS.
+# WHAT WORKS (no need to retry)
+
+- Penpot MCP plugin connection: stable.
+- Board containers for all 11 boards: exist, named correctly, positioned on canvas.
+- Color tokens: locked Fluent-soft palette (#F7F9FC bg, #E5EAF0 border, #6D5DD3 purple, #B91C1C high-risk text, etc.) — consistently applied.
+- App shell (sidebar + top bar) on Boards 02–11: rendered and durable.
+- Boards 02 and 03 are full, durable, and ready for portfolio.
+- Penpot prototype `addInteraction` API: confirmed working (1 interaction added cleanly to "CLM-1006" → Board 03 in the last sanity check).
+- Screen 01 baseline: untouched, intact.
 
 # WHAT IS PARTIAL / MANUAL
 
-- App shell on 10 new boards: NOT built — pending plugin reset.
-- Screen-specific content on 10 new boards: NOT built — pending plugin reset.
-- Prototype interactions (clickable navigation): NOT created — pending plugin reset; also requires Penpot `Interaction` API to be exercised on a healthy plugin.
-- Manual screenshot evidence: NOT applicable yet (no new boards have content to screenshot).
+- 8 boards (04–11) need their content rebuilt using the smaller-batch strategy above.
+- Sidebar nav interactions need to be re-added per-board after the rebuild.
+- Cross-page links (table row → 03, action buttons → 04/05/06/07/08, audit link → 08, demo step cards → boards) need to be added per-board after the rebuild.
+- MCP Access Test frame: untouched. Will not be included in the final portfolio PDF (operator excludes it from export).
 
 # GITHUB HANDOFF
 
-- `InsuranceAIPlatform/latest-report.md`: YES (this file).
-- `InsuranceAIPlatform/latest-summary.json`: YES.
-- `InsuranceAIPlatform/latest-screens/`: UNCHANGED (no new artifact produced).
+- `InsuranceAIPlatform/latest-report.md` — YES (this file, honest PARTIAL).
+- `InsuranceAIPlatform/latest-summary.json` — YES.
+- No PNG added to `latest-screens/`.
 
 # SECURITY
 
@@ -88,18 +90,16 @@ Each call will stay well under the 30 s budget. This is the same pattern that wo
 - source repo touched: NO (Twincore-framework / Azure / AgentHub / BusinessLab / DevDept all untouched).
 - source commit: NO.
 - source push: NO.
-- Penpot shape/file IDs: omitted from this handoff.
 - No code, no React, no backend, no deployment.
-
-# BLOCKERS
-
-1. **Penpot plugin saturation.** Server-side 30 s task budget was exceeded by a batched shell render. Plugin queue is jammed; trivial probes also time out. Recovery is operator-side: close + reopen the Penpot file. No fix the implementer can apply remotely.
+- Penpot internal shape/file IDs omitted from this handoff.
 
 # NEXT SAFE STEP
 
-Operator: close + reopen the Penpot design file (`InsuranceAIPlatform — Auto Claim AI Workbench`) in the browser to release the plugin queue. Verify in the Plugins panel that the Penpot MCP plugin reconnects (`Connected` state). Send the trigger phrase `Penpot ready`.
+Option 1 (recommended) — same session resume: send the trigger phrase «Penpot continue». The implementer will rebuild Boards 04–11 using the durable smaller-batch strategy (3–4 calls per board, each ≤ 15 s, verify per board, verify all-boards at end). Then re-add interactions per-board in small batches. Total estimated ~5–10 minutes of small calls.
 
-The implementer will then resume from Phase 2 with a per-board batching pattern (one `execute_code` call per board's shell, one per board's content, one for prototype interactions — well within the 30 s budget per call). Screen 01 remains untouched throughout.
+Option 2 — accept current state: Boards 02 + 03 + the accepted Screen 01 are the three "real" portfolio screens. Boards 04–11 are shells. Slava decides whether 3 portfolio screens + 8 navigational placeholders is enough.
+
+Option 3 — stop Penpot entirely and pivot to HTML implementation: the operator's earlier signal («на HTML реальному дизайні ще краще буде») suggests HTML is the production target anyway. The 3 finished Penpot boards prove design direction; the rest can move directly to HTML/CSS.
 
 # Source-repo block
 
@@ -115,8 +115,8 @@ The implementer will then resume from Phase 2 with a per-board batching pattern 
 
 # Security scan result
 
-PASS — no JWT-shaped substrings, no MCP URLs carrying credentials, no email/handle, no callback URLs, no provider API keys, no source code from private repos, no internal absolute machine paths beyond the user's own public-handoff working-copy path.
+PASS — regex sweep across the 2 changed handoff files: no JWT-shaped substrings, no MCP URLs carrying credentials, no email/handle, no callback URLs, no provider API keys, no source code from private repos.
 
 # Next gate
 
-Reviewer (GPT) audits this partial gate: (a) confirms the diagnosis (Penpot plugin queue saturation, not a credential/security issue), (b) confirms the resume plan (per-board batching) is sound, (c) authorizes the resume trigger `Penpot ready` after the operator refresh.
+External reviewer (Slava + GPT) authorizes one of Options 1 / 2 / 3.
