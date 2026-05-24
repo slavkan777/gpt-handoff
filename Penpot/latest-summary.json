@@ -1,0 +1,34 @@
+{
+  "project": "Penpot",
+  "task": "penpot-access-gate",
+  "date": "2026-05-24",
+  "status": "blocked",
+  "blocker": "plugin-not-connected",
+  "deterministic": true,
+  "retry_attempts": 2,
+  "tools_enumerated": 4,
+  "tools": [
+    "mcp__penpot__high_level_overview",
+    "mcp__penpot__penpot_api_info",
+    "mcp__penpot__execute_code",
+    "mcp__penpot__export_shape"
+  ],
+  "steps": {
+    "enumerate_tools": "pass",
+    "load_overview": "pass",
+    "read_file_summary": "fail",
+    "create_test_frame": "not_attempted",
+    "export_test_frame": "not_attempted",
+    "report_to_handoff": "pass"
+  },
+  "evidence": {
+    "probe_error_verbatim": "No plugin instance connected for user token. Please ensure the plugin is running and connected with the correct token.",
+    "failure_layer": "plugin-link",
+    "transport_reachable": true
+  },
+  "next_action": "user-starts-penpot-mcp-plugin-then-retry-gate",
+  "links": {
+    "report": "https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/Penpot/latest-report.md",
+    "summary": "https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/Penpot/latest-summary.json"
+  }
+}
