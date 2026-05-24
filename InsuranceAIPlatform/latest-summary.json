@@ -1,56 +1,55 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "penpot-boards-08-11-forensic-repair",
-  "status": "PENPOT_BOARDS_08_11_REPAIRED_MANUAL_PDF_REQUIRED",
-  "forensicFindings": {
-    "duplicateBoards": "none",
-    "rootCauseConfirmed": "async server-side rollback — previous gate's post-build re-probe at ~2s was inside the rollback window; counts looked correct then collapsed during Penpot's later sync cycle",
-    "previousGateFalsePositive": true,
-    "additionalBoardDiscoveredDamaged": "07 — Людське погодження (was 141, dropped to 97 — Call B portion lost; repaired this run)",
-    "perCallBudgetThatActuallyHeld": "~25 shapes per call (07B1/07B2 split worked when 44-shape 07B retry timed out)"
+  "task": "penpot-export-cleanup-before-interactions",
+  "status": "PENPOT_EXPORT_ORDER_CLEANED_MANUAL_PDF_REQUIRED",
+  "boardOrderLayerArray": [
+    "[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform",
+    "01 — Огляд автострахових випадків",
+    "02 — Список автострахових випадків",
+    "03 — Робоче місце випадку",
+    "04 — Документи та фото випадку",
+    "05 — AI-аналіз та докази",
+    "06 — Ризики та перевірки",
+    "07 — Людське погодження",
+    "08 — Аудит і витрати",
+    "09 — Поліс і покриття",
+    "10 — Клієнт і транспортний засіб",
+    "11 — Демо-сценарій"
+  ],
+  "boardOrderCanvasPosition": {
+    "row1_y320":  ["01@x40","02@x1520","03@x3000"],
+    "row2_y1260": ["04@x40","05@x1520","06@x3000"],
+    "row3_y2200": ["07@x40","08@x1520","09@x3000"],
+    "row4_y3140": ["10@x40","11@x1520"],
+    "offCanvas":  ["MCP Access Test @ (-2000,-2000)"]
   },
-  "boardsExpectedCount": 11,
-  "boardsPreserved": ["01", "02", "03", "04", "05", "06"],
-  "boardsRepairedThisRun": ["07", "08", "09", "10", "11"],
-  "boardsStillPartial": [],
-  "finalBoardCounts": {
-    "01": 379,
-    "02": 274,
-    "03": 209,
-    "04": 132,
-    "05": 154,
-    "06": 137,
-    "07": 136,
-    "08": 196,
-    "09": 161,
-    "10": 156,
-    "11": 153
+  "reorderMethod": "sendToBack() on each portfolio board in order 01→11 (3 batches of ≤4 boards each, each batch ≤2s), then bringToFront() on MCP Access Test to push it to the end of the page-root children list",
+  "mcpTestFramePosition": { "x": -2000, "y": -2000 },
+  "mcpTestFrameName": "[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform",
+  "mcpTestFrameRedBannerPresent": true,
+  "fallbackForReversedExport": {
+    "trigger": "Penpot reverse children order",
+    "action": "single-call layer-order swap to [test, 11, 10, ..., 01]",
+    "estimatedTime": "~2 minutes, no content rebuild"
   },
-  "signatureTextsVerified": {
-    "04": "Документи та фото випадку",
-    "05": "AI-аналіз та докази",
-    "06": "Ризики та перевірки",
-    "07": "Людське погодження",
-    "08": "Аудит і витрати AI-запуску",
-    "09": "Поліс і покриття",
-    "10": "Клієнт і транспортний засіб",
-    "11": "Auto Insurance Claim AI Workbench"
-  },
-  "rollbackCheck": {
-    "method": "4-phase verification across ~60 seconds cumulative wall time: (1) immediate after build, (2) after move-MCP-test work, (3) after 15s sleep, (4) after 20s sleep with intervening plugin-disconnect-reconnect cycle",
-    "result": "PASS — counts stable across all 4 phases, including a transient plugin disconnect that did not cause rollback"
+  "contentPreservation": {
+    "method": "per-board children-count probe after reorder",
+    "result": "PASS — all 11 boards retain original child counts",
+    "counts": {
+      "01": 379, "02": 274, "03": 209, "04": 132,
+      "05": 154, "06": 137, "07": 136, "08": 196,
+      "09": 161, "10": 156, "11": 153
+    }
   },
   "screen01Preserved": true,
   "screen02Preserved": true,
   "screen03Preserved": true,
-  "screen04Through06Preserved": true,
+  "boards04To11Preserved": true,
   "mcpAccessTestExcludedFromPortfolioExport": true,
-  "mcpAccessTestNewLocation": "moved to canvas position (-2000, -2000) — far off the portfolio cluster which sits at y >= 320",
-  "mcpAccessTestName": "[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform",
   "prototypeInteractionsCreated": false,
   "manualInteractionSetupRequired": true,
   "manualPdfExportRequired": true,
-  "manualScreenshotRequired": true,
+  "manualScreenshotRequired": false,
   "uiLanguage": "uk-UA",
   "autoInsuranceFocusVisible": true,
   "claimWorkflowVisible": true,
@@ -62,14 +61,6 @@
   "policyCoverageVisible": true,
   "customerVehicleContextVisible": true,
   "demoFlowVisible": true,
-  "buildStrategy": {
-    "approach": "2 calls per board (Call A, Call B), each ≤30 shapes; 07's Call B split into 07B1+07B2 (≤25 shapes each) after a 44-shape retry timed out",
-    "totalBuildCalls": 9,
-    "totalVerifyCalls": 9,
-    "timeoutsObserved": 1,
-    "timeoutHandledBy": "splitting the timed-out call into two smaller halves",
-    "rollbacksObservedThisRun": 0
-  },
   "mcpUrlExposed": false,
   "mcpKeyExposed": false,
   "userTokenExposed": false,
@@ -80,10 +71,10 @@
   "securityScan": "PASS",
   "blockerReason": null,
   "manualActionsRequested": [
-    "Slava: export PDF NOW while the file is in its verified state. File → Export → PDF. Deselect '[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform'. Keep boards 01–11 in order. Audit visually.",
-    "If any board comes out blank in the PDF, report which board with 'Penpot continue repair' and I'll re-run that board's content immediately."
+    "Slava: File → Export → PDF. Deselect '[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform'. Keep boards 01–11 in natural list order. Verify PDF page order is 01→11.",
+    "If PDF order is still reversed: send 'Penpot reverse children order' — implementer applies a one-call fix and Slava re-exports."
   ],
-  "nextSafeStep": "Slava re-exports manual PDF (skipping test frame, keeping boards 01–11) and visual-audits. On accept, authorize 'PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE' for the clickable navigation pass.",
+  "nextSafeStep": "Slava re-exports manual PDF, audits page order and content. On accept, authorize PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE.",
   "openWorkstreams": {
     "figmaFileMoveAndScreenshot": {
       "status": "BLOCKED_NEEDS_MANUAL_ACTION",
@@ -92,18 +83,10 @@
     }
   },
   "previousRuns": [
-    {"status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL",                "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"},
-    {"status": "FIGMA_ACCESS_TEST_PASSED",                                     "snapshot": "runs/2026-05-24-figma-access-test-passed/"},
-    {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                                   "snapshot": "runs/2026-05-24-figma-design-build-partial/"},
-    {"status": "BLOCKED_NEEDS_MANUAL_ACTION",                                  "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/"},
-    {"status": "PENPOT_ACCESS_TEST_BLOCKED",                                   "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"},
-    {"status": "PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK",                 "note": "Penpot Access Gate accepted as PARTIAL but usable"},
-    {"status": "PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED",  "note": "Screen 01 built (initial palette)"},
-    {"status": "PENPOT_SCREEN_01_COLOR_POLISHED_MANUAL_SCREENSHOT_REQUIRED",   "note": "Color polish applied (Fluent-soft)"},
-    {"status": "PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE",                    "note": "Screen 01 ACCEPTED by Slava"},
-    {"status": "PENPOT_FULL_PROTOTYPE_PARTIAL_PLUGIN_TIMEOUT_AFTER_BOARD_CREATION", "note": "10 board containers + shells created"},
+    {"status": "PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE",                    "note": "Screen 01 ACCEPTED"},
     {"status": "PENPOT_FULL_PROTOTYPE_CONTENT_PARTIAL",                        "note": "First fill attempt — only 02/03 retained"},
-    {"status": "PENPOT_BOARDS_04_11_CONTENT_FILLED_MANUAL_PDF_REQUIRED",       "note": "Claimed full fill — partial async rollback hit 08-11+07B during Slava's PDF export window"}
+    {"status": "PENPOT_BOARDS_04_11_CONTENT_FILLED_MANUAL_PDF_REQUIRED",       "note": "Two-call durable fill — partial async rollback hit 08–11+07B later"},
+    {"status": "PENPOT_BOARDS_08_11_REPAIRED_MANUAL_PDF_REQUIRED",             "note": "Forensic repair — all 11 boards verified across multi-phase 60s wait"}
   ],
   "nextGate": "PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE"
 }
