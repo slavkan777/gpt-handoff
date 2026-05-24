@@ -1,0 +1,23 @@
+{
+  "project": "InsuranceAIPlatform",
+  "task": "penpot-access-gate",
+  "status": "PENPOT_ACCESS_TEST_PARTIAL",
+  "snapshotOf": "latest-summary.json at sixth publication (partial — restart needed)",
+  "penpotMcpRegistrationPresent": true,
+  "penpotMcpServerHealth": "Connected",
+  "penpotToolsLoadedInSession": false,
+  "penpotMcpProbed": false,
+  "penpotFileReadAttempted": false,
+  "penpotWriteTestExecuted": false,
+  "penpotExportAttempted": false,
+  "mcpKeyExposed": false,
+  "userTokenExposed": false,
+  "secretsExposed": false,
+  "sourceRepoTouched": false,
+  "sourceCommit": false,
+  "sourcePush": false,
+  "securityScan": "PASS",
+  "blockerReason": "MCP added via CLI after session start; mcp__penpot__* tool surface not loaded in current session; restart required",
+  "nextSafeStep": "Restart Claude Code, send 'Penpot ready'",
+  "nextGate": "REVIEWER_AUDIT_PENPOT_PARTIAL_RESTART_NEEDED"
+}
