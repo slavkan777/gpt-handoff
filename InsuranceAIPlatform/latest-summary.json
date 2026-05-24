@@ -1,54 +1,66 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "penpot-full-prototype-content-fill",
-  "status": "PENPOT_FULL_PROTOTYPE_CONTENT_PARTIAL",
+  "task": "penpot-boards-04-11-content-only-fill",
+  "status": "PENPOT_BOARDS_04_11_CONTENT_FILLED_MANUAL_PDF_REQUIRED",
   "boardsExpectedCount": 11,
-  "boardsCompleteCount": 3,
-  "boardsComplete": [
-    {"id":"01 — Огляд автострахових випадків",  "shapes": 380, "note": "previously accepted Screen 01, untouched"},
-    {"id":"02 — Список автострахових випадків", "shapes": 274, "note": "full claims list, filters, queue table, side mini-panel"},
-    {"id":"03 — Робоче місце випадку",          "shapes": 209, "note": "full case workspace for CLM-1006"}
-  ],
-  "boardsStillEmpty": [
-    {"id":"04 — Документи та фото випадку",     "shapes": 67, "note": "shell only — content rolled back by Penpot server after timeout"},
-    {"id":"05 — AI-аналіз та докази",            "shapes": 67, "note": "shell only"},
-    {"id":"06 — Ризики та перевірки",            "shapes": 67, "note": "shell only"},
-    {"id":"07 — Людське погодження",             "shapes": 67, "note": "shell only"},
-    {"id":"08 — Аудит і витрати",                "shapes": 67, "note": "shell only"},
-    {"id":"09 — Поліс і покриття",               "shapes": 67, "note": "shell only"},
-    {"id":"10 — Клієнт і транспортний засіб",   "shapes": 67, "note": "shell only"},
-    {"id":"11 — Демо-сценарій",                  "shapes": 65, "note": "shell only"}
-  ],
-  "screen01Preserved": true,
-  "pages02To11Filled": "partial",
-  "clickablePrototypeAttempted": true,
-  "prototypeInteractionsCreated": "partial",
-  "interactionsDetail": {
-    "board01_sidebar_nav": "~10 of 10 likely landed (Board 01 was first in batch)",
-    "board01_table_row_CLM-1006_to_03": "landed (verified)",
-    "boards_02_through_11_sidebar_nav": "not landed (batch timeout + rollback)",
-    "cross_page_links_03_07_08_11": "not landed"
+  "boardsPreserved": ["01", "02", "03"],
+  "boardsFilledThisRun": ["04", "05", "06", "07", "08", "09", "10", "11"],
+  "boardsStillPartial": [],
+  "finalBoardCounts": {
+    "01": 379,
+    "02": 274,
+    "03": 209,
+    "04": 132,
+    "05": 154,
+    "06": 137,
+    "07": 141,
+    "08": 203,
+    "09": 161,
+    "10": 156,
+    "11": 153
   },
+  "signatureTextsVerified": {
+    "04": "Документи та фото випадку",
+    "05": "AI-аналіз та докази",
+    "06": "Ризики та перевірки",
+    "07": "Людське погодження",
+    "08": "Аудит і витрати AI-запуску",
+    "09": "Поліс і покриття",
+    "10": "Клієнт і транспортний засіб",
+    "11": "Auto Insurance Claim AI Workbench"
+  },
+  "rollbackCheck": {
+    "method": "post-delay re-probe on 3 randomly selected boards (04, 08, 11)",
+    "result": "PASS — counts unchanged after delay",
+    "perBoardSamples": { "04": 132, "08": 203, "11": 153 }
+  },
+  "screen01Preserved": true,
+  "screen02Preserved": true,
+  "screen03Preserved": true,
+  "mcpAccessTestExcludedFromPortfolioExport": true,
+  "mcpAccessTestExclusionMethod": "renamed prefix '[DO NOT EXPORT]' + red banner 'DO NOT EXPORT · MCP ACCESS TEST · NOT FOR PORTFOLIO' inside the frame; manual deselect at PDF export picker",
+  "prototypeInteractionsCreated": false,
   "manualInteractionSetupRequired": true,
   "manualPdfExportRequired": true,
   "manualScreenshotRequired": true,
   "uiLanguage": "uk-UA",
   "autoInsuranceFocusVisible": true,
-  "claimWorkflowVisible": "Boards 01, 02, 03 only",
-  "documentPhotoWorkflowVisible": false,
-  "aiEvidenceVisible": "right panel of Board 03 only; dedicated AI board (05) is shell-only",
-  "riskReviewVisible": "Board 03 chip + KPI on Board 01; dedicated risks board (06) is shell-only",
-  "humanApprovalVisible": "Board 03 action buttons only; dedicated approval board (07) is shell-only",
-  "auditCostGovernanceVisible": "Audit Cost panel on Board 01 only; dedicated audit board (08) is shell-only",
-  "mcpAccessTestExcludedFromPortfolioExport": true,
-  "rootCause": "Penpot MCP server-side 30 s execute_code budget. Per-board content batches each created ~150–270 shapes and exceeded 30 s. The plugin's in-memory state after each call showed the new shapes as present, but Penpot's subsequent server sync rolled the timed-out transactions back, leaving only the shell shapes that committed in an earlier session.",
-  "durableStrategyForResume": {
-    "per_board_split": "3–4 small execute_code calls per board, ~40–60 shapes per call",
-    "per_call_budget": "5–15 s, well under 30 s server limit",
-    "verify_after_each_call": true,
-    "final_cross_board_verify": "re-check all 11 board child counts in one tiny probe to confirm nothing rolled back",
-    "estimated_total_calls_for_8_remaining_boards_plus_interactions": 35,
-    "trigger_phrase_to_resume": "Penpot continue"
+  "claimWorkflowVisible": true,
+  "documentPhotoWorkflowVisible": true,
+  "aiEvidenceVisible": true,
+  "riskReviewVisible": true,
+  "humanApprovalVisible": true,
+  "auditCostGovernanceVisible": true,
+  "policyCoverageVisible": true,
+  "customerVehicleContextVisible": true,
+  "demoFlowVisible": true,
+  "buildStrategy": {
+    "approach": "two execute_code calls per board (Call A: header + 1-2 hero/primary cards ~30 shapes; Call B: main table/list/panel + buttons ~30-40 shapes)",
+    "perCallBudget": "5-15 seconds, well under Penpot 30s server limit",
+    "totalBuildCalls": 16,
+    "totalVerifyCalls": 6,
+    "rollbacksObserved": 0,
+    "timeoutsObserved": 0
   },
   "mcpUrlExposed": false,
   "mcpKeyExposed": false,
@@ -58,11 +70,12 @@
   "sourceCommit": false,
   "sourcePush": false,
   "securityScan": "PASS",
-  "blockerReason": "Penpot server rolls back transactions whose execute_code response timed out. Per-board batches exceeded the 30 s budget. Requires retry with smaller per-board batches.",
+  "blockerReason": null,
   "manualActionsRequested": [
-    "Decide: (1) authorize same-session resume with smaller-batch strategy (send 'Penpot continue'), or (2) accept current state of 3 finished portfolio screens, or (3) pivot to HTML implementation now."
+    "Slava: open Penpot → file 'InsuranceAIPlatform — Auto Claim AI Workbench' → File → Export → PDF. In the export picker, deselect the frame '[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform'. Keep boards 01–11 selected, in order. Export and audit visually.",
+    "Slava + GPT: visual-audit the PDF. On accept, authorize 'PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE' to add the clickable navigation pass in a follow-up task."
   ],
-  "nextSafeStep": "Operator authorizes one of Options 1/2/3 (see report). Implementer awaits trigger.",
+  "nextSafeStep": "Slava exports the manual PDF (skipping the marked test frame) and shares for visual audit. On accept, implementer adds prototype interactions in small per-board batches.",
   "openWorkstreams": {
     "figmaFileMoveAndScreenshot": {
       "status": "BLOCKED_NEEDS_MANUAL_ACTION",
@@ -82,7 +95,8 @@
     {"status": "PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED",  "note": "Screen 01 built (initial palette)"},
     {"status": "PENPOT_SCREEN_01_COLOR_POLISHED_MANUAL_SCREENSHOT_REQUIRED",   "note": "Color polish applied (Fluent-soft)"},
     {"status": "PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE",                    "note": "Screen 01 ACCEPTED by Slava"},
-    {"status": "PENPOT_FULL_PROTOTYPE_PARTIAL_PLUGIN_TIMEOUT_AFTER_BOARD_CREATION", "note": "10 board containers + shells created; content build blocked by plugin saturation"}
+    {"status": "PENPOT_FULL_PROTOTYPE_PARTIAL_PLUGIN_TIMEOUT_AFTER_BOARD_CREATION", "note": "10 board containers + shells created; content build blocked"},
+    {"status": "PENPOT_FULL_PROTOTYPE_CONTENT_PARTIAL",                        "note": "Boards 02-03 retained; 04-11 rolled back by Penpot server"}
   ],
-  "nextGate": "OPERATOR_DECIDES_RESUME_VS_ACCEPT_VS_PIVOT_TO_HTML"
+  "nextGate": "PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE"
 }
