@@ -1,84 +1,83 @@
-STATUS: PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE
+STATUS: PENPOT_FULL_PROTOTYPE_PARTIAL_PLUGIN_TIMEOUT_AFTER_BOARD_CREATION
 
-Task slug: penpot-screen-01-accepted
-Project gate: Penpot Screen 01 — CLOSED (ACCEPT verdict)
+Task slug: penpot-full-clickable-prototype
+Project gate: Penpot Master Design Build — Full Clickable Prototype (PARTIAL)
 Handoff channel: GitHub (this repo)
 
-# VERDICT
+# CURRENT STATE
 
-**ACCEPT** — Slava reviewed the polished Penpot Screen 01 via manual screenshot capture and verdicted: "вже не погано — для портфоліо вистачить". Penpot-side design work is considered portfolio-grade at this quality level. Next production-grade pass will be HTML implementation in the browser, where typography rendering, real shadows, focus/hover states, and retina output will lift the same layout further.
+Phase 0 + Phase 1 succeeded. Phase 2 (board content) was blocked by a Penpot plugin-side timeout. No invented success below — strict reporting.
 
-Penpot Screen 01 is therefore CLOSED as DONE for the portfolio purpose. No further Penpot polish required on this screen.
+**What is real and persistent in the Penpot file right now:**
 
+- Board `01 — Огляд автострахових випадків` — **intact** (the previously accepted Screen 01, ~380 shapes, Fluent-soft palette). Not touched in this run.
+- 10 new empty board containers created on the same canvas (1440 × 900 each, page-bg fill `#F7F9FC`, laid out in a 3-column / 4-row grid below + right of Screen 01):
+  - `02 — Список автострахових випадків`
+  - `03 — Робоче місце випадку`
+  - `04 — Документи та фото випадку`
+  - `05 — AI-аналіз та докази`
+  - `06 — Ризики та перевірки`
+  - `07 — Людське погодження`
+  - `08 — Аудит і витрати`
+  - `09 — Поліс і покриття`
+  - `10 — Клієнт і транспортний засіб`
+  - `11 — Демо-сценарій`
 
+**What did NOT happen:**
 
-# COLOR POLISH SUMMARY
+- App shell (sidebar + top command bar) was NOT rendered on the 10 new boards.
+- No screen-specific content was built on any of the 10 new boards.
+- No prototype interactions were created.
+- No screenshots/exports were attempted in this run.
 
-In-place visual polish on the existing `01 — Огляд автострахових випадків` board. No new shapes created, no shapes deleted, no layout shifted, no business content changed. All 9 content blocks, all Ukrainian labels, the 1440 × 900 board size, the auto-insurance product focus, and the existing 379 child shapes are preserved.
+# WHAT BLOCKED THE BUILD
 
-The goal was a more Microsoft Fluent / enterprise-Figma tone: softer colors, calmer badges, cleaner white cards with subtle depth, less harsh red/purple/blue, better readability, more premium look. The polish was applied as: (a) a global color swap on existing fills and strokes to a slightly cooler, less saturated palette; (b) softening of the right-panel internal dividers; (c) softer drop-shadows on every white card and primary button to give Fluent-flavored depth; (d) a few targeted contrast refinements (high-risk red moved from `#DC2626` to `#B91C1C` in pill text; alternating table-row tint moved to `#FAFBFD`; confidence pill moved to a softer purple).
+The second `execute_code` call (a single batched render of sidebar + top bar on all 10 new boards at once — approximately 600 shape creations through one plugin RPC) hit a hard 30-second timeout from the Penpot MCP server. After that timeout, the plugin entered a saturated state: every subsequent `execute_code` call — including a trivial `return { pong: 1 }` probe — also timed out at 30 s. This indicates the plugin's task queue is jammed, not that the network or session is broken.
 
-# WHAT CHANGED
+Diagnosis:
 
-## A. Global palette swap on existing shapes
+1. Penpot's `execute_code` tool has a server-side 30 s budget per task.
+2. Batching ~600 shape creations into one call exceeded that budget.
+3. The plugin appears to continue processing the failed task in the background, blocking subsequent calls until the queue drains.
+4. This is a recoverable client-side condition — close + reopen the Penpot design file (or restart the Penpot tab), and the plugin reconnects fresh.
 
-| Token | Before | After | Where it shows |
-|---|---|---|---|
-| Page background | `#F5F7FA` | `#F7F9FC` | board fill, outer area behind cards |
-| Borders | `#E5E7EB` | `#E5EAF0` | all card outlines, section dividers, sidebar/topbar/AI-panel separators |
-| AI purple | `#7C3AED` | `#6D5DD3` | evidence chips, confidence label, AI-related accents |
-| Amber soft | `#FFFBEB` | `#FFF7E6` | "Потрібна перевірка", "Очікує документи", recommendation callout, mid-risk pills |
-| Red soft | `#FEF2F2` | `#FEECEC` | high-risk pill background, guardrails accents |
-| Hover/alt | `#F9FAFB` | `#F6F8FB` | hover surfaces, alt-row tint base |
+# WHAT TO TRY NEXT (when Penpot plugin is reset)
 
-Counts: 60 fills updated · 29 strokes updated.
+Single operator action (≤ 30 seconds):
 
-## B. Right-panel divider softening
+1. In the browser, close the Penpot tab showing the `InsuranceAIPlatform — Auto Claim AI Workbench` file.
+2. Reopen the file. Wait for the Penpot MCP plugin to show `Connected` in the Plugins panel.
+3. Send the trigger phrase `Penpot ready` again.
 
-Right-panel internal section dividers (between header / case meta / findings / evidence / recommendation) and the sidebar divider were moved from the standard border color to a softer `#EEF1F5`, so sections breathe more and the panel feels less like a stack of fenced boxes. 7 dividers updated.
+On `Penpot ready` the implementer will resume in much smaller batches:
 
-## C. Soft Fluent-style drop-shadows on cards and buttons
+- One `execute_code` call per board for the app shell (10 calls total instead of 1).
+- One `execute_code` call per board for content (10 calls total).
+- One `execute_code` call to probe + apply Penpot prototype interactions.
+- Total ~22 calls instead of 1 batched mega-call.
 
-A uniform soft drop-shadow (offset Y=1 px, blur 3 px, color `#0F1A2A` at 5 % opacity) was applied to:
+Each call will stay well under the 30 s budget. This is the same pattern that worked for Screen 01 (10 batched calls × ~40 shapes each).
 
-- 5 KPI cards
-- Claim lifecycle strip card
-- Claims table card
-- Agent timeline card
-- Audit & cost card
-- Right-panel automation guardrails card
-- Recommendation callout
-- Action buttons (Відкрити огляд / Запитати дані / + Створити випадок / Запустити демо)
-- System status card in sidebar
+# WHAT WORKS
 
-Total: 16 shadows added. The shadow is subtle by design — it should read as "lifted off the page" without becoming a Material-style elevation.
+- Penpot MCP tools loaded in session: YES.
+- Penpot plugin instance connected: YES (was connected before the timeout; needs reset now).
+- Board creation API: WORKS (10 boards created cleanly).
+- Color tokens persisted across calls via `storage.dash.colors`: WORKS.
+- Board IDs persisted via `storage.dash.boards`: WORKS.
 
-## D. Targeted contrast refinements
+# WHAT IS PARTIAL / MANUAL
 
-- **High-risk red text** in the Ризик pill (table) and Ризик meta (right panel) moved from bright `#DC2626` to a deeper but less saturated `#B91C1C`. Keeps semantic weight, loses the "alarm" feeling.
-- **Alt-row tint** in the claims table moved from `#F9FAFB` to an even more neutral `#FAFBFD`.
-- **Confidence pill** (78 %) in the right-panel header moved to a softer purple-soft background (`#F5F3FF`) with a paler stroke (`#C7BFEC`) and the existing `#6D5DD3` value text — it reads as informational, not as a notification badge.
-- **Guardrails card** red stroke width reduced from 1.5 px to 1 px. Card stays clearly red-bordered (the "AI does not auto-decide" signal must remain readable) but is no longer visually aggressive.
+- App shell on 10 new boards: NOT built — pending plugin reset.
+- Screen-specific content on 10 new boards: NOT built — pending plugin reset.
+- Prototype interactions (clickable navigation): NOT created — pending plugin reset; also requires Penpot `Interaction` API to be exercised on a healthy plugin.
+- Manual screenshot evidence: NOT applicable yet (no new boards have content to screenshot).
 
-# WHAT WAS PRESERVED
+# GITHUB HANDOFF
 
-- All 9 required blocks (sidebar, top bar, KPIs, lifecycle, table, AI right panel, guardrails, agent timeline, audit & cost).
-- All Ukrainian UI labels.
-- All business content (mock claim numbers, mock customer names, mock vehicle models, KPI values, lifecycle counters, table rows, AI findings, evidence list, recommendation text, automation reasons, audit fields).
-- 1440 × 900 board size; position on canvas (40, 320).
-- Auto insurance / ДТП product focus.
-- Existing `MCP Access Test — InsuranceAIPlatform` frame on the same canvas — untouched.
-- The Guardrails card itself — preserved with all 4 reasons and the "AI не приймає остаточних рішень" statement.
-
-# SCREENSHOT
-
-**Manual required.**
-
-This polish pass did not auto-publish a PNG. Export-preview was used in-session for visual verification only. To publish a screenshot of the polished screen for GPT visual audit:
-
-1. Open Penpot in browser → file `InsuranceAIPlatform — Auto Claim AI Workbench`.
-2. Select board `01 — Огляд автострахових випадків`.
-3. Use Penpot's UI export (PNG, 1×) → save to `C:\Users\DEVELOPER\Claude\GitHub\gpt-handoff\InsuranceAIPlatform\latest-screens\penpot-screen-01-dashboard-polished-2026-05-24.png`.
+- `InsuranceAIPlatform/latest-report.md`: YES (this file).
+- `InsuranceAIPlatform/latest-summary.json`: YES.
+- `InsuranceAIPlatform/latest-screens/`: UNCHANGED (no new artifact produced).
 
 # SECURITY
 
@@ -89,17 +88,18 @@ This polish pass did not auto-publish a PNG. Export-preview was used in-session 
 - source repo touched: NO (Twincore-framework / Azure / AgentHub / BusinessLab / DevDept all untouched).
 - source commit: NO.
 - source push: NO.
-- Penpot shape/file IDs: omitted from handoff artifacts.
+- Penpot shape/file IDs: omitted from this handoff.
+- No code, no React, no backend, no deployment.
 
-The polish was a fills / strokes / shadows in-place edit inside the existing Penpot board. No external service was called; only the Penpot MCP plugin (already paired). No new credentials surfaced.
+# BLOCKERS
+
+1. **Penpot plugin saturation.** Server-side 30 s task budget was exceeded by a batched shell render. Plugin queue is jammed; trivial probes also time out. Recovery is operator-side: close + reopen the Penpot file. No fix the implementer can apply remotely.
 
 # NEXT SAFE STEP
 
-Operator captures a manual screenshot of the polished board (see SCREENSHOT section above) and sends it to GPT for the visual audit. Verdict expected: **ACCEPT / REWORK / BLOCKED**.
+Operator: close + reopen the Penpot design file (`InsuranceAIPlatform — Auto Claim AI Workbench`) in the browser to release the plugin queue. Verify in the Plugins panel that the Penpot MCP plugin reconnects (`Connected` state). Send the trigger phrase `Penpot ready`.
 
-- **ACCEPT** — Claude proceeds to Screen 02 build with the now-finalized Fluent palette.
-- **REWORK** — Claude applies targeted patches per the specific feedback (e.g. specific block needs more breathing room, specific pill needs more tone-down). No full rebuild.
-- **BLOCKED** — Claude pauses; operator gathers more requirements before continuing.
+The implementer will then resume from Phase 2 with a per-board batching pattern (one `execute_code` call per board's shell, one per board's content, one for prototype interactions — well within the 30 s budget per call). Screen 01 remains untouched throughout.
 
 # Source-repo block
 
@@ -115,8 +115,8 @@ Operator captures a manual screenshot of the polished board (see SCREENSHOT sect
 
 # Security scan result
 
-PASS — regex sweep across the 2 changed handoff files: no JWT-shaped substrings, no MCP URLs carrying credentials in query parameters, no email/handle/planKey, no callback URLs, no provider API keys, no source code from private repos, no internal absolute machine paths beyond the user's own public-handoff working-copy path used as the manual screenshot drop target.
+PASS — no JWT-shaped substrings, no MCP URLs carrying credentials, no email/handle, no callback URLs, no provider API keys, no source code from private repos, no internal absolute machine paths beyond the user's own public-handoff working-copy path.
 
 # Next gate
 
-Manual visual audit of polished Penpot Screen 01 by Slava + GPT.
+Reviewer (GPT) audits this partial gate: (a) confirms the diagnosis (Penpot plugin queue saturation, not a credential/security issue), (b) confirms the resume plan (per-board batching) is sound, (c) authorizes the resume trigger `Penpot ready` after the operator refresh.

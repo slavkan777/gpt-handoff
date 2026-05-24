@@ -1,46 +1,35 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "penpot-screen-01-accepted",
-  "status": "PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE",
-  "visualAuditVerdict": "ACCEPT",
-  "verdictRationale": "Polished Penpot Screen 01 reviewed via manual screenshot; portfolio-grade bar met. Future production pass = HTML implementation.",
-  "screenPolished": "01 — Огляд автострахових випадків",
-  "penpotFileName": "InsuranceAIPlatform — Auto Claim AI Workbench",
-  "boardSize": { "width": 1440, "height": 900 },
-  "boardPositionOnCanvas": { "x": 40, "y": 320 },
-  "shapesInsideBoard": 380,
-  "penpotToolsLoadedInSession": true,
-  "penpotPluginInstanceConnected": true,
-  "layoutChanged": false,
-  "contentChanged": false,
-  "blockCountPreserved": 9,
-  "uiLanguage": "uk-UA",
-  "paletteShifts": [
-    {"role":"page background","from":"#F5F7FA","to":"#F7F9FC"},
-    {"role":"borders","from":"#E5E7EB","to":"#E5EAF0"},
-    {"role":"AI purple","from":"#7C3AED","to":"#6D5DD3"},
-    {"role":"amber soft","from":"#FFFBEB","to":"#FFF7E6"},
-    {"role":"red soft","from":"#FEF2F2","to":"#FEECEC"},
-    {"role":"hover / alt","from":"#F9FAFB","to":"#F6F8FB"},
-    {"role":"high-risk text","from":"#DC2626","to":"#B91C1C"},
-    {"role":"alt-row tint","from":"#F9FAFB","to":"#FAFBFD"}
-  ],
-  "polishCounts": {
-    "fillsUpdated": 60,
-    "strokesUpdated": 29,
-    "dividersSoftened": 7,
-    "shadowsAdded": 16,
-    "guardrailsStrokeWidth": "1.5 → 1"
+  "task": "penpot-full-clickable-prototype",
+  "status": "PENPOT_FULL_PROTOTYPE_PARTIAL_PLUGIN_TIMEOUT_AFTER_BOARD_CREATION",
+  "boardsCreatedCount": 11,
+  "boardsExpectedCount": 11,
+  "boardsCreated": {
+    "01 — Огляд автострахових випадків": "existing (full content, accepted as baseline)",
+    "02 — Список автострахових випадків": "empty container",
+    "03 — Робоче місце випадку": "empty container",
+    "04 — Документи та фото випадку": "empty container",
+    "05 — AI-аналіз та докази": "empty container",
+    "06 — Ризики та перевірки": "empty container",
+    "07 — Людське погодження": "empty container",
+    "08 — Аудит і витрати": "empty container",
+    "09 — Поліс і покриття": "empty container",
+    "10 — Клієнт і транспортний засіб": "empty container",
+    "11 — Демо-сценарій": "empty container"
   },
-  "exportPreviewReturned": true,
-  "screenshotPublished": false,
+  "screen01Preserved": true,
+  "clickablePrototypeAttempted": true,
+  "prototypeInteractionsCreated": false,
+  "manualInteractionSetupRequired": true,
   "manualScreenshotRequired": true,
-  "manualScreenshotPath": "InsuranceAIPlatform/latest-screens/penpot-screen-01-dashboard-polished-2026-05-24.png",
-  "guardrailsCardPreserved": true,
+  "uiLanguage": "uk-UA",
   "autoInsuranceFocusVisible": true,
-  "aiWorkflowVisible": true,
-  "riskEvidenceHumanReviewVisible": true,
-  "auditCostGovernanceVisible": true,
+  "claimWorkflowVisible": "only on Screen 01 so far",
+  "documentPhotoWorkflowVisible": "container exists; content pending",
+  "aiEvidenceVisible": "only on Screen 01 so far",
+  "riskReviewVisible": "container exists; content pending",
+  "humanApprovalVisible": "container exists; content pending",
+  "auditCostGovernanceVisible": "only on Screen 01 so far",
   "mcpUrlExposed": false,
   "mcpKeyExposed": false,
   "userTokenExposed": false,
@@ -49,11 +38,21 @@
   "sourceCommit": false,
   "sourcePush": false,
   "securityScan": "PASS",
-  "blockerReason": null,
+  "blockerReason": "Penpot MCP plugin task queue saturated after a batched ~600-shape render hit the server-side 30 s execute_code budget. Subsequent execute_code calls (including a trivial `return {pong:1}` probe) also timed out at 30 s, indicating the plugin is still draining the failed task. Recovery requires operator action: close + reopen the Penpot file to reset the plugin connection. No security or credential aspect to this blocker.",
   "manualActionsRequested": [
-    "Open Penpot → file 'InsuranceAIPlatform — Auto Claim AI Workbench'. Select board '01 — Огляд автострахових випадків'. Export PNG via Penpot UI → save to InsuranceAIPlatform/latest-screens/penpot-screen-01-dashboard-polished-2026-05-24.png. Send to GPT for visual audit: ACCEPT / REWORK / BLOCKED."
+    "Close the Penpot tab showing 'InsuranceAIPlatform — Auto Claim AI Workbench'.",
+    "Reopen the file. Wait for the Penpot MCP plugin to show 'Connected' in the Plugins panel.",
+    "Send trigger phrase 'Penpot ready' to resume."
   ],
-  "nextSafeStep": "Slava captures manual screenshot of the polished board. GPT visual-audits. On ACCEPT → Screen 02 build with the finalized Fluent palette. On REWORK → targeted patches. On BLOCKED → pause and gather requirements.",
+  "nextSafeStep": "Operator refreshes the Penpot file to release the saturated plugin queue. On 'Penpot ready' the implementer resumes with per-board batching (1 execute_code call per board's shell, 1 per board's content, 1 for prototype interactions — ~22 calls total, each well under the 30 s budget). Screen 01 remains untouched. Same pattern that worked for Screen 01.",
+  "buildPlanForResume": {
+    "shellCalls": 10,
+    "contentCalls": 10,
+    "interactionsCalls": 1,
+    "verifyCalls": 1,
+    "estimatedTotalCalls": 22,
+    "estimatedBudgetPerCall": "5–15 seconds (well under 30 s server limit)"
+  },
   "openWorkstreams": {
     "figmaFileMoveAndScreenshot": {
       "status": "BLOCKED_NEEDS_MANUAL_ACTION",
@@ -70,7 +69,9 @@
     {"status": "PENPOT_ACCESS_TEST_PARTIAL",                                   "snapshot": "runs/2026-05-24-penpot-access-gate-partial-restart-needed/"},
     {"status": "PENPOT_ACCESS_TEST_PARTIAL",                                   "snapshot": "runs/2026-05-24-penpot-tools-not-loaded/"},
     {"status": "PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK",                 "note": "Penpot Access Gate accepted as PARTIAL but usable"},
-    {"status": "PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED",  "note": "Screen 01 built (initial palette)"}
+    {"status": "PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED",  "note": "Screen 01 built (initial palette)"},
+    {"status": "PENPOT_SCREEN_01_COLOR_POLISHED_MANUAL_SCREENSHOT_REQUIRED",   "note": "Color polish applied (Fluent-soft)"},
+    {"status": "PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE",                    "note": "Screen 01 ACCEPTED by Slava on manual screenshot"}
   ],
-  "nextGate": "MANUAL_VISUAL_AUDIT_OF_PENPOT_SCREEN_01_POLISHED"
+  "nextGate": "OPERATOR_PENPOT_FILE_REFRESH_THEN_RESUME_PROTOTYPE_BUILD"
 }
