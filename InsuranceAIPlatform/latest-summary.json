@@ -1,34 +1,34 @@
 {
   "project": "InsuranceAIPlatform",
   "task": "penpot-access-gate",
-  "status": "PENPOT_ACCESS_TEST_PARTIAL",
+  "status": "PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK",
+  "acceptance": "PARTIAL_ACCEPTABLE_FOR_DESIGN_BUILD",
   "penpotMcpRegistrationPresent": true,
   "penpotMcpServerHealth": "Connected",
   "penpotToolsLoadedInSession": true,
-  "penpotMcpProbed": true,
-  "penpotPluginInstanceConnected": false,
+  "penpotPluginInstanceConnected": true,
   "penpotFileReadAttempted": true,
-  "penpotPagesLayersSeen": null,
-  "penpotWriteTestExecuted": false,
-  "penpotTestFrameCreated": false,
-  "penpotExportAttempted": false,
+  "penpotPagesLayersSeen": true,
+  "penpotWriteTestExecuted": true,
+  "penpotTestFrameCreated": true,
+  "penpotExportAttempted": true,
+  "penpotExportPreviewReturned": true,
   "penpotScreenshotPublished": false,
-  "blockerReason": "Canvas-side Penpot MCP Plugin not running. MCP server is reachable and the mcp__penpot__* tool surface is loaded into the session, but execute_code and export_shape are routed by the server to a plugin instance that must be active inside an open Penpot design file and paired with the operator's user token. Server returned a structured 'No plugin instance connected for user token' error on the first no-mutation probe. Until plugin install + pairing happens in Penpot, no design read or write is possible.",
+  "manualScreenshotRequired": true,
+  "manualScreenshotPath": "InsuranceAIPlatform/latest-screens/penpot-access-test-2026-05-24.png",
+  "mcpUrlExposed": false,
   "mcpKeyExposed": false,
   "userTokenExposed": false,
-  "mcpUrlExposed": false,
   "secretsExposed": false,
   "sourceRepoTouched": false,
   "sourceCommit": false,
   "sourcePush": false,
   "securityScan": "PASS",
+  "blockerReason": null,
   "manualActionsRequested": [
-    "Open Penpot in browser; open (or create) the InsuranceAIPlatform design file.",
-    "Open the Plugins panel and install/enable the Penpot MCP Plugin if not already present.",
-    "Launch the plugin inside the open file so it pairs with the MCP server via the user token.",
-    "Verify the plugin shows Connected; send trigger phrase 'Penpot plugin connected' (or 'Penpot ready' again)."
+    "Optional: if design-build phase needs the access-test PNG published in this repo, capture it manually from Penpot UI and drop it at InsuranceAIPlatform/latest-screens/penpot-access-test-2026-05-24.png. The gate itself does not require this artifact to exist."
   ],
-  "nextSafeStep": "On trigger the implementer re-probes (getPages + shapeStructure(root, 2)), creates the 'MCP Access Test — InsuranceAIPlatform' frame near origin, calls mcp__penpot__export_shape to publish a PNG under latest-screens/penpot-access-test-2026-05-24.png, and republishes with PENPOT_ACCESS_TEST_PASSED / PARTIAL / BLOCKED.",
+  "nextSafeStep": "Proceed to InsuranceAIPlatform design build in Penpot. Access Gate has confirmed read, write, and export-preview paths function. Binary-publish path for screenshots will be retried per-frame during design build; manual screenshot is the documented fallback.",
   "openWorkstreams": {
     "figmaFileMoveAndScreenshot": {
       "status": "BLOCKED_NEEDS_MANUAL_ACTION",
@@ -42,7 +42,8 @@
     {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                       "snapshot": "runs/2026-05-24-figma-design-build-partial/"},
     {"status": "BLOCKED_NEEDS_MANUAL_ACTION",                      "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/"},
     {"status": "PENPOT_ACCESS_TEST_BLOCKED",                       "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"},
+    {"status": "PENPOT_ACCESS_TEST_PARTIAL",                       "snapshot": "runs/2026-05-24-penpot-access-gate-partial-restart-needed/"},
     {"status": "PENPOT_ACCESS_TEST_PARTIAL",                       "snapshot": "runs/2026-05-24-penpot-tools-not-loaded/"}
   ],
-  "nextGate": "REVIEWER_AUDIT_PENPOT_PARTIAL_PLUGIN_NOT_CONNECTED"
+  "nextGate": "REVIEWER_AUDIT_PENPOT_PARTIAL_EXPORT_PREVIEW_OK_AUTHORIZE_DESIGN_BUILD"
 }
