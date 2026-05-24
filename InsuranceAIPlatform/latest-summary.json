@@ -1,53 +1,37 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "figma-design-build",
-  "status": "FIGMA_DESIGN_BUILD_PARTIAL",
-  "figmaFileCreated": true,
-  "figmaPagesCreated": 2,
-  "figmaFramesCreated": 1,
-  "coreScreensCompleted": [
-    "01 — Огляд автострахових випадків"
-  ],
-  "coreScreensPending": [
-    "03 — Робоче місце випадку",
-    "05 — AI-перевірки",
-    "07 — Аудит і витрати"
-  ],
-  "supportingScreensCompleted": [],
-  "supportingScreensPending": [
-    "02 — Автострахові випадки",
-    "04 — Документи та фото",
-    "06 — Ризики та перевірки",
-    "08 — Клієнти",
-    "09 — Поліси",
-    "10 — Транспортні засоби",
-    "11 — Налаштування"
-  ],
-  "productConceptBoardBuilt": false,
-  "screenshotsExported": [],
-  "allAcceptanceChecksPassed": false,
-  "readyForGptDesignAudit": true,
+  "task": "figma-file-move-and-dashboard-screenshot-evidence",
+  "status": "BLOCKED_NEEDS_MANUAL_ACTION",
+  "figmaFileInTeamProject": false,
+  "figmaFileUrl": "https://www.figma.com/design/RE4vswlgy6RUjluHQ9PJ55",
+  "dashboardFrameUrl": "https://www.figma.com/design/RE4vswlgy6RUjluHQ9PJ55?node-id=1-3",
+  "dashboardScreenshotPublished": false,
+  "dashboardScreenshotPath": null,
+  "accessCheckPassed": null,
   "sourceRepoTouched": false,
   "sourceCommit": false,
   "sourcePush": false,
   "securityScan": "PASS",
-  "nextSafeStep": "Slava manually exports the dashboard frame as PNG (60-sec Figma UI action) so I can publish visible evidence under latest-screens/. Then Slava picks the path for the remaining 10 screens + Product Concept board: (B1) wait for June Starter cap reset and bulk-build 3–5 screens per use_figma call, (B2) upgrade Figma to Professional ($16/seat/month) to unlock 200 calls/day, or (B3) keep building specs textually in AIKB without touching Figma MCP this month.",
-  "figmaFileSanitized": {
-    "fileKey": "RE4vswlgy6RUjluHQ9PJ55",
-    "fileUrl": "https://www.figma.com/design/RE4vswlgy6RUjluHQ9PJ55",
-    "dashboardFrameUrl": "https://www.figma.com/design/RE4vswlgy6RUjluHQ9PJ55?node-id=1-3",
-    "location": "personal Drafts (owner-only)",
-    "tier": "starter",
-    "seat": "Full"
-  },
+  "nextSafeStep": "Slava performs three Figma UI manual actions: (A) access check on Team project (Share dialog — owner-only verify, no anyone-with-link), (B) move or duplicate file from Drafts to developer online's team → Team project, (C) export dashboard frame as PNG via Figma Export panel and send back. On receipt Claude publishes the screenshot and republishes latest-report.md with FIGMA_FILE_*_SCREENSHOT_PUBLISHED status.",
   "blockers": [
-    "Figma Starter monthly MCP tool-call cap exhausted (Up to 6/month per Figma docs — both reads and writes capped on this plan in practice).",
-    "Upgrade explicitly forbidden by Slava in this brief and earlier briefs.",
-    "MCP `get_screenshot` cannot run this month — manual PNG export from Figma UI required for visible evidence."
+    "Figma MCP exposes no file move/copy/duplicate tool — file-level operations are UI-only or REST-API-only.",
+    "Figma Starter monthly MCP tool-call cap exhausted — even non-file calls like get_screenshot are rejected this month.",
+    "Access safety of target Team project cannot be verified via MCP — Slava must inspect Share dialog in Figma UI before moving.",
+    "Free Starter Team project caps at 3 files (already has 2) — moving dashboard fills the third slot."
   ],
+  "currentFileLocation": "personal Drafts (owner-only by default)",
+  "targetLocation": "developer online's team → Team project",
+  "manualActionsRequested": [
+    "Open Team project Share dialog; verify only developer online has access and 'Anyone with link' is OFF.",
+    "Right-click the dashboard file in Drafts → Move to project / Duplicate to project → select Team project.",
+    "Open the dashboard frame, right-sidebar Export → PNG 1x/2x → drag PNG to chat or save to evidence path."
+  ],
+  "noUpgradePerformed": true,
+  "noPaidProjectCreated": true,
   "previousRuns": [
     {"status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL", "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"},
-    {"status": "FIGMA_ACCESS_TEST_PASSED", "snapshot": "runs/2026-05-24-figma-access-test-passed/"}
+    {"status": "FIGMA_ACCESS_TEST_PASSED",                       "snapshot": "runs/2026-05-24-figma-access-test-passed/"},
+    {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                     "snapshot": "runs/2026-05-24-figma-design-build-partial/"}
   ],
-  "nextGate": "REVIEWER_AUDIT_PARTIAL_DESIGN_BUILD"
+  "nextGate": "REVIEWER_AUDIT_BLOCKED_NEEDS_MANUAL_ACTION"
 }
