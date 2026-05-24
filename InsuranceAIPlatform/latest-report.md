@@ -1,77 +1,76 @@
-STATUS: PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED
+STATUS: PENPOT_SCREEN_01_COLOR_POLISHED_MANUAL_SCREENSHOT_REQUIRED
 
-Task slug: penpot-screen-01-dashboard-build
-Project gate: Penpot Design Build Gate — Screen 01 (Dashboard)
+Task slug: penpot-screen-01-color-polish
+Project gate: Penpot Screen 01 — Color / Style Polish (REWORK pass)
 Handoff channel: GitHub (this repo)
 
-# SCREEN BUILT
+# COLOR POLISH SUMMARY
 
-**Board name:** `01 — Огляд автострахових випадків`
-**Penpot file:** `InsuranceAIPlatform — Auto Claim AI Workbench`
-**Board position on canvas:** x=40, y=320 (placed below the existing MCP Access Test frame; not overlapping it)
-**Board size:** 1440 × 900 (desktop)
-**Total shapes inside the board:** 379
+In-place visual polish on the existing `01 — Огляд автострахових випадків` board. No new shapes created, no shapes deleted, no layout shifted, no business content changed. All 9 content blocks, all Ukrainian labels, the 1440 × 900 board size, the auto-insurance product focus, and the existing 379 child shapes are preserved.
 
-# PRODUCT DIRECTION REPRESENTED
+The goal was a more Microsoft Fluent / enterprise-Figma tone: softer colors, calmer badges, cleaner white cards with subtle depth, less harsh red/purple/blue, better readability, more premium look. The polish was applied as: (a) a global color swap on existing fills and strokes to a slightly cooler, less saturated palette; (b) softening of the right-panel internal dividers; (c) softer drop-shadows on every white card and primary button to give Fluent-flavored depth; (d) a few targeted contrast refinements (high-risk red moved from `#DC2626` to `#B91C1C` in pill text; alternating table-row tint moved to `#FAFBFD`; confidence pill moved to a softer purple).
 
-The screen visually proves the product is an **AI-assisted workbench for auto insurance accident claims** — not a generic insurance suite, not a CRM, not a chatbot, not a sales portal.
+# WHAT CHANGED
 
-The central business object on screen is the **Автостраховий випадок (auto-insurance claim)**, and the central scenario (ДТП → фото пошкоджень → заява клієнта → поліцейський звіт → рахунок СТО → перевірка поліса → AI-аналіз → ризики → людське погодження → audit/cost trace) is visible through the claim lifecycle strip, the claim queue table, the AI-analysis side panel for the selected case, and the audit & cost panel at the bottom.
+## A. Global palette swap on existing shapes
 
-# REQUIRED BLOCKS COVERED
+| Token | Before | After | Where it shows |
+|---|---|---|---|
+| Page background | `#F5F7FA` | `#F7F9FC` | board fill, outer area behind cards |
+| Borders | `#E5E7EB` | `#E5EAF0` | all card outlines, section dividers, sidebar/topbar/AI-panel separators |
+| AI purple | `#7C3AED` | `#6D5DD3` | evidence chips, confidence label, AI-related accents |
+| Amber soft | `#FFFBEB` | `#FFF7E6` | "Потрібна перевірка", "Очікує документи", recommendation callout, mid-risk pills |
+| Red soft | `#FEF2F2` | `#FEECEC` | high-risk pill background, guardrails accents |
+| Hover/alt | `#F9FAFB` | `#F6F8FB` | hover surfaces, alt-row tint base |
 
-All 9 required blocks are represented on the board:
+Counts: 60 fills updated · 29 strokes updated.
 
-| # | Block | Status |
-|---|---|---|
-| 1 | Left sidebar (brand, 11-item navigation, "Стан системи" status card with 5 green items) | DONE |
-| 2 | Top command bar (search, "Середовище: Azure Demo" pill, "Система готова" pill, "Запустити демо" CTA, bell with badge, help, avatar) | DONE |
-| 3 | KPI row (5 cards: Нові ДТП 8, Очікують документів 12, AI-оброблено сьогодні 48, Високий ризик 7, Середній час розгляду 18 хв — each with delta) | DONE |
-| 4 | Claim lifecycle strip ("Життєвий цикл автострахового випадку") with 6 stages and per-stage counters (8 → 12 → 14 → 7 → 5 → 21) and connector arrows | DONE |
-| 5 | Main claims table ("Черга автострахових випадків") with 9 columns × 5 rows, filter chips ("Усі" active), "+ Створити випадок" button. First row CLM-1006 highlighted as selected | DONE |
-| 6 | Right AI analysis panel for CLM-1006: header with 78% confidence pill, case meta (Тип, Авто, Поліс, Ризик, Документи, SLA), model-confidence bar, "Ключові знахідки" (4 items), "Докази" (5 chips), amber "Рекомендована дія" callout, action buttons "Відкрити огляд" + "Запитати дані" | DONE |
-| 7 | Automation Guardrails card ("Обмеження автоматизації · AI не приймає остаточних рішень") — red-accented card showing Авто-погодження=НІ + Людська перевірка=ОБОВ'ЯЗКОВА + 4 reason rows | DONE |
-| 8 | Agent timeline ("Хід AI-перевірки") — vertical 7-step stepper with state badges (Завершено / Попередження / Високий ризик / Готова / Очікує) | DONE |
-| 9 | Audit & cost mini panel ("Аудит і витрати AI-запуску") — 6 fields (Модель: Azure OpenAI Demo, Токени: 4 261, Вартість: $0.0187, Час: 18.9 с, Trace ID, Run ID) | DONE |
+## B. Right-panel divider softening
 
-# DESIGN SUMMARY
+Right-panel internal section dividers (between header / case meta / findings / evidence / recommendation) and the sidebar divider were moved from the standard border color to a softer `#EEF1F5`, so sections breathe more and the panel feels less like a stack of fenced boxes. 7 dividers updated.
 
-Layout follows enterprise dashboard convention: ~260 px left sidebar, 56 px full-width top command bar, ~820 px main content column (page header → KPIs → lifecycle → table → bottom strip with timeline + audit), ~360 px right AI panel for the selected case + guardrails. Consistent 16/24 px spacing rhythm. Clear typographic hierarchy across page-H1, section headers, table body, badges, and key-value labels.
+## C. Soft Fluent-style drop-shadows on cards and buttons
 
-# VISUAL STYLE
+A uniform soft drop-shadow (offset Y=1 px, blur 3 px, color `#0F1A2A` at 5 % opacity) was applied to:
 
-Modern Microsoft enterprise feel: light theme, Fluent-flavored chips and buttons, clean white surfaces on a light grey background (`#F5F7FA`), restrained use of color as semantic signal. Color meaning is applied consistently:
+- 5 KPI cards
+- Claim lifecycle strip card
+- Claims table card
+- Agent timeline card
+- Audit & cost card
+- Right-panel automation guardrails card
+- Recommendation callout
+- Action buttons (Відкрити огляд / Запитати дані / + Створити випадок / Запустити демо)
+- System status card in sidebar
 
-- **Blue** (`#2563EB`, soft `#EFF6FF`) — platform / workflow / readiness (env pill, selected nav, primary CTA, selected row accent).
-- **Purple** (`#7C3AED`, soft `#F5F3FF`) — AI analysis / evidence / agents (confidence pill, evidence chips, model section).
-- **Green** (`#16A34A`, soft `#ECFDF5`) — completed / approved / healthy (system status, ready pill, "Низький ризик", completed timeline steps, "AI-перевірено", improvement deltas).
-- **Amber** (`#F59E0B`, soft `#FFFBEB`) — needs review / low confidence / missing info (recommendation callout, "Середній ризик", "Потрібна перевірка", warning timeline step).
-- **Red** (`#DC2626`, soft `#FEF2F2`) — high risk / guardrail (high-risk badge, bell unread, Guardrails card border + accents).
+Total: 16 shadows added. The shadow is subtle by design — it should read as "lifted off the page" without becoming a Material-style elevation.
 
-# UKRAINIAN UI LABELS
+## D. Targeted contrast refinements
 
-All visible UI strings are Ukrainian. Technical identifiers (`CLM-1006`, `trc_8f3d2a7e`, `run_8f3d2a7e`, `Azure OpenAI Demo`, `+18%`, `BMW`, `Toyota`, etc.) intentionally remain in their canonical form per the brief.
+- **High-risk red text** in the Ризик pill (table) and Ризик meta (right panel) moved from bright `#DC2626` to a deeper but less saturated `#B91C1C`. Keeps semantic weight, loses the "alarm" feeling.
+- **Alt-row tint** in the claims table moved from `#F9FAFB` to an even more neutral `#FAFBFD`.
+- **Confidence pill** (78 %) in the right-panel header moved to a softer purple-soft background (`#F5F3FF`) with a paler stroke (`#C7BFEC`) and the existing `#6D5DD3` value text — it reads as informational, not as a notification badge.
+- **Guardrails card** red stroke width reduced from 1.5 px to 1 px. Card stays clearly red-bordered (the "AI does not auto-decide" signal must remain readable) but is no longer visually aggressive.
 
-# AI WORKFLOW / EVIDENCE / RISK / HUMAN REVIEW / AUDIT GOVERNANCE — visibility
+# WHAT WAS PRESERVED
 
-- **AI workflow** — visible in the lifecycle strip (AI-аналіз stage), the AI-статус column in the table, the right-panel agent timeline (7 named AI-pipeline steps), and the audit panel (tokens / time / Trace ID / Run ID).
-- **Evidence** — visible as 5 evidence chips in the right panel (поліцейський звіт, фото пошкоджень, рахунок СТО, умови полісу, лист клієнта).
-- **Risk** — visible as the dedicated table column (color-coded pills), the right-panel "Ризик: Високий" meta, the lifecycle "Перевірка ризиків" stage with 7 cases, and the KPI "Високий ризик: 7".
-- **Human review** — visible in the table action column ("Погодити", "Запросити фото", ...), explicit timeline step "Людська перевірка — Очікує", and most prominently in the Guardrails card stating "AI не приймає остаточних рішень · Людська перевірка ОБОВ'ЯЗКОВА".
-- **Audit & cost governance** — visible in the bottom audit panel with model name, token count, dollar cost, processing time, Trace ID, Run ID.
+- All 9 required blocks (sidebar, top bar, KPIs, lifecycle, table, AI right panel, guardrails, agent timeline, audit & cost).
+- All Ukrainian UI labels.
+- All business content (mock claim numbers, mock customer names, mock vehicle models, KPI values, lifecycle counters, table rows, AI findings, evidence list, recommendation text, automation reasons, audit fields).
+- 1440 × 900 board size; position on canvas (40, 320).
+- Auto insurance / ДТП product focus.
+- Existing `MCP Access Test — InsuranceAIPlatform` frame on the same canvas — untouched.
+- The Guardrails card itself — preserved with all 4 reasons and the "AI не приймає остаточних рішень" statement.
 
-# WHAT WAS NOT DONE
+# SCREENSHOT
 
-- **PNG screenshot not auto-published.** Export preview was generated for visual confirmation only; binary publish path remains the documented manual fallback per the prior PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK acceptance.
-- **No other screens built.** Only `01 — Огляд автострахових випадків`. The other 10 screens are out of scope for this gate.
-- **No code, no Azure deployment, no source repo touched.** This is design only.
-- **No new Penpot file created.** The existing `MCP Access Test — InsuranceAIPlatform` frame is also intact (not deleted).
+**Manual required.**
 
-# GITHUB HANDOFF UPDATED
+This polish pass did not auto-publish a PNG. Export-preview was used in-session for visual verification only. To publish a screenshot of the polished screen for GPT visual audit:
 
-- `InsuranceAIPlatform/latest-report.md` — YES (this file).
-- `InsuranceAIPlatform/latest-summary.json` — YES.
-- `InsuranceAIPlatform/latest-screens/` — UNCHANGED (no new PNG published in this gate).
+1. Open Penpot in browser → file `InsuranceAIPlatform — Auto Claim AI Workbench`.
+2. Select board `01 — Огляд автострахових випадків`.
+3. Use Penpot's UI export (PNG, 1×) → save to `C:\Users\DEVELOPER\Claude\GitHub\gpt-handoff\InsuranceAIPlatform\latest-screens\penpot-screen-01-dashboard-polished-2026-05-24.png`.
 
 # SECURITY
 
@@ -79,28 +78,20 @@ All visible UI strings are Ukrainian. Technical identifiers (`CLM-1006`, `trc_8f
 - MCP key exposed: NO.
 - userToken exposed: NO.
 - secrets exposed: NO.
-- source repo touched: NO (no access to Azure / AgentHub / BusinessLab / DevDept / Twincore-framework).
+- source repo touched: NO (Twincore-framework / Azure / AgentHub / BusinessLab / DevDept all untouched).
 - source commit: NO.
 - source push: NO.
+- Penpot shape/file IDs: omitted from handoff artifacts.
 
-The shape data inside Penpot contains only the simulated business strings shown on screen (mock claim numbers, mock customer names, mock vehicle models, mock IDs). No real customer data, no API keys, no tokens, no internal absolute paths, no account-identifying metadata.
-
-# BLOCKERS
-
-None. The board is ready for visual review.
+The polish was a fills / strokes / shadows in-place edit inside the existing Penpot board. No external service was called; only the Penpot MCP plugin (already paired). No new credentials surfaced.
 
 # NEXT SAFE STEP
 
-Operator action (≤ 30 seconds):
+Operator captures a manual screenshot of the polished board (see SCREENSHOT section above) and sends it to GPT for the visual audit. Verdict expected: **ACCEPT / REWORK / BLOCKED**.
 
-1. Open Penpot in the browser, navigate to the file `InsuranceAIPlatform — Auto Claim AI Workbench`.
-2. Select the board `01 — Огляд автострахових випадків` (sits below the existing `MCP Access Test` frame on the same canvas).
-3. Use Penpot's UI export (PNG, 1×) and save to `C:\Users\DEVELOPER\Claude\GitHub\gpt-handoff\InsuranceAIPlatform\latest-screens\penpot-screen-01-dashboard-2026-05-24.png`.
-4. Send the manual screenshot to GPT for visual audit. Verdict: **ACCEPT / REWORK / BLOCKED**.
-
-On ACCEPT — Claude will move to Screen 02 build.
-On REWORK — Claude will revise per the specific feedback (no full rebuild expected; targeted patches).
-On BLOCKED — Claude will pause and gather more requirements before continuing.
+- **ACCEPT** — Claude proceeds to Screen 02 build with the now-finalized Fluent palette.
+- **REWORK** — Claude applies targeted patches per the specific feedback (e.g. specific block needs more breathing room, specific pill needs more tone-down). No full rebuild.
+- **BLOCKED** — Claude pauses; operator gathers more requirements before continuing.
 
 # Source-repo block
 
@@ -116,8 +107,8 @@ On BLOCKED — Claude will pause and gather more requirements before continuing.
 
 # Security scan result
 
-PASS — regex sweep across the 2 changed files: no JWT-shaped substrings, no MCP URLs carrying credentials in query parameters, no email/handle/planKey, no callback URLs, no provider API keys, no source code from private repos, no internal absolute machine paths beyond `C:\Users\DEVELOPER\Claude\GitHub\...` (the user's own public-handoff working copy, intentionally referenced as a target path for the manual screenshot drop).
+PASS — regex sweep across the 2 changed handoff files: no JWT-shaped substrings, no MCP URLs carrying credentials in query parameters, no email/handle/planKey, no callback URLs, no provider API keys, no source code from private repos, no internal absolute machine paths beyond the user's own public-handoff working-copy path used as the manual screenshot drop target.
 
 # Next gate
 
-External reviewer (Slava + GPT) performs visual audit of the Penpot screen using the manual screenshot, returns ACCEPT / REWORK / BLOCKED. Then Screen 02 build or revision loop.
+Manual visual audit of polished Penpot Screen 01 by Slava + GPT.

@@ -1,35 +1,44 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "penpot-screen-01-dashboard-build",
-  "status": "PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED",
-  "screenBuilt": "01 — Огляд автострахових випадків",
+  "task": "penpot-screen-01-color-polish",
+  "status": "PENPOT_SCREEN_01_COLOR_POLISHED_MANUAL_SCREENSHOT_REQUIRED",
+  "screenPolished": "01 — Огляд автострахових випадків",
   "penpotFileName": "InsuranceAIPlatform — Auto Claim AI Workbench",
   "boardSize": { "width": 1440, "height": 900 },
   "boardPositionOnCanvas": { "x": 40, "y": 320 },
-  "shapesInsideBoard": 379,
+  "shapesInsideBoard": 380,
   "penpotToolsLoadedInSession": true,
   "penpotPluginInstanceConnected": true,
-  "boardCreated": true,
+  "layoutChanged": false,
+  "contentChanged": false,
+  "blockCountPreserved": 9,
   "uiLanguage": "uk-UA",
+  "paletteShifts": [
+    {"role":"page background","from":"#F5F7FA","to":"#F7F9FC"},
+    {"role":"borders","from":"#E5E7EB","to":"#E5EAF0"},
+    {"role":"AI purple","from":"#7C3AED","to":"#6D5DD3"},
+    {"role":"amber soft","from":"#FFFBEB","to":"#FFF7E6"},
+    {"role":"red soft","from":"#FEF2F2","to":"#FEECEC"},
+    {"role":"hover / alt","from":"#F9FAFB","to":"#F6F8FB"},
+    {"role":"high-risk text","from":"#DC2626","to":"#B91C1C"},
+    {"role":"alt-row tint","from":"#F9FAFB","to":"#FAFBFD"}
+  ],
+  "polishCounts": {
+    "fillsUpdated": 60,
+    "strokesUpdated": 29,
+    "dividersSoftened": 7,
+    "shadowsAdded": 16,
+    "guardrailsStrokeWidth": "1.5 → 1"
+  },
+  "exportPreviewReturned": true,
+  "screenshotPublished": false,
+  "manualScreenshotRequired": true,
+  "manualScreenshotPath": "InsuranceAIPlatform/latest-screens/penpot-screen-01-dashboard-polished-2026-05-24.png",
+  "guardrailsCardPreserved": true,
   "autoInsuranceFocusVisible": true,
   "aiWorkflowVisible": true,
   "riskEvidenceHumanReviewVisible": true,
   "auditCostGovernanceVisible": true,
-  "exportPreviewReturned": true,
-  "screenshotPublished": false,
-  "manualScreenshotRequired": true,
-  "manualScreenshotPath": "InsuranceAIPlatform/latest-screens/penpot-screen-01-dashboard-2026-05-24.png",
-  "blocksCovered": [
-    "sidebar-with-brand-nav-and-system-status",
-    "top-command-bar",
-    "kpi-row-5-cards",
-    "claim-lifecycle-strip-6-stages",
-    "claims-table-9-cols-5-rows",
-    "ai-analysis-right-panel-for-selected-case",
-    "automation-guardrails-card",
-    "agent-timeline-7-steps",
-    "audit-and-cost-mini-panel"
-  ],
   "mcpUrlExposed": false,
   "mcpKeyExposed": false,
   "userTokenExposed": false,
@@ -40,14 +49,14 @@
   "securityScan": "PASS",
   "blockerReason": null,
   "manualActionsRequested": [
-    "Open the Penpot file in browser. Select board '01 — Огляд автострахових випадків'. Export PNG via Penpot UI and save to InsuranceAIPlatform/latest-screens/penpot-screen-01-dashboard-2026-05-24.png. Send to GPT for visual audit: ACCEPT / REWORK / BLOCKED."
+    "Open Penpot → file 'InsuranceAIPlatform — Auto Claim AI Workbench'. Select board '01 — Огляд автострахових випадків'. Export PNG via Penpot UI → save to InsuranceAIPlatform/latest-screens/penpot-screen-01-dashboard-polished-2026-05-24.png. Send to GPT for visual audit: ACCEPT / REWORK / BLOCKED."
   ],
-  "nextSafeStep": "Slava captures manual screenshot, GPT visual-audits. On ACCEPT → Screen 02 build. On REWORK → targeted revision. On BLOCKED → pause and gather requirements.",
+  "nextSafeStep": "Slava captures manual screenshot of the polished board. GPT visual-audits. On ACCEPT → Screen 02 build with the finalized Fluent palette. On REWORK → targeted patches. On BLOCKED → pause and gather requirements.",
   "openWorkstreams": {
     "figmaFileMoveAndScreenshot": {
       "status": "BLOCKED_NEEDS_MANUAL_ACTION",
       "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/",
-      "note": "independent — Figma parked per operator. Penpot is the active design tool now."
+      "note": "Figma parked per operator; Penpot is the active design tool."
     }
   },
   "previousRuns": [
@@ -58,7 +67,8 @@
     {"status": "PENPOT_ACCESS_TEST_BLOCKED",                                   "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"},
     {"status": "PENPOT_ACCESS_TEST_PARTIAL",                                   "snapshot": "runs/2026-05-24-penpot-access-gate-partial-restart-needed/"},
     {"status": "PENPOT_ACCESS_TEST_PARTIAL",                                   "snapshot": "runs/2026-05-24-penpot-tools-not-loaded/"},
-    {"status": "PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK",                 "note": "Penpot Access Gate accepted as PARTIAL but usable"}
+    {"status": "PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK",                 "note": "Penpot Access Gate accepted as PARTIAL but usable"},
+    {"status": "PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED",  "note": "Screen 01 built (initial palette)"}
   ],
-  "nextGate": "MANUAL_VISUAL_AUDIT_OF_PENPOT_SCREEN_01_DASHBOARD"
+  "nextGate": "MANUAL_VISUAL_AUDIT_OF_PENPOT_SCREEN_01_POLISHED"
 }
