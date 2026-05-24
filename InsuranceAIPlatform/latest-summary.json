@@ -1,10 +1,17 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "penpot-boards-04-11-content-only-fill",
-  "status": "PENPOT_BOARDS_04_11_CONTENT_FILLED_MANUAL_PDF_REQUIRED",
+  "task": "penpot-boards-08-11-forensic-repair",
+  "status": "PENPOT_BOARDS_08_11_REPAIRED_MANUAL_PDF_REQUIRED",
+  "forensicFindings": {
+    "duplicateBoards": "none",
+    "rootCauseConfirmed": "async server-side rollback — previous gate's post-build re-probe at ~2s was inside the rollback window; counts looked correct then collapsed during Penpot's later sync cycle",
+    "previousGateFalsePositive": true,
+    "additionalBoardDiscoveredDamaged": "07 — Людське погодження (was 141, dropped to 97 — Call B portion lost; repaired this run)",
+    "perCallBudgetThatActuallyHeld": "~25 shapes per call (07B1/07B2 split worked when 44-shape 07B retry timed out)"
+  },
   "boardsExpectedCount": 11,
-  "boardsPreserved": ["01", "02", "03"],
-  "boardsFilledThisRun": ["04", "05", "06", "07", "08", "09", "10", "11"],
+  "boardsPreserved": ["01", "02", "03", "04", "05", "06"],
+  "boardsRepairedThisRun": ["07", "08", "09", "10", "11"],
   "boardsStillPartial": [],
   "finalBoardCounts": {
     "01": 379,
@@ -13,8 +20,8 @@
     "04": 132,
     "05": 154,
     "06": 137,
-    "07": 141,
-    "08": 203,
+    "07": 136,
+    "08": 196,
     "09": 161,
     "10": 156,
     "11": 153
@@ -30,15 +37,16 @@
     "11": "Auto Insurance Claim AI Workbench"
   },
   "rollbackCheck": {
-    "method": "post-delay re-probe on 3 randomly selected boards (04, 08, 11)",
-    "result": "PASS — counts unchanged after delay",
-    "perBoardSamples": { "04": 132, "08": 203, "11": 153 }
+    "method": "4-phase verification across ~60 seconds cumulative wall time: (1) immediate after build, (2) after move-MCP-test work, (3) after 15s sleep, (4) after 20s sleep with intervening plugin-disconnect-reconnect cycle",
+    "result": "PASS — counts stable across all 4 phases, including a transient plugin disconnect that did not cause rollback"
   },
   "screen01Preserved": true,
   "screen02Preserved": true,
   "screen03Preserved": true,
+  "screen04Through06Preserved": true,
   "mcpAccessTestExcludedFromPortfolioExport": true,
-  "mcpAccessTestExclusionMethod": "renamed prefix '[DO NOT EXPORT]' + red banner 'DO NOT EXPORT · MCP ACCESS TEST · NOT FOR PORTFOLIO' inside the frame; manual deselect at PDF export picker",
+  "mcpAccessTestNewLocation": "moved to canvas position (-2000, -2000) — far off the portfolio cluster which sits at y >= 320",
+  "mcpAccessTestName": "[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform",
   "prototypeInteractionsCreated": false,
   "manualInteractionSetupRequired": true,
   "manualPdfExportRequired": true,
@@ -55,12 +63,12 @@
   "customerVehicleContextVisible": true,
   "demoFlowVisible": true,
   "buildStrategy": {
-    "approach": "two execute_code calls per board (Call A: header + 1-2 hero/primary cards ~30 shapes; Call B: main table/list/panel + buttons ~30-40 shapes)",
-    "perCallBudget": "5-15 seconds, well under Penpot 30s server limit",
-    "totalBuildCalls": 16,
-    "totalVerifyCalls": 6,
-    "rollbacksObserved": 0,
-    "timeoutsObserved": 0
+    "approach": "2 calls per board (Call A, Call B), each ≤30 shapes; 07's Call B split into 07B1+07B2 (≤25 shapes each) after a 44-shape retry timed out",
+    "totalBuildCalls": 9,
+    "totalVerifyCalls": 9,
+    "timeoutsObserved": 1,
+    "timeoutHandledBy": "splitting the timed-out call into two smaller halves",
+    "rollbacksObservedThisRun": 0
   },
   "mcpUrlExposed": false,
   "mcpKeyExposed": false,
@@ -72,10 +80,10 @@
   "securityScan": "PASS",
   "blockerReason": null,
   "manualActionsRequested": [
-    "Slava: open Penpot → file 'InsuranceAIPlatform — Auto Claim AI Workbench' → File → Export → PDF. In the export picker, deselect the frame '[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform'. Keep boards 01–11 selected, in order. Export and audit visually.",
-    "Slava + GPT: visual-audit the PDF. On accept, authorize 'PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE' to add the clickable navigation pass in a follow-up task."
+    "Slava: export PDF NOW while the file is in its verified state. File → Export → PDF. Deselect '[DO NOT EXPORT] MCP Access Test — InsuranceAIPlatform'. Keep boards 01–11 in order. Audit visually.",
+    "If any board comes out blank in the PDF, report which board with 'Penpot continue repair' and I'll re-run that board's content immediately."
   ],
-  "nextSafeStep": "Slava exports the manual PDF (skipping the marked test frame) and shares for visual audit. On accept, implementer adds prototype interactions in small per-board batches.",
+  "nextSafeStep": "Slava re-exports manual PDF (skipping test frame, keeping boards 01–11) and visual-audits. On accept, authorize 'PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE' for the clickable navigation pass.",
   "openWorkstreams": {
     "figmaFileMoveAndScreenshot": {
       "status": "BLOCKED_NEEDS_MANUAL_ACTION",
@@ -89,14 +97,13 @@
     {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                                   "snapshot": "runs/2026-05-24-figma-design-build-partial/"},
     {"status": "BLOCKED_NEEDS_MANUAL_ACTION",                                  "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/"},
     {"status": "PENPOT_ACCESS_TEST_BLOCKED",                                   "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"},
-    {"status": "PENPOT_ACCESS_TEST_PARTIAL",                                   "snapshot": "runs/2026-05-24-penpot-access-gate-partial-restart-needed/"},
-    {"status": "PENPOT_ACCESS_TEST_PARTIAL",                                   "snapshot": "runs/2026-05-24-penpot-tools-not-loaded/"},
     {"status": "PENPOT_ACCESS_TEST_PARTIAL_EXPORT_PREVIEW_OK",                 "note": "Penpot Access Gate accepted as PARTIAL but usable"},
     {"status": "PENPOT_SCREEN_01_DASHBOARD_BUILT_MANUAL_SCREENSHOT_REQUIRED",  "note": "Screen 01 built (initial palette)"},
     {"status": "PENPOT_SCREEN_01_COLOR_POLISHED_MANUAL_SCREENSHOT_REQUIRED",   "note": "Color polish applied (Fluent-soft)"},
     {"status": "PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE",                    "note": "Screen 01 ACCEPTED by Slava"},
-    {"status": "PENPOT_FULL_PROTOTYPE_PARTIAL_PLUGIN_TIMEOUT_AFTER_BOARD_CREATION", "note": "10 board containers + shells created; content build blocked"},
-    {"status": "PENPOT_FULL_PROTOTYPE_CONTENT_PARTIAL",                        "note": "Boards 02-03 retained; 04-11 rolled back by Penpot server"}
+    {"status": "PENPOT_FULL_PROTOTYPE_PARTIAL_PLUGIN_TIMEOUT_AFTER_BOARD_CREATION", "note": "10 board containers + shells created"},
+    {"status": "PENPOT_FULL_PROTOTYPE_CONTENT_PARTIAL",                        "note": "First fill attempt — only 02/03 retained"},
+    {"status": "PENPOT_BOARDS_04_11_CONTENT_FILLED_MANUAL_PDF_REQUIRED",       "note": "Claimed full fill — partial async rollback hit 08-11+07B during Slava's PDF export window"}
   ],
   "nextGate": "PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE"
 }
