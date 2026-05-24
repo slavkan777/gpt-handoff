@@ -1,53 +1,53 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "figma-access-test",
-  "status": "FIGMA_ACCESS_TEST_PASSED",
-  "figmaMcpConnected": true,
-  "figmaAuthenticated": true,
-  "writeAccessVerified": true,
-  "testFileCreated": true,
-  "testPageCreated": true,
-  "testFrameCreated": true,
-  "screenshotEvidenceCreated": true,
-  "readyForDesignBuild": true,
+  "task": "figma-design-build",
+  "status": "FIGMA_DESIGN_BUILD_PARTIAL",
+  "figmaFileCreated": true,
+  "figmaPagesCreated": 2,
+  "figmaFramesCreated": 1,
+  "coreScreensCompleted": [
+    "01 — Огляд автострахових випадків"
+  ],
+  "coreScreensPending": [
+    "03 — Робоче місце випадку",
+    "05 — AI-перевірки",
+    "07 — Аудит і витрати"
+  ],
+  "supportingScreensCompleted": [],
+  "supportingScreensPending": [
+    "02 — Автострахові випадки",
+    "04 — Документи та фото",
+    "06 — Ризики та перевірки",
+    "08 — Клієнти",
+    "09 — Поліси",
+    "10 — Транспортні засоби",
+    "11 — Налаштування"
+  ],
+  "productConceptBoardBuilt": false,
+  "screenshotsExported": [],
+  "allAcceptanceChecksPassed": false,
+  "readyForGptDesignAudit": true,
   "sourceRepoTouched": false,
   "sourceCommit": false,
   "sourcePush": false,
   "securityScan": "PASS",
-  "nextSafeStep": "Run trigger phrase 'продовжуємо Figma InsuranceAIPlatform' — Claude resumes the design build from the locked local spec, creates the file/page/frame at 1440x900 with the 9 documented blocks, applies the frozen tokens, uses Ukrainian labels and synthetic CLM-1006..CLM-1009 demo rows, then republishes latest-report.md with the Figma file/frame URL and an updated screenshot.",
-  "figmaMcpServer": {
-    "name": "figma",
-    "scope": "user",
-    "transport": "http",
-    "endpoint": "https://mcp.figma.com/mcp",
-    "namespace": "mcp__figma__*",
-    "toolCount": 18,
-    "writeToolsPresent": ["create_new_file", "use_figma", "generate_figma_design", "upload_assets", "generate_diagram"],
-    "separateFromTeamConnector": true
-  },
-  "planSanitized": {
+  "nextSafeStep": "Slava manually exports the dashboard frame as PNG (60-sec Figma UI action) so I can publish visible evidence under latest-screens/. Then Slava picks the path for the remaining 10 screens + Product Concept board: (B1) wait for June Starter cap reset and bulk-build 3–5 screens per use_figma call, (B2) upgrade Figma to Professional ($16/seat/month) to unlock 200 calls/day, or (B3) keep building specs textually in AIKB without touching Figma MCP this month.",
+  "figmaFileSanitized": {
+    "fileKey": "RE4vswlgy6RUjluHQ9PJ55",
+    "fileUrl": "https://www.figma.com/design/RE4vswlgy6RUjluHQ9PJ55",
+    "dashboardFrameUrl": "https://www.figma.com/design/RE4vswlgy6RUjluHQ9PJ55?node-id=1-3",
+    "location": "personal Drafts (owner-only)",
     "tier": "starter",
-    "seat": "Full",
-    "seatType": "expert",
-    "writeToDrafts": "WORKS",
-    "writeToTeamProject": "AVAILABLE",
-    "paidUpgradeRequiredForNextStep": false
+    "seat": "Full"
   },
-  "testArtifactSanitized": {
-    "fileName": "TEST — Claude Figma Access Check",
-    "page": "Access Check",
-    "frame": "Figma Write Test",
-    "nodeId": "1:2",
-    "fileUrl": "https://www.figma.com/design/44rgZ4FWOLdBCqGHf60Zaf",
-    "frameUrl": "https://www.figma.com/design/44rgZ4FWOLdBCqGHf60Zaf?node-id=1-2",
-    "screenshotRawUrl": "https://raw.githubusercontent.com/slavkan777/gpt-handoff/main/InsuranceAIPlatform/latest-screens/figma-write-test-2026-05-24.png",
-    "screenshotWidth": 640,
-    "screenshotHeight": 360,
-    "screenshotBytes": 14839
-  },
-  "previousRun": {
-    "status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL",
-    "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"
-  },
-  "nextGate": "REVIEWER_AUDIT_ACCESS_TEST_PASSED"
+  "blockers": [
+    "Figma Starter monthly MCP tool-call cap exhausted (Up to 6/month per Figma docs — both reads and writes capped on this plan in practice).",
+    "Upgrade explicitly forbidden by Slava in this brief and earlier briefs.",
+    "MCP `get_screenshot` cannot run this month — manual PNG export from Figma UI required for visible evidence."
+  ],
+  "previousRuns": [
+    {"status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL", "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"},
+    {"status": "FIGMA_ACCESS_TEST_PASSED", "snapshot": "runs/2026-05-24-figma-access-test-passed/"}
+  ],
+  "nextGate": "REVIEWER_AUDIT_PARTIAL_DESIGN_BUILD"
 }
