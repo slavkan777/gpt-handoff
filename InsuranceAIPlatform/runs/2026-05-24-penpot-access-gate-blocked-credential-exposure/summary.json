@@ -1,0 +1,19 @@
+{
+  "project": "InsuranceAIPlatform",
+  "task": "penpot-access-gate",
+  "status": "PENPOT_ACCESS_TEST_BLOCKED",
+  "snapshotOf": "latest-summary.json at fifth publication (blocked on credential exposure)",
+  "penpotMcpProbed": false,
+  "penpotFileReadAttempted": false,
+  "penpotWriteTestExecuted": false,
+  "penpotExportAttempted": false,
+  "tokenExposedInHandoff": false,
+  "mcpUrlExposedInHandoff": false,
+  "sourceRepoTouched": false,
+  "sourceCommit": false,
+  "sourcePush": false,
+  "securityScan": "PASS",
+  "blockerReason": "credential delivered via chat surface — treated as compromised per standing secret-handling policy",
+  "nextSafeStep": "rotate token in Penpot, re-register MCP via CLI (no chat paste), restart Claude Code, signal 'Penpot ready'",
+  "nextGate": "REVIEWER_AUDIT_PENPOT_ACCESS_BLOCKED_CREDENTIAL_EXPOSURE"
+}

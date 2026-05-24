@@ -1,37 +1,41 @@
 {
   "project": "InsuranceAIPlatform",
-  "task": "figma-file-move-and-dashboard-screenshot-evidence",
-  "status": "BLOCKED_NEEDS_MANUAL_ACTION",
-  "figmaFileInTeamProject": false,
-  "figmaFileUrl": "https://www.figma.com/design/RE4vswlgy6RUjluHQ9PJ55",
-  "dashboardFrameUrl": "https://www.figma.com/design/RE4vswlgy6RUjluHQ9PJ55?node-id=1-3",
-  "dashboardScreenshotPublished": false,
-  "dashboardScreenshotPath": null,
-  "accessCheckPassed": null,
+  "task": "penpot-access-gate",
+  "status": "PENPOT_ACCESS_TEST_BLOCKED",
+  "penpotMcpProbed": false,
+  "penpotMcpToolsSeen": null,
+  "penpotFileReadAttempted": false,
+  "penpotPagesLayersSeen": null,
+  "penpotWriteTestExecuted": false,
+  "penpotTestFrameCreated": false,
+  "penpotExportAttempted": false,
+  "penpotScreenshotPublished": false,
+  "blockerReason": "credential delivered through chat surface (prompt body) — treated as compromised per standing secret-handling policy; implementer refused to use the token, refused to register the MCP under it, refused to call any mcp__penpot__* tools; rotation + re-registration required before retry",
+  "tokenExposedInHandoff": false,
+  "mcpUrlExposedInHandoff": false,
+  "accountMetadataExposedInHandoff": false,
   "sourceRepoTouched": false,
   "sourceCommit": false,
   "sourcePush": false,
   "securityScan": "PASS",
-  "nextSafeStep": "Slava performs three Figma UI manual actions: (A) access check on Team project (Share dialog — owner-only verify, no anyone-with-link), (B) move or duplicate file from Drafts to developer online's team → Team project, (C) export dashboard frame as PNG via Figma Export panel and send back. On receipt Claude publishes the screenshot and republishes latest-report.md with FIGMA_FILE_*_SCREENSHOT_PUBLISHED status.",
-  "blockers": [
-    "Figma MCP exposes no file move/copy/duplicate tool — file-level operations are UI-only or REST-API-only.",
-    "Figma Starter monthly MCP tool-call cap exhausted — even non-file calls like get_screenshot are rejected this month.",
-    "Access safety of target Team project cannot be verified via MCP — Slava must inspect Share dialog in Figma UI before moving.",
-    "Free Starter Team project caps at 3 files (already has 2) — moving dashboard fills the third slot."
-  ],
-  "currentFileLocation": "personal Drafts (owner-only by default)",
-  "targetLocation": "developer online's team → Team project",
   "manualActionsRequested": [
-    "Open Team project Share dialog; verify only developer online has access and 'Anyone with link' is OFF.",
-    "Right-click the dashboard file in Drafts → Move to project / Duplicate to project → select Team project.",
-    "Open the dashboard frame, right-sidebar Export → PNG 1x/2x → drag PNG to chat or save to evidence path."
+    "Rotate the Penpot token in Penpot UI (revoke exposed token, generate fresh).",
+    "Register the Penpot MCP via CLI from a separate terminal: claude mcp add --transport http penpot --scope user <fresh-tokenized URL> — do not paste the URL into chat.",
+    "Restart Claude Code, verify /mcp shows penpot connected, then send 'Penpot ready'."
   ],
-  "noUpgradePerformed": true,
-  "noPaidProjectCreated": true,
+  "nextSafeStep": "Slava rotates the Penpot token, re-registers the MCP via CLI without exposing the new token in chat, restarts Claude Code, then signals 'Penpot ready'. On that signal Claude executes the full Access Gate (enumerate tools, read file, create MCP Access Test — InsuranceAIPlatform frame, attempt export) and republishes with PENPOT_ACCESS_TEST_PASSED / PARTIAL / BLOCKED as warranted.",
+  "openWorkstreams": {
+    "figmaFileMoveAndScreenshot": {
+      "status": "BLOCKED_NEEDS_MANUAL_ACTION",
+      "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/",
+      "note": "independent — awaits Slava manual UI actions in Figma (access check on Team project, move/duplicate from Drafts, PNG export of dashboard frame)"
+    }
+  },
   "previousRuns": [
     {"status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL", "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"},
     {"status": "FIGMA_ACCESS_TEST_PASSED",                       "snapshot": "runs/2026-05-24-figma-access-test-passed/"},
-    {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                     "snapshot": "runs/2026-05-24-figma-design-build-partial/"}
+    {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                     "snapshot": "runs/2026-05-24-figma-design-build-partial/"},
+    {"status": "BLOCKED_NEEDS_MANUAL_ACTION",                    "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/"}
   ],
-  "nextGate": "REVIEWER_AUDIT_BLOCKED_NEEDS_MANUAL_ACTION"
+  "nextGate": "REVIEWER_AUDIT_PENPOT_ACCESS_BLOCKED_CREDENTIAL_EXPOSURE"
 }
