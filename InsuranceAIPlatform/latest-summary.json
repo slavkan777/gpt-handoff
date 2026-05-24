@@ -4,27 +4,31 @@
   "status": "PENPOT_ACCESS_TEST_PARTIAL",
   "penpotMcpRegistrationPresent": true,
   "penpotMcpServerHealth": "Connected",
-  "penpotToolsLoadedInSession": false,
-  "penpotMcpProbed": false,
-  "penpotFileReadAttempted": false,
+  "penpotToolsLoadedInSession": true,
+  "penpotMcpProbed": true,
+  "penpotPluginInstanceConnected": false,
+  "penpotFileReadAttempted": true,
   "penpotPagesLayersSeen": null,
   "penpotWriteTestExecuted": false,
   "penpotTestFrameCreated": false,
   "penpotExportAttempted": false,
   "penpotScreenshotPublished": false,
-  "blockerReason": "MCP added via CLI after session start; mcp__penpot__* tool surface not loaded into current session; Claude Code restart required to register new tool schemas. Same behaviour as observed for Figma earlier today.",
+  "blockerReason": "Canvas-side Penpot MCP Plugin not running. MCP server is reachable and the mcp__penpot__* tool surface is loaded into the session, but execute_code and export_shape are routed by the server to a plugin instance that must be active inside an open Penpot design file and paired with the operator's user token. Server returned a structured 'No plugin instance connected for user token' error on the first no-mutation probe. Until plugin install + pairing happens in Penpot, no design read or write is possible.",
   "mcpKeyExposed": false,
   "userTokenExposed": false,
+  "mcpUrlExposed": false,
   "secretsExposed": false,
   "sourceRepoTouched": false,
   "sourceCommit": false,
   "sourcePush": false,
   "securityScan": "PASS",
   "manualActionsRequested": [
-    "Quit and relaunch Claude Code (any standard launch flag); the user-scope MCP registration persists across sessions.",
-    "Send the trigger phrase 'Penpot ready' in the fresh session."
+    "Open Penpot in browser; open (or create) the InsuranceAIPlatform design file.",
+    "Open the Plugins panel and install/enable the Penpot MCP Plugin if not already present.",
+    "Launch the plugin inside the open file so it pairs with the MCP server via the user token.",
+    "Verify the plugin shows Connected; send trigger phrase 'Penpot plugin connected' (or 'Penpot ready' again)."
   ],
-  "nextSafeStep": "Operator restarts Claude Code, confirms `/mcp` shows `penpot — Connected`, sends 'Penpot ready'. Implementer then enumerates mcp__penpot__* tools, reads the currently open file's pages/layers summary (page names and layer counts only — no contents), creates `MCP Access Test — InsuranceAIPlatform` frame, attempts export if such a tool exists, and republishes with PENPOT_ACCESS_TEST_PASSED / PARTIAL / BLOCKED.",
+  "nextSafeStep": "On trigger the implementer re-probes (getPages + shapeStructure(root, 2)), creates the 'MCP Access Test — InsuranceAIPlatform' frame near origin, calls mcp__penpot__export_shape to publish a PNG under latest-screens/penpot-access-test-2026-05-24.png, and republishes with PENPOT_ACCESS_TEST_PASSED / PARTIAL / BLOCKED.",
   "openWorkstreams": {
     "figmaFileMoveAndScreenshot": {
       "status": "BLOCKED_NEEDS_MANUAL_ACTION",
@@ -37,7 +41,8 @@
     {"status": "FIGMA_ACCESS_TEST_PASSED",                         "snapshot": "runs/2026-05-24-figma-access-test-passed/"},
     {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                       "snapshot": "runs/2026-05-24-figma-design-build-partial/"},
     {"status": "BLOCKED_NEEDS_MANUAL_ACTION",                      "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/"},
-    {"status": "PENPOT_ACCESS_TEST_BLOCKED",                       "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"}
+    {"status": "PENPOT_ACCESS_TEST_BLOCKED",                       "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"},
+    {"status": "PENPOT_ACCESS_TEST_PARTIAL",                       "snapshot": "runs/2026-05-24-penpot-tools-not-loaded/"}
   ],
-  "nextGate": "REVIEWER_AUDIT_PENPOT_PARTIAL_RESTART_NEEDED"
+  "nextGate": "REVIEWER_AUDIT_PENPOT_PARTIAL_PLUGIN_NOT_CONNECTED"
 }

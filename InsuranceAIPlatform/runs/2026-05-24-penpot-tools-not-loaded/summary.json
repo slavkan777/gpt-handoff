@@ -1,0 +1,43 @@
+{
+  "project": "InsuranceAIPlatform",
+  "task": "penpot-access-gate",
+  "status": "PENPOT_ACCESS_TEST_PARTIAL",
+  "penpotMcpRegistrationPresent": true,
+  "penpotMcpServerHealth": "Connected",
+  "penpotToolsLoadedInSession": false,
+  "penpotMcpProbed": false,
+  "penpotFileReadAttempted": false,
+  "penpotPagesLayersSeen": null,
+  "penpotWriteTestExecuted": false,
+  "penpotTestFrameCreated": false,
+  "penpotExportAttempted": false,
+  "penpotScreenshotPublished": false,
+  "blockerReason": "MCP added via CLI after session start; mcp__penpot__* tool surface not loaded into current session; Claude Code restart required to register new tool schemas. Same behaviour as observed for Figma earlier today.",
+  "mcpKeyExposed": false,
+  "userTokenExposed": false,
+  "secretsExposed": false,
+  "sourceRepoTouched": false,
+  "sourceCommit": false,
+  "sourcePush": false,
+  "securityScan": "PASS",
+  "manualActionsRequested": [
+    "Quit and relaunch Claude Code (any standard launch flag); the user-scope MCP registration persists across sessions.",
+    "Send the trigger phrase 'Penpot ready' in the fresh session."
+  ],
+  "nextSafeStep": "Operator restarts Claude Code, confirms `/mcp` shows `penpot — Connected`, sends 'Penpot ready'. Implementer then enumerates mcp__penpot__* tools, reads the currently open file's pages/layers summary (page names and layer counts only — no contents), creates `MCP Access Test — InsuranceAIPlatform` frame, attempts export if such a tool exists, and republishes with PENPOT_ACCESS_TEST_PASSED / PARTIAL / BLOCKED.",
+  "openWorkstreams": {
+    "figmaFileMoveAndScreenshot": {
+      "status": "BLOCKED_NEEDS_MANUAL_ACTION",
+      "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/",
+      "note": "independent — awaits operator manual UI actions in Figma (access check on Team project, move/duplicate from Drafts, PNG export of dashboard frame)"
+    }
+  },
+  "previousRuns": [
+    {"status": "FIGMA_DESIGN_BOOTSTRAP_BLOCKED_ON_MCP_INSTALL",   "snapshot": "runs/2026-05-24-figma-design-bootstrap-blocked/"},
+    {"status": "FIGMA_ACCESS_TEST_PASSED",                         "snapshot": "runs/2026-05-24-figma-access-test-passed/"},
+    {"status": "FIGMA_DESIGN_BUILD_PARTIAL",                       "snapshot": "runs/2026-05-24-figma-design-build-partial/"},
+    {"status": "BLOCKED_NEEDS_MANUAL_ACTION",                      "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/"},
+    {"status": "PENPOT_ACCESS_TEST_BLOCKED",                       "snapshot": "runs/2026-05-24-penpot-access-gate-blocked-credential-exposure/"}
+  ],
+  "nextGate": "REVIEWER_AUDIT_PENPOT_PARTIAL_RESTART_NEEDED"
+}
