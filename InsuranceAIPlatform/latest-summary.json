@@ -1,30 +1,41 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "UI_VISUAL_IDENTITY_POLISH_REWORK",
-  "latest_run": "ui-visual-identity-polish-rework",
+  "gate": "UI_VISUAL_IDENTITY_POLISH_REWORK_V3_MOLECULAR_STYLE_MAP",
+  "latest_run": "ui-visual-identity-polish-rework-v3",
   "date": "2026-05-26",
   "status": "applied-verified",
-  "scope": "dashboard-visual-rework-only",
+  "scope": "visible-style-map-only",
   "style": "Modern Enterprise AI Command Center",
-  "report": "ui-visual-identity-polish-rework/report.md",
-  "screenshots_dir": "ui-visual-identity-polish-rework/screenshots/",
-  "recovery_note": "Rework was implemented and verified locally previously, but its handoff was not published; latest-* still pointed to UI_VISUAL_IDENTITY_POLISH_AND_HONEST_DEMO_LABELING. This publish recovers the missing rework report. No new UI changes made for the recovery.",
-  "did_rework_exist_locally": true,
-  "summary": "Dashboard reworked to the accepted enterprise reference, reinterpreted as a Modern Enterprise AI Command Center: icon-tiled KPI cards, connected lifecycle stepper (AI phase indigo), fuller AI-recommendation card, audit-and-cost (today) panel, recent-events feed, and three pure-SVG charts (donut/bars/line). Honest mock/demo labels, Local Demo, prototype notice, and 'Приклад використання' preserved. All 11 routes render; build PASS; 11 screenshots recaptured. No chart library or other dependency added.",
+  "report": "ui-visual-identity-polish-rework-v3/report.md",
+  "screenshots_dir": "ui-visual-identity-polish-rework-v3/screenshots/",
+  "summary": "Applied the detailed style map for a clearly-different premium look: navy sidebar with SVG nav icons + Azure active left-rail + bordered console status box + Azure logo; KPI cards with per-tone top accent rails; topbar with indigo Local Demo chip, pale-green ready chip, SVG icons and play-icon Azure CTA; claims table selected-row blue rail; right-column AI (indigo) and audit (slate) accent rails; cold enterprise background; 16px card radius + slate borders + premium shadow. Pure-SVG charts retained. All 11 routes render; build PASS; 11 screenshots recaptured.",
   "routes_count": 11,
   "screenshots_count": 11,
   "build_status": "PASS (tsc -b && vite build, exit 0, 99 modules)",
+  "visible_change_vs_prior": true,
   "files_changed": [
+    "tailwind.config.js",
+    "src/index.css",
     "src/components/ui/Icon.tsx",
-    "src/components/charts/DonutChart.tsx",
-    "src/components/charts/BarList.tsx",
-    "src/components/charts/LineChart.tsx",
     "src/components/ui/MetricCard.tsx",
-    "src/pages/DashboardPage.tsx",
-    "src/data/mock/dashboard.ts"
+    "src/components/layout/Sidebar.tsx",
+    "src/components/layout/TopBar.tsx",
+    "src/pages/DashboardPage.tsx"
   ],
+  "preserved": {
+    "routes": true,
+    "demo_flow_CLM_1006": true,
+    "redux_saga_logic": true,
+    "business_data_semantics": true,
+    "local_demo_label": true,
+    "mock_demo_labels": true,
+    "prototype_notice": true,
+    "primary_cta_text": "Приклад використання"
+  },
   "forbidden_scope_confirmed": {
-    "new_ui_changes_for_recovery": false,
+    "route_change": false,
+    "redux_saga_change": false,
+    "business_data_semantics_change": false,
     "dependency_added": false,
     "backend": false,
     "azure": false,
@@ -40,5 +51,5 @@
   "ai_provider": false,
   "real_api_calls": false,
   "real_pii": false,
-  "supersedes": "ui-visual-identity-polish"
+  "supersedes": "ui-visual-identity-polish-rework"
 }
