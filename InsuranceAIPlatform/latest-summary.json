@@ -1,39 +1,30 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "UI_VISUAL_IDENTITY_POLISH_AND_HONEST_DEMO_LABELING",
-  "latest_run": "ui-visual-identity-polish",
+  "gate": "UI_VISUAL_IDENTITY_POLISH_REWORK",
+  "latest_run": "ui-visual-identity-polish-rework",
   "date": "2026-05-26",
   "status": "applied-verified",
-  "scope": "visual-identity-and-honest-labeling-only",
-  "style": "Enterprise AI Command Center",
-  "report": "ui-visual-identity-polish/report.md",
-  "screenshots_dir": "ui-visual-identity-polish/screenshots/",
-  "summary": "Applied Enterprise AI Command Center visual identity (Azure-blue primary, distinct indigo AI accent, red/amber/green risk semaphore, slate audit) and honest demo labeling (API/index mock, AI/storage demo, Local Demo env chip, persistent 'Frontend prototype · synthetic data · mocked AI workflow' notice). Centralized via tokens + shared components. All 11 routes still render; build PASS; 11 screenshots recaptured. No product logic, routes, Redux/Saga, or mock-data semantics changed.",
+  "scope": "dashboard-visual-rework-only",
+  "style": "Modern Enterprise AI Command Center",
+  "report": "ui-visual-identity-polish-rework/report.md",
+  "screenshots_dir": "ui-visual-identity-polish-rework/screenshots/",
+  "recovery_note": "Rework was implemented and verified locally previously, but its handoff was not published; latest-* still pointed to UI_VISUAL_IDENTITY_POLISH_AND_HONEST_DEMO_LABELING. This publish recovers the missing rework report. No new UI changes made for the recovery.",
+  "did_rework_exist_locally": true,
+  "summary": "Dashboard reworked to the accepted enterprise reference, reinterpreted as a Modern Enterprise AI Command Center: icon-tiled KPI cards, connected lifecycle stepper (AI phase indigo), fuller AI-recommendation card, audit-and-cost (today) panel, recent-events feed, and three pure-SVG charts (donut/bars/line). Honest mock/demo labels, Local Demo, prototype notice, and 'Приклад використання' preserved. All 11 routes render; build PASS; 11 screenshots recaptured. No chart library or other dependency added.",
   "routes_count": 11,
   "screenshots_count": 11,
-  "build_status": "PASS (tsc -b && vite build, exit 0)",
-  "preserved": {
-    "routes": true,
-    "demo_flow_CLM_1006": true,
-    "redux_toolkit_state": true,
-    "redux_saga_workflows": true,
-    "mock_data_semantics": true,
-    "primary_cta_text": "Приклад використання"
-  },
-  "honest_labeling": {
-    "api": "mock",
-    "ai_module": "demo",
-    "search_index": "mock",
-    "document_store": "demo",
-    "environment_chip": "Local Demo",
-    "notice": "Frontend prototype · synthetic data · mocked AI workflow",
-    "zapustyty_demo_present": false
-  },
+  "build_status": "PASS (tsc -b && vite build, exit 0, 99 modules)",
+  "files_changed": [
+    "src/components/ui/Icon.tsx",
+    "src/components/charts/DonutChart.tsx",
+    "src/components/charts/BarList.tsx",
+    "src/components/charts/LineChart.tsx",
+    "src/components/ui/MetricCard.tsx",
+    "src/pages/DashboardPage.tsx",
+    "src/data/mock/dashboard.ts"
+  ],
   "forbidden_scope_confirmed": {
-    "full_redesign": false,
-    "route_move_or_removal": false,
-    "redux_saga_behavior_change": false,
-    "mock_data_semantics_change": false,
+    "new_ui_changes_for_recovery": false,
     "dependency_added": false,
     "backend": false,
     "azure": false,
@@ -49,5 +40,5 @@
   "ai_provider": false,
   "real_api_calls": false,
   "real_pii": false,
-  "supersedes": "ui-copy-fix-demo-label"
+  "supersedes": "ui-visual-identity-polish"
 }
