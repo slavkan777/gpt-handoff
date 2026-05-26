@@ -1,0 +1,93 @@
+{
+  "project": "InsuranceAIPlatform",
+  "gate": "REACT_UI_WALKING_SKELETON",
+  "run": "react-ui-walking-skeleton",
+  "date": "2026-05-26",
+  "status": "implemented-verified",
+  "scope": "frontend-only",
+  "golden_claim": "CLM-1006",
+  "stack": {
+    "build": "Vite 5",
+    "language": "TypeScript 5 (strict)",
+    "ui": "React 18",
+    "router": "React Router 6",
+    "styling": "Tailwind CSS 3",
+    "state": "Redux Toolkit 2",
+    "effects": "Redux-Saga 1"
+  },
+  "routes": [
+    { "path": "/", "page": "DashboardPage" },
+    { "path": "/claims", "page": "ClaimsListPage" },
+    { "path": "/claims/CLM-1006", "page": "ClaimWorkspacePage" },
+    { "path": "/claims/CLM-1006/documents", "page": "DocumentsPhotosPage" },
+    { "path": "/claims/CLM-1006/ai-evidence", "page": "AiEvidencePage" },
+    { "path": "/claims/CLM-1006/risks", "page": "RisksChecksPage" },
+    { "path": "/claims/CLM-1006/approval", "page": "HumanApprovalPage" },
+    { "path": "/claims/CLM-1006/audit", "page": "AuditCostPage" },
+    { "path": "/claims/CLM-1006/policy", "page": "PolicyCoveragePage" },
+    { "path": "/claims/CLM-1006/customer-vehicle", "page": "CustomerVehiclePage" },
+    { "path": "/demo", "page": "DemoScenarioPage" }
+  ],
+  "redux": {
+    "store": "configureStore, thunk disabled, saga middleware concatenated",
+    "slices": ["claims", "claimWorkspace", "documents", "aiReview", "approval", "demo"],
+    "typed_hooks": ["useAppDispatch", "useAppSelector"]
+  },
+  "saga": {
+    "root": "rootSaga forks 4 watchers",
+    "watchers": {
+      "aiReviewSaga": "runAiAnalysis -> stepped progress 12..100 (takeLatest)",
+      "documentsSaga": "requestMissingPhoto -> 900ms mock",
+      "approvalSaga": "saveDraft 500ms / sendRequestToCustomer 700ms",
+      "demoSaga": "startDemo auto-advance 1..7 every 1.2s, cancellable"
+    },
+    "policy": "saga only for multi-step async; trivial toggles live in slices"
+  },
+  "commands": {
+    "git_init": "local source repo only; no commit, no remote, no push",
+    "npm_install": "158 packages, ~22s, exit 0",
+    "npm_run_build": "tsc -b && vite build, exit 0, 95 modules, 3.52s, JS 336kB/gzip 103kB, CSS 28kB/gzip 5.42kB",
+    "npm_run_preview": "port 4173, HTTP 200",
+    "screenshots": "Playwright + system Chrome channel, 11/11 captured, no errors"
+  },
+  "build": {
+    "result": "PASS",
+    "fix_applied": "added src/vite-env.d.ts for import.meta.env",
+    "lint": "not configured",
+    "tests": "none in scope"
+  },
+  "screenshots": [
+    "01-dashboard.png",
+    "02-claims-list.png",
+    "03-claim-workspace.png",
+    "04-documents-photos.png",
+    "05-ai-evidence.png",
+    "06-risks-checks.png",
+    "07-human-approval.png",
+    "08-audit-cost.png",
+    "09-policy-coverage.png",
+    "10-customer-vehicle.png",
+    "11-demo-scenario.png"
+  ],
+  "forbidden_scope_confirmed": {
+    "backend": false,
+    "azure": false,
+    "ai_provider": false,
+    "real_api_calls": false,
+    "real_pii": false,
+    "source_repo_commit": false,
+    "source_repo_push": false,
+    "source_repo_remote_created": false,
+    "secrets_in_tracked_files": false,
+    "other_repos_touched": false
+  },
+  "known_issues": [
+    "No PDF raster tooling on host; fidelity from text extraction (pdf-parse), no pixel-diff",
+    "npm audit: 2 moderate vulnerabilities, not addressed (out of scope)",
+    "Lint/test pipeline not wired (intentional)",
+    "Photo thumbnails are placeholders; charts are SVG/Tailwind not a chart lib",
+    "Sidebar 'Транспортні засоби'/'Налаштування' disabled (scope = 11 routes)",
+    "In-memory state, resets on refresh"
+  ],
+  "next_safe_step": "Await GPT audit + owner approval; then optionally commit locally; backend is a separate authorized phase"
+}

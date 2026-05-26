@@ -1,0 +1,100 @@
+{
+  "project": "InsuranceAIPlatform",
+  "task": "penpot-reverse-children-order",
+  "status": "PENPOT_FINAL_EXPORT_ORDER_FIXED_MANUAL_PDF_REQUIRED",
+  "rootCause": "Penpot PDF export iterates page-root children[] in reverse. With children = [01..11] the PDF came out 11→01. Fix is to reverse the children-array to [11..01] so reverse-export yields 01..11.",
+  "childrenOrderBefore": [
+    "01 — Огляд автострахових випадків",
+    "02 — Список автострахових випадків",
+    "03 — Робоче місце випадку",
+    "04 — Документи та фото випадку",
+    "05 — AI-аналіз та докази",
+    "06 — Ризики та перевірки",
+    "07 — Людське погодження",
+    "08 — Аудит і витрати",
+    "09 — Поліс і покриття",
+    "10 — Клієнт і транспортний засіб",
+    "11 — Демо-сценарій"
+  ],
+  "childrenOrderAfter": [
+    "11 — Демо-сценарій",
+    "10 — Клієнт і транспортний засіб",
+    "09 — Поліс і покриття",
+    "08 — Аудит і витрати",
+    "07 — Людське погодження",
+    "06 — Ризики та перевірки",
+    "05 — AI-аналіз та докази",
+    "04 — Документи та фото випадку",
+    "03 — Робоче місце випадку",
+    "02 — Список автострахових випадків",
+    "01 — Огляд автострахових випадків"
+  ],
+  "reorderMethod": "setParentIndex(targetIdx) on each board in order 11→01, target indices 0..10 incrementing by 1 per move. 11 went to index 0 first; subsequent boards (10, 09, ..., 01) each went to index 1..10 in turn. Three batches (5+3+3) for budget safety. bringToFront / sendToBack were tested and confirmed no-ops at page-root level — setParentIndex is the working API for board-array reorder.",
+  "canvasPositionsUnchanged": true,
+  "boardOrderCanvasPosition": {
+    "row1_y320":  ["01@x40","02@x1520","03@x3000"],
+    "row2_y1260": ["04@x40","05@x1520","06@x3000"],
+    "row3_y2200": ["07@x40","08@x1520","09@x3000"],
+    "row4_y3140": ["10@x40","11@x1520"]
+  },
+  "pageRootChildrenCount": 11,
+  "mcpTestFrameDeleted": true,
+  "mcpTestFrameStillPresent": false,
+  "contentPreservation": {
+    "method": "per-board children-count probe after reverse",
+    "result": "PASS — all 11 boards retain original child counts",
+    "counts": {
+      "01": 379, "02": 274, "03": 209, "04": 132,
+      "05": 154, "06": 137, "07": 136, "08": 196,
+      "09": 161, "10": 156, "11": 153
+    }
+  },
+  "screen01Preserved": true,
+  "screen02Preserved": true,
+  "screen03Preserved": true,
+  "boards04To11Preserved": true,
+  "prototypeInteractionsCreated": false,
+  "manualInteractionSetupRequired": true,
+  "manualPdfExportRequired": true,
+  "manualScreenshotRequired": false,
+  "uiLanguage": "uk-UA",
+  "autoInsuranceFocusVisible": true,
+  "claimWorkflowVisible": true,
+  "documentPhotoWorkflowVisible": true,
+  "aiEvidenceVisible": true,
+  "riskReviewVisible": true,
+  "humanApprovalVisible": true,
+  "auditCostGovernanceVisible": true,
+  "policyCoverageVisible": true,
+  "customerVehicleContextVisible": true,
+  "demoFlowVisible": true,
+  "mcpUrlExposed": false,
+  "mcpKeyExposed": false,
+  "userTokenExposed": false,
+  "secretsExposed": false,
+  "sourceRepoTouched": false,
+  "sourceCommit": false,
+  "sourcePush": false,
+  "securityScan": "PASS",
+  "blockerReason": null,
+  "manualActionsRequested": [
+    "Slava: File → Export → PDF. Select all 11 portfolio boards. Export. Verify PDF page count = 11 and page order is 01 → 02 → 03 → ... → 11."
+  ],
+  "nextSafeStep": "Slava re-exports manual PDF, audits page order. On accept, authorize PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE.",
+  "openWorkstreams": {
+    "figmaFileMoveAndScreenshot": {
+      "status": "BLOCKED_NEEDS_MANUAL_ACTION",
+      "snapshot": "runs/2026-05-24-figma-move-and-screenshot-blocked/",
+      "note": "Figma parked; Penpot is the active design tool."
+    }
+  },
+  "previousRuns": [
+    {"status": "PENPOT_SCREEN_01_ACCEPTED_PORTFOLIO_GRADE",                    "note": "Screen 01 ACCEPTED"},
+    {"status": "PENPOT_FULL_PROTOTYPE_CONTENT_PARTIAL",                        "note": "First fill attempt — only 02/03 retained"},
+    {"status": "PENPOT_BOARDS_04_11_CONTENT_FILLED_MANUAL_PDF_REQUIRED",       "note": "Two-call durable fill — partial async rollback hit 08–11+07B later"},
+    {"status": "PENPOT_BOARDS_08_11_REPAIRED_MANUAL_PDF_REQUIRED",             "note": "Forensic repair — all 11 boards verified across multi-phase 60s wait"},
+    {"status": "PENPOT_EXPORT_ORDER_CLEANED_MANUAL_PDF_REQUIRED",              "note": "sendToBack 01→11 + bringToFront on MCP test; portfolio block contiguous at end; PDF audit still showed reversed order"},
+    {"status": "PENPOT_FINAL_EXPORT_CLEANUP_DONE_MANUAL_PDF_REQUIRED",         "note": "MCP test frame deleted via shape.remove(); page root = [01..11]; PDF audit confirmed 11→01 reverse-order"}
+  ],
+  "nextGate": "PENPOT_INTERACTIONS_GATE_AFTER_CONTENT_ACCEPTANCE"
+}
