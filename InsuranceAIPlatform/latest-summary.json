@@ -1,27 +1,38 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "REACT_UI_WALKING_SKELETON",
-  "latest_run": "react-ui-walking-skeleton",
+  "gate": "UI_COPY_FIX",
+  "latest_run": "ui-copy-fix-demo-label",
   "date": "2026-05-26",
-  "status": "implemented-verified",
-  "scope": "frontend-only",
-  "report": "react-ui-walking-skeleton/report.md",
-  "screenshots_dir": "react-ui-walking-skeleton/screenshots/",
-  "summary": "First local frontend-only React walking skeleton for the Auto Insurance Claim AI Workbench. 11 routes matching the accepted Penpot design, Redux Toolkit (6 slices) + Redux-Saga (4 watchers), 100% synthetic data. Production build passes; 11 screenshots captured from preview with no console errors. No backend, Azure, AI provider, API calls, secrets, commit, or push.",
+  "status": "applied-verified",
+  "scope": "text-only-ui-copy",
+  "report": "ui-copy-fix-demo-label/report.md",
+  "summary": "Text-only UI copy fix: replaced visible button label 'Запустити демо' with 'Приклад використання' in 2 source files (TopBar.tsx:48, DemoScenarioPage.tsx:34). No behaviour/route/Redux/Saga/style changes. Build PASS; new label confirmed in browser; zero occurrences of the old string remain.",
+  "files_changed": [
+    "src/components/layout/TopBar.tsx",
+    "src/pages/DemoScenarioPage.tsx"
+  ],
+  "text_replaced": {
+    "from": "Запустити демо",
+    "to": "Приклад використання",
+    "occurrences": 2
+  },
   "build": "PASS (tsc -b && vite build, exit 0)",
-  "routes_count": 11,
-  "screenshots_count": 11,
+  "old_string_remaining": 0,
+  "browser_check": "new button renders '▶ Приклад використання'; old label absent",
+  "flagged": "Top-bar toggle stop-state label 'Зупинити демо' left unchanged (out of scope)",
   "forbidden_scope_confirmed": {
+    "architecture_change": false,
+    "refactor": false,
+    "route_change": false,
+    "redux_saga_change": false,
+    "dependency_added": false,
     "backend": false,
     "azure": false,
     "ai_provider": false,
-    "real_api_calls": false,
-    "real_pii": false,
     "source_repo_commit": false,
     "source_repo_push": false,
     "source_repo_remote_created": false,
-    "secrets_in_tracked_files": false,
     "other_repos_touched": false
   },
-  "supersedes": "2026-05-24 penpot-reverse-children-order gate (archived at runs/2026-05-24-penpot-reverse-children-order/)"
+  "supersedes": "react-ui-walking-skeleton (kept at react-ui-walking-skeleton/)"
 }
