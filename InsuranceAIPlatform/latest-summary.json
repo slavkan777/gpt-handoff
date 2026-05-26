@@ -1,38 +1,53 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "UI_COPY_FIX",
-  "latest_run": "ui-copy-fix-demo-label",
+  "gate": "UI_VISUAL_IDENTITY_POLISH_AND_HONEST_DEMO_LABELING",
+  "latest_run": "ui-visual-identity-polish",
   "date": "2026-05-26",
   "status": "applied-verified",
-  "scope": "text-only-ui-copy",
-  "report": "ui-copy-fix-demo-label/report.md",
-  "summary": "Text-only UI copy fix: replaced visible button label 'Запустити демо' with 'Приклад використання' in 2 source files (TopBar.tsx:48, DemoScenarioPage.tsx:34). No behaviour/route/Redux/Saga/style changes. Build PASS; new label confirmed in browser; zero occurrences of the old string remain.",
-  "files_changed": [
-    "src/components/layout/TopBar.tsx",
-    "src/pages/DemoScenarioPage.tsx"
-  ],
-  "text_replaced": {
-    "from": "Запустити демо",
-    "to": "Приклад використання",
-    "occurrences": 2
+  "scope": "visual-identity-and-honest-labeling-only",
+  "style": "Enterprise AI Command Center",
+  "report": "ui-visual-identity-polish/report.md",
+  "screenshots_dir": "ui-visual-identity-polish/screenshots/",
+  "summary": "Applied Enterprise AI Command Center visual identity (Azure-blue primary, distinct indigo AI accent, red/amber/green risk semaphore, slate audit) and honest demo labeling (API/index mock, AI/storage demo, Local Demo env chip, persistent 'Frontend prototype · synthetic data · mocked AI workflow' notice). Centralized via tokens + shared components. All 11 routes still render; build PASS; 11 screenshots recaptured. No product logic, routes, Redux/Saga, or mock-data semantics changed.",
+  "routes_count": 11,
+  "screenshots_count": 11,
+  "build_status": "PASS (tsc -b && vite build, exit 0)",
+  "preserved": {
+    "routes": true,
+    "demo_flow_CLM_1006": true,
+    "redux_toolkit_state": true,
+    "redux_saga_workflows": true,
+    "mock_data_semantics": true,
+    "primary_cta_text": "Приклад використання"
   },
-  "build": "PASS (tsc -b && vite build, exit 0)",
-  "old_string_remaining": 0,
-  "browser_check": "new button renders '▶ Приклад використання'; old label absent",
-  "flagged": "Top-bar toggle stop-state label 'Зупинити демо' left unchanged (out of scope)",
+  "honest_labeling": {
+    "api": "mock",
+    "ai_module": "demo",
+    "search_index": "mock",
+    "document_store": "demo",
+    "environment_chip": "Local Demo",
+    "notice": "Frontend prototype · synthetic data · mocked AI workflow",
+    "zapustyty_demo_present": false
+  },
   "forbidden_scope_confirmed": {
-    "architecture_change": false,
-    "refactor": false,
-    "route_change": false,
-    "redux_saga_change": false,
+    "full_redesign": false,
+    "route_move_or_removal": false,
+    "redux_saga_behavior_change": false,
+    "mock_data_semantics_change": false,
     "dependency_added": false,
     "backend": false,
     "azure": false,
     "ai_provider": false,
-    "source_repo_commit": false,
-    "source_repo_push": false,
-    "source_repo_remote_created": false,
+    "real_api_calls": false,
+    "real_pii": false,
     "other_repos_touched": false
   },
-  "supersedes": "react-ui-walking-skeleton (kept at react-ui-walking-skeleton/)"
+  "source_repo_commit": false,
+  "source_repo_push": false,
+  "backend": false,
+  "azure": false,
+  "ai_provider": false,
+  "real_api_calls": false,
+  "real_pii": false,
+  "supersedes": "ui-copy-fix-demo-label"
 }
