@@ -44,7 +44,7 @@ Allowed decisions: `ApproveForReview`, `RejectForReview`, `NeedsMoreInformation`
 | Source commit/push | none; `main` untouched (`69e6731`); HEAD `1fc1774` |
 
 ## Frontend
-Additive only: typed command client functions + types under `src/api/` (`backendInsuranceApi.ts`, `insuranceApi.types.ts`). No component/page rewrite; no payout/upload/message buttons enabled; UI button wiring deferred (honest). Build PASS.
+Additive only: typed command client functions + types under `src/api/`. No component/page rewrite; no payout/upload/message buttons enabled; UI button wiring deferred (honest). Build PASS.
 
 ## Deferred / limitations
 True aggregate-atomic outbox (owning-service write and audit/outbox write are two separate transactions); broker/Azure Service Bus mapping; DB-backed read migration (Option A still in force); claim-status mutation; AI Analysis provider.
