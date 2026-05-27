@@ -51,4 +51,4 @@ Existing read routes + `/api/bff/health` unchanged (in-memory) → frontend cont
 No write endpoints; no provider/Azure/AI SDK packages; AI `ProviderMode=Disabled` only; no DevDept; connection integrated-auth (no password) + not in prod appsettings; `DEEPSEEK_API_KEY` never read; no real PII (`@example.invalid`); no `src/**` change; `main` untouched; no force; no merge.
 
 ## Next safe step
-`MICROSERVICE_WRITE_ACTIONS_AND_AUDIT_MEGA_V0.1` — introduce write/command behavior (human-controlled) + transactional outbox/events + audit append, behind service boundaries. That gate adds write endpoints and must carry its own bounded scope, verification, and separate commit/push gates. (AI provider integration remains a later, separate gate; DeepSeek stays isolated/disabled until then.)
+`MICROSERVICE_WRITE_ACTIONS_AND_AUDIT_MEGA_V0.1` — introduce write/command behavior (human-controlled) + transactional outbox/events + audit append, behind service boundaries. That gate adds write endpoints and must carry its own bounded scope, verification, and separate commit/push gates.
