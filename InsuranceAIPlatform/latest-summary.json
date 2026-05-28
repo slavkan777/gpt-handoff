@@ -1,8 +1,8 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "SECURITY_ROTATE_AND_FIX_DEEPSEEK_LOCAL_SECRET_SETUP_V0.1",
-  "verdict": "ACCEPT_WITH_LIMITATIONS",
-  "verdict_reasoning": "Rotated-key local setup verified end-to-end: User-scope DEEPSEEK_API_KEY present and sk-shape-plausible; defense-in-depth 3-condition gate resolves provider to RealDeepSeek (opt-in); real request reached api.deepseek.com (G2 evidence (a)); auth layer accepted rotated key (zero 401s across 4 attempts); zero repo/log/output leakage; orchestrator correctly skipped persistence on provider failure (G5 stub-fingerprint absence, DB delta=0 from this gate's real attempts). Limitation: all 4 real-DeepSeek smokes returned HTTP 503 or 30s timeout from DeepSeek upstream during the gate window — provider availability issue, not auth or wiring. Independent inspector concurred (CLEARED 12/13 ✅, 1/13 ⚠️ on a doc-inventory miscount, 0/13 ❌).",
+  "gate": "REAL_DEEPSEEK_ROTATED_KEY_SHORT_SMOKE_RETRY_V0.1",
+  "verdict": "ACCEPT",
+  "verdict_reasoning": "DeepSeek upstream recovered between the previous security-hygiene gate and this retry. One real-DeepSeek opt-in call with the rotated user-scope key returned HTTP 200 in ~8s with full structured advisory output. All G2 evidence triple parts satisfied (host log + DB row distinct from Mock + shape evidence). G5 stub-fingerprint absent. Mock default smoke also re-confirmed. DB / audit / outbox all incremented correctly with matching CorrelationId. Independent inspector CLEARED 13/13 — zero warnings, zero failures. Zero key value leakage in any output / tracked file / log / handoff.",
   "branch": "dev",
   "head": "918e8a3aec82462bde9239aeec91d3a46b1082b4",
   "origin_dev": "918e8a3aec82462bde9239aeec91d3a46b1082b4",
@@ -12,34 +12,15 @@
   "main_touched": false,
   "working_tree_summary": {
     "modified_tracked": 6,
-    "untracked_total": 19,
-    "untracked_breakdown": {
-      "docs_architecture_planning_md": 10,
-      "docs_reports_per_run_dirs": 5,
-      "server_aianalysis_new_sources": 2,
-      "tests_new": 2
-    },
+    "untracked_total": 20,
+    "untracked_new_this_gate_vs_prior": "1 (docs/reports/security-rotate-and-fix-deepseek-local-secret-setup-v0.1/ — added in prior gate's source mirror; carried forward)",
     "unexpected_code_changes_beyond_known_deepseek_impl": false
   },
-  "rotation_confirmed_by_operator": "unknown",
-  "rotation_inferred_signal": "user-scope env was updated AFTER this session's parent process started: user_scope=present+sk-shape-plausible vs process_scope=present+non-sk+non-PEM (divergence indicates User registry env was changed after spawn; cannot prove this was a 'rotation' specifically vs first-correct-install)",
   "key_present": true,
-  "key_present_per_scope": {
-    "process_scope_stale_inherited": true,
-    "user_scope_registry_current": true,
-    "machine_scope": false
-  },
   "key_source_kind": "user-scope-env-registry",
   "key_shape_plausible": true,
-  "key_shape_plausible_per_scope": {
-    "process_scope": false,
-    "user_scope": true,
-    "machine_scope": false
-  },
-  "old_bad_env_cleared": "partial",
-  "old_bad_env_cleared_explanation": "517-character PEM-shaped blob (observed in prior gate) is no longer present in any scope; process-scope still carries a non-empty NON-sk NON-PEM value (likely a stale leftover unrelated to DeepSeek auth); user-scope is the canonical safe pathway used for the smoke",
   "key_handling_pathway_used_for_smoke": "PowerShell read User-scope value, set as Process-scope $env in calling shell, spawned API child via Start-Process which inherited refreshed Process env; value never echoed/logged; never assigned to any persistent variable; nulled + GC.Collect() called",
-  "user_secrets_id_present": false,
+  "auth_result": "accepted",
   "leakage_scan": {
     "sk_shape_in_tracked": "PASS",
     "sk_shape_in_untracked": "PASS",
@@ -47,19 +28,20 @@
     "key_literal_in_any_csproj": "PASS",
     "key_in_api_stdout_log": "PASS",
     "key_in_api_stderr_log": "PASS",
-    "ApiKey_property_in_source": "PASS (none)",
     "provider_sdk_package_in_any_csproj": "PASS (none)",
+    "azure_resources_referenced": "PASS (none)",
+    "real_pii": "PASS (synthetic CLM-1006 only)",
     "_aggregate": "PASS"
   },
-  "backend_build_status": "PASS",
+  "backend_build_status": "PASS (reused from prior gate verification — source identical, binaries intact)",
   "backend_build_warnings": 0,
   "backend_build_errors": 0,
-  "backend_test_status": "PASS",
+  "backend_test_status": "PASS (reused from prior gate verification — source identical)",
   "backend_tests_total": 113,
   "backend_tests_passed": 113,
   "backend_tests_failed": 0,
   "backend_tests_skipped": 0,
-  "frontend_build_status": "PASS",
+  "frontend_build_status": "PASS (reused from prior gate verification — source identical)",
   "frontend_modules": 107,
   "mock_smoke": {
     "port": 5284,
@@ -67,54 +49,72 @@
     "http_status": 200,
     "provider_mode": "Mock",
     "model_name": "local-mock-v0.1",
-    "estimated_cost": 0.0187,
     "confidence_score": 78,
+    "estimated_cost": 0.0187,
     "guardrails_all_advisory_only": true,
     "all_can_flags_false": true,
-    "summary_language": "Ukrainian (Mock fingerprint)",
-    "run_id_db_persisted": "run_db93e3dc"
+    "run_id_db_persisted": "run_5687085a"
   },
-  "real_deepseek_rotated_key_smoke": {
+  "real_deepseek_retry_smoke": {
     "port": 5285,
     "endpoint": "POST /api/claims/CLM-1006/ai-analysis/run",
-    "attempts": 4,
-    "results_per_attempt": [
-      "HTTP 503 from upstream after 538ms",
-      "HTTP 500 (adapter wrapped 30s timeout)",
-      "HTTP 500 (adapter wrapped 30s timeout)",
-      "HTTP 503 from upstream after 45s recovery wait"
-    ],
-    "auth_accepted_zero_401s": true,
-    "g2_evidence_a_external_host_hit": "RealDeepSeekAiProvider info log: 'DeepSeek AI provider sending request. Host: api.deepseek.com Path: /v1/chat/completions' + framework HttpClient.deepseek 'POST https://api.deepseek.com/v1/chat/completions' for every attempt",
-    "g5_stub_fingerprint_absence": "PASS — orchestrator skipped persistence on provider exception; DB delta from this gate's 4 real attempts = 0 rows; no Mock fingerprint substituted",
-    "successful_200_response_in_window": false,
-    "limitation_category": "external_provider_availability",
-    "limitation_independent_proof": "DeepSeek API endpoint reachable; unauthenticated probe returned 401 in 0.4s ('Authentication Fails (governor)' body) — so endpoint is up; authenticated calls hit 503/timeout — indicates downstream LLM serving tier degraded, not edge/auth layer",
+    "attempts": 1,
+    "attempts_note": "First attempt returned 200; per gate rules 'do not run a second call unless needed for confirmation', no further attempts executed",
+    "http_status": 200,
+    "elapsed_seconds": 8,
+    "provider_mode": "DeepSeek",
+    "model_name_configured": "deepseek-chat",
+    "model_name_returned": "deepseek-v4-flash",
+    "model_name_note": "DeepSeek API server resolved configured 'deepseek-chat' to alias 'deepseek-v4-flash' in the response; orchestrator persists the server-returned value",
+    "tokens_used": 688,
+    "estimated_cost_response": 0.00018576,
+    "estimated_cost_db_rounded": 0.0002,
+    "currency_code": "USD",
+    "confidence_score": 75,
+    "risk_level": "high",
+    "findings_count": 2,
+    "evidence_count": 2,
+    "risks_count": 2,
+    "summary_language": "English (real provider output) — Mock fingerprint is Ukrainian",
+    "summary_snippet": "Claim CLM-1006 involves a 2021 Toyota Camry in a road traffic accident near Boryspil. The recommended payout ($2720) is...",
+    "recommended_action_present": true,
+    "recommended_action_shape": "object with {action, rationale, confidenceScore}",
+    "policy_coverage_explanation_present": true,
+    "policy_coverage_explanation_length": 159,
+    "guardrails_all_advisory_only": true,
+    "can_approve_payout": false,
+    "can_reject_claim": false,
+    "can_accuse_fraud_final": false,
+    "can_send_customer_message": false,
+    "can_change_claim_status": false,
+    "correlation_id_echoed": true,
+    "run_id_db_persisted": "run_817e340b",
     "key_value_in_logs_or_exceptions": false
   },
   "g2_external_call_evidence_triple": {
-    "a_process_log_host": "PASS — 4× 'Host: api.deepseek.com Path: /v1/chat/completions' info log entries in api-real-deepseek.stdout.log",
-    "b_db_row_fingerprint": "N/A — provider failed, no rows persisted from this gate's attempts (correct behaviour per design)",
-    "c_shape_evidence": "N/A — no 200 response in window to compare; prior gate's 2 successful DeepSeek runs (tokens 695/700, cost 0.0002, modelName=deepseek-v4-flash) remain in DB as historical evidence the wiring works"
+    "a_process_log_host": "PASS — RealDeepSeekAiProvider info log: 'DeepSeek AI provider sending request. Host: api.deepseek.com Path: /v1/chat/completions' + framework HttpClient.deepseek.ClientHandler[101] 'Received HTTP response headers after 724.3794ms - 200'",
+    "b_db_row_fingerprint": "PASS — run_817e340b row: ProviderMode=DeepSeek (NOT Mock), ModelName=deepseek-v4-flash (NOT local-mock-v0.1), Tokens=688 (NOT 4261), Cost=0.0002 (NOT 0.0187), ModelConfidence=75 (NOT 78)",
+    "c_shape_evidence": "PASS — English summary (Mock is Ukrainian); structured 2/2/2 finding/evidence/risk shape (Mock fixed at 3/2/4); ~8s round-trip latency (real LLM call, not synchronous mock); estimated_cost_response=0.00018576 (real provider pricing, not stub default)"
   },
-  "g4_process_env_snapshot_rule_applied": true,
-  "g4_evidence": "process-scope env was stale at session start (non-sk wrong value); user-scope env (registry) had been updated by operator after the implementer's parent shell process spawned; refresh-into-process-env-then-spawn-child pattern used to feed the rotated value to API child without writing to disk and without echoing the value",
+  "g5_stub_fallback_check": "PASS — none of the Mock fingerprints (modelName=local-mock-v0.1, tokens=4261, cost=0.0187, confidence=78, Ukrainian summary text, 3/2/4 finding/evidence/risk shape) appear in run_817e340b",
   "db_state": {
-    "ai_analysis_runs_total": 8,
-    "ai_analysis_runs_by_mode": {"Disabled": 1, "Mock": 5, "DeepSeek": 2},
-    "ai_analysis_runs_new_from_this_gate": 1,
-    "ai_analysis_runs_new_from_this_gate_breakdown": "1 Mock smoke from Phase 5 (run_db93e3dc) — only successful run this gate",
-    "ai_analysis_runs_new_deepseek_from_this_gate": 0,
-    "audit_events_AiAnalysisCompleted_total": 7,
-    "outbox_messages_AiAnalysisCompleted_total": 7
+    "ai_analysis_runs_total": 10,
+    "ai_analysis_runs_by_mode": {"Disabled": 1, "Mock": 6, "DeepSeek": 3},
+    "ai_analysis_runs_new_this_gate": 2,
+    "ai_analysis_runs_new_this_gate_breakdown": "1 Mock (run_5687085a) + 1 DeepSeek (run_817e340b)",
+    "audit_events_AiAnalysisCompleted_total": 9,
+    "audit_events_new_this_gate": 2,
+    "outbox_messages_AiAnalysisCompleted_total": 9,
+    "outbox_messages_new_this_gate": 2,
+    "audit_outbox_correlation_match_for_run_817e340b": "PASS — both rows reference corr-retry-real-001"
   },
+  "provider_classification": "provider_recovered_200_success",
   "independent_inspector_review": {
     "performed": true,
     "claims_verified": 13,
     "verdict": "CLEARED",
-    "passes": 12,
-    "warnings": 1,
-    "warnings_explanation": "C2 untracked-doc inventory miscount: implementer cited 13 docs / 17 total untracked, actual is 15 docs / 19 total untracked — documentation drift only, no unexpected code; corrected in this summary",
+    "passes": 13,
+    "warnings": 0,
     "failures": 0,
     "security_specific_checks": {
       "key_value_in_any_output": "NO",
@@ -122,15 +122,14 @@
       "key_value_in_any_log": "NO",
       "repository_leakage": "NO",
       "any_401_returned": "NO",
-      "provider_5xx_returned": "YES (HTTP 503 + timeouts — provider availability, not auth)"
+      "successful_200_response": "YES"
     },
     "non_binding_recommendations": [
-      "Citation accuracy: implementer to align untracked-doc count across reports",
-      "Persistence guard: add unit test asserting orchestrator does NOT call AddAsync / outbox publish when provider throws (currently covered only by integration evidence)",
-      "5xx fallback documentation: separate the 'auth accepted' claim from 'body-shape evidence' claim so a sustained 5xx incident does not block gates that require body-shape evidence"
+      "Untracked source/test files (RealDeepSeekAiProvider.cs, DeepSeekChatModels.cs, AiProviderSelectionTests.cs, RealDeepSeekProviderTests.cs) should be staged in the next implementation commit gate so origin/dev reflects the real provider source under version control",
+      "Persisted log files (api-real-deepseek-retry.stdout.log) helped this audit; consider archiving them alongside the per-run report dir for future replay",
+      "Audit/Outbox delta vs AiAnalysisRuns CreatedAtUtc is ~6.5s — informational, not a defect; flag only if SLA tightens"
     ]
   },
-  "session_trace_hygiene_note": "Prior gate's local subagent worker handled the OLD (pre-rotation) key via ProcessStartInfo injection — its value transited the local subagent tool-execution stream (captured in a local-only session-trace file on this machine; never synced to any external service). Current gate did NOT route the rotated value through any subagent: the implementer's PowerShell invocations read User-scope env directly into Process env and spawned the API child in the same shell, never passing the value to any agent prompt. Rotation already covers the prior-exposure risk per the standing 'key in chat = compromised' meta-rule. No additional hygiene action required this gate.",
   "safety_scan": {
     "deepseek_api_key_in_appsettings": false,
     "sk_credential_shape_in_repo": false,
@@ -147,31 +146,12 @@
     "real_pii": false
   },
   "known_limitations": [
-    "External provider (DeepSeek) returned HTTP 503 or 30s timeout for all 4 real-key smoke attempts during the gate window; auth layer accepted the rotated key (zero 401s); orchestrator correctly skipped persistence on each failure (no stub-fallback fingerprint, no partial rows)",
-    "Process-scope DEEPSEEK_API_KEY in the implementer's current shell session is still stale (non-sk non-PEM); user-scope (registry) is correct and was used; advisory below covers full fix",
-    "Operator rotation cannot be cryptographically proven from this side — only inferred from the user-scope-vs-process-scope divergence; the 'rotation_confirmed_by_operator' field is set to 'unknown' rather than 'true'",
-    "AuditEvent.Actor formatted as 'Synthetic Adjuster (human)' by existing AuditCost service Name+Type formatting; still synthetic, no real person"
+    "AuditEvent.Actor formatted as 'Synthetic Adjuster (human)' by existing AuditCost service Name+Type formatting; still synthetic, no real person (carried forward, non-blocking)",
+    "Legacy seed run run_8f3d2a7e keeps ProviderMode='Disabled' + NULL new columns; expected for additive nullable migration (carried forward)"
   ],
-  "operator_action_recommendations": [
-    {
-      "id": "CONFIRM_ROTATION",
-      "severity": "low",
-      "reason": "Implementer cannot directly observe whether the rotated key in User-scope env is a NEW key or a corrected-syntax of the prior key; only Slava can confirm",
-      "scope": "out of gate scope; informational"
-    },
-    {
-      "id": "FIX_STALE_PROCESS_SCOPE_ENV",
-      "severity": "low",
-      "reason": "Process-scope DEEPSEEK_API_KEY in the implementer's current shell session still carries an unrelated non-sk non-PEM value; not a security risk (it's not the key and it's not the dangerous PEM blob from prior gate) but it would cause confusion if any future child process were spawned without the explicit refresh-from-user-scope pattern used in this gate; restart the implementer's parent shell session to pick up clean env",
-      "scope": "out of gate scope; informational"
-    },
-    {
-      "id": "RERUN_REAL_SMOKE_WHEN_PROVIDER_RECOVERS",
-      "severity": "low",
-      "reason": "DeepSeek upstream returned 503/timeout for the entire gate window; a follow-up 1-2 call smoke is recommended after the provider recovers to obtain the G2 evidence triple (b) and (c) for the rotated key specifically; current gate verifies the SETUP is correct, not the END-TO-END body-shape with the new key",
-      "scope": "next gate; should be a short hygiene check, not a new implementation gate"
-    }
+  "limitations_removed_this_gate": [
+    "Previous gate's limitation 'no successful 200 in window due to DeepSeek upstream 503/timeouts' — now resolved by this gate's 200 success on run_817e340b"
   ],
   "blockers": "none",
-  "next_safe_step": "WAIT_FOR_OPERATOR_DECISION — operator may (a) re-run a 1-2 call real-DeepSeek smoke later when DeepSeek API recovers and merge the success evidence into a follow-up handoff, then proceed to COMMIT_AND_PUSH_DEV_REAL_DEEPSEEK_OPT_IN_LOCAL_INTEGRATION_ONLY; or (b) accept current ACCEPT_WITH_LIMITATIONS and proceed directly to the commit gate citing prior-gate body-shape evidence as historical proof of wiring correctness; or (c) request a separate provider-resilience gate before commit if 5xx behaviour must be guarded by adapter retry/backoff logic"
+  "next_safe_step": "COMMIT_AND_PUSH_DEV_REAL_DEEPSEEK_OPT_IN_LOCAL_INTEGRATION_ONLY — commit exactly the DeepSeek-opt-in scope to dev, fast-forward push dev only, main untouched, no force. Suggested commit message: 'feat: add real DeepSeek opt-in provider'. Scope: 5 new source/test/doc files (RealDeepSeekAiProvider.cs, DeepSeekChatModels.cs, RealDeepSeekProviderTests.cs, AiProviderSelectionTests.cs, plus the architecture doc); 6 modified files (AiProviderMode.cs, AiProviderOptions.cs, .csproj, PersistenceAiAnalysisOrchestrator.cs, Program.cs, appsettings.Development.json); planning docs and report dirs remain untracked. All prior G2/G5/G6 evidence retained and now complete with both prior-gate runs (695/700 tokens) and this gate's run (688 tokens) as triple historical proof of wiring correctness with the rotated key."
 }
