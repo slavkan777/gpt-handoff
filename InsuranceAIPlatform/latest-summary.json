@@ -1,150 +1,136 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "PRE_AZURE_REALISTIC_DB_SANDBOX_AND_TRIPLE_OWNER_FLOW_FIX_V0.1",
+  "gate": "POST_MANUAL_ZERO_TO_END_UI_FLOW_REWORK_WITH_E2E_TESTS_V0.2",
   "verdict": "ACCEPT",
   "ready_for_slava_manual_retest": true,
   "date_utc": "2026-05-28",
-  "scope_summary": "Close 5 gaps from prior gate: new-claim DB row, DB-backed document upload (text content), DB-only payout/settlement simulation, 200 customers visible/searchable, triple owner simulation. No commit/push/Azure.",
+  "supersedes": "POST_MANUAL_UI_FLOW_REWORK_WITH_E2E_TESTS_V0.1",
+  "scope_summary": "Close 5 Slava-found UI/product bugs and prove the full zero-to-end browser flow (new customer → new claim → docs → AI → decision → payout sim → audit) with a Playwright E2E suite. No commit, no push, no Azure.",
   "branch": "dev",
-  "head_sha": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "head_after":  "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "head_unchanged": true,
   "origin_main_sha": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
   "origin_main_unchanged": true,
-  "gaps_closed": {
-    "1_new_claim_db_row": "closed",
-    "2_document_db_upload": "closed",
-    "3_triple_owner_simulation": "completed",
-    "4_payout_simulation_db": "closed",
-    "5_200_users_ui_visibility": "closed"
+  "slava_bug_fixes": {
+    "bug_1_sidebar_double_active": {
+      "status": "fixed",
+      "root_cause": "/claims NavLink lacked end:true; React Router prefix-match highlighted parent AND child simultaneously.",
+      "fix": "end:true on every NavLink in Sidebar.tsx; sidebar-link-active class for E2E counter."
+    },
+    "bug_2_customers_5_rows": {
+      "status": "fixed",
+      "root_cause": "Frontend default VITE_INSURANCE_API_MODE='mock'; mock returned 5 hardcoded rows.",
+      "fix": ".env.development sets backend mode; catalog now reads from /api/customers."
+    },
+    "bug_3_clm_mock_id": {
+      "status": "fixed",
+      "root_cause": "Same as bug 2; mock createClaim returned synthesized CLM-MOCK-####.",
+      "fix": "Same .env.development flip; createClaim now POSTs to /api/claims and returns backend-allocated CLM-####."
+    },
+    "bug_4_search_filter": {
+      "status": "fixed",
+      "root_causes": [
+        "ClaimsListPage rendered rows.map unfiltered; search/filter/segment controls had no effect.",
+        "Default eventType filter was 'ДТП' silently hiding non-ДТП rows.",
+        "Queue was never reloaded after create."
+      ],
+      "fix": "filterClaimRows applied; useEffect dispatches loadClaimsQueue on mount; modal close also refreshes; claimsSlice defaults eventType/date to 'Усі'."
+    },
+    "bug_5_no_e2e": {
+      "status": "fixed",
+      "root_cause": "No Playwright; reports relied on API smokes + xunit only.",
+      "fix": "@playwright/test installed; Chromium browser downloaded; playwright.config.ts with two webServer entries; 8 spec files / 32 test cases."
+    }
+  },
+  "zero_to_end_flow": {
+    "new_customer": "pass",
+    "new_claim": "pass",
+    "new_claim_db_backed": "pass (real CLM-####, not CLM-MOCK-*)",
+    "list_search_after_create": "pass",
+    "open_claim_from_list": "pass",
+    "document_upload_text": "pass",
+    "missing_document_request": "pass",
+    "ai_analysis_run": "pass (Mock provider)",
+    "ai_decision_recorded_source_ai": "pass",
+    "payout_simulation_simulation_only": "pass",
+    "audit_trace_renders": "pass",
+    "logout": "pass"
   },
   "new_endpoints": [
-    "POST /api/claims",
-    "POST /api/claims/{id}/documents/upload",
-    "POST /api/claims/{id}/payout-simulation",
-    "GET  /api/claims/{id}/payout-simulations",
-    "GET  /api/customers",
-    "GET  /api/customers/count",
-    "GET  /api/customers/{id}"
+    "POST /api/customers"
   ],
-  "migrations": [
-    {
-      "name": "20260528153052_AddDocumentContentForLocalSandbox",
-      "schema": "documents",
-      "table": "ClaimDocuments",
-      "type": "additive_columns",
-      "columns_added": ["Content nvarchar(max)", "UploadedAtUtc datetimeoffset", "UploadedByActor nvarchar(200)"],
-      "applied": true,
-      "reversible": true
-    },
-    {
-      "name": "20260528153216_AddPayoutSimulations",
-      "schema": "approval",
-      "table": "PayoutSimulations",
-      "type": "new_table",
-      "rows_after_smoke": 3,
-      "all_rows_simulation_only_true": true,
-      "applied": true,
-      "reversible": true
-    }
-  ],
+  "migrations": [],
   "files_changed": {
-    "backend_new": 10,
-    "backend_modified": 13,
-    "frontend_new": 3,
-    "frontend_modified": 11,
-    "tracked_modified_total": 38,
-    "new_untracked_total": 16
+    "backend_modified": 4,
+    "frontend_modified_or_new": 16,
+    "env_new": 1,
+    "e2e_new": 10,
+    "package_modified": 2
   },
   "build_status": {
     "backend": "passed_0_warnings_0_errors",
-    "frontend": "passed_124_modules_424kB"
+    "frontend": "passed_125_modules_432kB"
   },
   "test_status": {
-    "framework": "xunit",
-    "total_run": 137,
-    "passed": 137,
-    "failed": 0,
-    "skipped": 0,
-    "new_tests_added": 10,
-    "new_test_class": "SandboxSurfaceTests",
-    "fixed_assertions": 1
-  },
-  "db_evidence_after_smoke": {
-    "new_claims_count": 3,
-    "new_claim_ids": ["CLM-1021", "CLM-1022", "CLM-1023"],
-    "new_documents_with_content_count": 4,
-    "new_payout_simulations_count": 3,
-    "all_payout_simulations_simulation_only_true": true,
-    "new_audit_events_total": 18,
-    "new_audit_action_types": [
-      "ClaimCreated", "DocumentUploaded", "MissingDocumentRequested",
-      "AiAnalysisCompleted", "AiDecisionRecorded", "PayoutSimulationCreated",
-      "ApprovalDraftSaved", "HumanDecisionSubmitted"
-    ],
-    "forbidden_audit_categories_count": 0,
-    "ai_run_provider_distribution": { "Mock": 12, "DeepSeek": 6, "Disabled": 1 },
-    "synthetic_customers_count": 200
-  },
-  "triple_pass_simulation": {
-    "pass1_new_claim_lifecycle": {
-      "claim_id": "CLM-1023",
-      "result": "PASS",
-      "audit_chain_length": 6,
-      "ai_decision_source": "AI",
-      "payout_simulation_only": true
+    "xunit": {
+      "total_run": 137,
+      "passed": 137,
+      "failed": 0,
+      "skipped": 0
     },
-    "pass2_clm_1006_walkthrough": {
-      "result": "PASS",
-      "sub_routes_checked": 8,
-      "all_sub_routes_200": true,
-      "adversarial_probes_passed": 3,
-      "probes_outcomes": {
-        "ApproveForPayout_enum": "400 INVALID_DECISION",
-        "POST_/payout_endpoint": "404 not_exist",
-        "POST_/customer-messages_endpoint": "404 not_exist"
-      }
-    },
-    "pass3_reviewer_walkthrough": {
-      "result": "PASS",
-      "db_assertions": {
-        "synthetic_customers_total": 200,
-        "non_synthetic_customers_total": 1,
-        "non_synthetic_is_golden_clm1006_seed": true,
-        "forbidden_audit_categories": 0,
-        "payout_simulations_unsafe_count": 0
-      }
+    "playwright": {
+      "spec_files": 8,
+      "expected": 32,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "duration_seconds": 102.263,
+      "browser": "chromium",
+      "browser_version": "Chrome for Testing 148.0.7778.96 (Playwright v1223)",
+      "workers": 1
     }
+  },
+  "e2e_suite": {
+    "01-auth.spec.ts": 2,
+    "02-sidebar.spec.ts": 8,
+    "03-customers.spec.ts": 3,
+    "04-claims.spec.ts": 2,
+    "05-claim-1006.spec.ts": 1,
+    "06-claim-actions.spec.ts": 5,
+    "07-safety.spec.ts": 10,
+    "08-zero-to-end.spec.ts": 1
   },
   "safety_checks": {
     "secret_value_in_source": "absent",
-    "sk_prefix_string_in_source": "absent",
-    "provider_sdk_referenced": "absent",
-    "real_pii_in_new_files": "absent",
-    "ai_id_markers_in_new_files": "absent",
-    "unsafe_response_fields_present": "absent",
+    "sk_prefix_substring_in_runtime_source": "absent (only enumerated in 07-safety.spec.ts as the NEGATIVE assertion list)",
+    "deepseek_api_key_value": "absent (only env var NAME appears in safety test forbidden list)",
     "azure_packages_added": "absent",
-    "azure_resources_created": "absent",
+    "azure_sdk_references": 0,
+    "real_pii_in_new_files": "absent",
+    "real_payout_path": "absent (verified by 07-safety.spec.ts across 8 routes)",
+    "real_customer_message_path": "absent",
+    "production_auth_users_created": "no",
     "origin_main_mutation": "absent",
-    "head_mutation": "absent",
+    "head_mutation_by_gate": "absent",
     "commit_attempted": "no",
-    "push_attempted": "no",
-    "payout_simulations_simulation_only_false_count": 0,
-    "forbidden_audit_categories_count": 0
+    "push_attempted": "no"
   },
   "limitations": [
-    "Document content is plain text only (no binary, no blob, no OCR — by design).",
-    "HybridClaimReadService blocks on async DB calls via GetAwaiter().GetResult() for backward compat with the synchronous IClaimReadService contract.",
-    "Document content not echoed into audit metadata (only length).",
-    "No browser-automated screenshots in this gate."
+    "AI runs use Mock provider in E2E; DeepSeek opt-in path unchanged from prior gate.",
+    "Audit-trace E2E asserts category labels render, not specific row ids.",
+    "HybridClaimReadService still bridges sync→async via .GetAwaiter().GetResult() (inherited; not addressed here).",
+    "No screenshots/traces archived in handoff (no failures occurred to capture; configured only-on-failure).",
+    "Single-browser (Chromium) only."
   ],
   "blockers": [],
   "github_handoff_paths": {
     "latest_report": "InsuranceAIPlatform/latest-report.md",
     "latest_summary": "InsuranceAIPlatform/latest-summary.json",
-    "gate_report": "InsuranceAIPlatform/pre-azure-realistic-db-sandbox-and-triple-owner-flow-fix-v0.1/report.md",
-    "triple_owner_transcript": "InsuranceAIPlatform/pre-azure-realistic-db-sandbox-and-triple-owner-flow-fix-v0.1/triple-owner-transcript.md"
+    "gate_report": "InsuranceAIPlatform/post-manual-zero-to-end-ui-flow-rework-with-e2e-tests-v0.2/report.md",
+    "e2e_results": "InsuranceAIPlatform/post-manual-zero-to-end-ui-flow-rework-with-e2e-tests-v0.2/e2e-results.md"
   },
-  "next_safe_step": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V2",
+  "next_safe_step": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V3",
   "next_safe_step_estimate_minutes": "10-15",
   "candidate_gates_after_manual_checkpoint": [
     "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH",
