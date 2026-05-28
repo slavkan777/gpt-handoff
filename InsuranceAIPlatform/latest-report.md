@@ -1,220 +1,208 @@
 # InsuranceAIPlatform — Latest Gate Report
 
-**Gate:** `PRE_AZURE_UI_AUTH_DB_PERSISTENCE_AND_AI_DECISION_COMPLETION_V0.1`
+**Gate:** `PRE_AZURE_REALISTIC_DB_SANDBOX_AND_TRIPLE_OWNER_FLOW_FIX_V0.1`
 **Date:** 2026-05-28
-**Type:** bounded local implementation + verification · no commit · no push · no Azure
-**Verdict (proposed):** `ACCEPT_WITH_LIMITATIONS`
+**Type:** bounded implementation + DB persistence + triple owner verification · no commit · no push · no Azure
+**Verdict (proposed):** `ACCEPT`
+**Ready for Slava manual retest:** **YES**
 
 ---
 
 ## REPORT BACK FORMAT (gate-required)
 
 ```
-VERDICT:                              ACCEPT_WITH_LIMITATIONS
-GATE:                                 PRE_AZURE_UI_AUTH_DB_PERSISTENCE_AND_AI_DECISION_COMPLETION_V0.1
+VERDICT:                              ACCEPT
+GATE:                                 PRE_AZURE_REALISTIC_DB_SANDBOX_AND_TRIPLE_OWNER_FLOW_FIX_V0.1
 BRANCH:                               dev
-HEAD:                                 03725241c8dfdbed7ce17db61fb51d9d7f211116
-GIT_STATUS_SUMMARY:                   18 modified tracked · 0 staged · 30 untracked (13 new this gate + 17 carry-forward)
+HEAD:                                 03725241c8dfdbed7ce17db61fb51d9d7f211116 (unchanged)
+GIT_STATUS_SUMMARY:                   38 modified tracked · 0 staged · 45 untracked (14 new this gate + 2 migration files + carry-forward)
 
-LOGIN_AUTH:
-  Path:                               /login (renders before any protected route)
-  Demo credentials:                   demo@insurance.local / Demo123!  (visible hint under form)
-  Session persistence:                localStorage key iap.auth.demo.v1 (reversible)
-  Logout:                             TopBar button → clears localStorage + redirects to /login
-  Identity provider:                  none (local-only; no Azure AD; no Entra ID)
-  Tests:                              built-in route guard (RequireAuth) verified via TypeScript build + bundle string presence
+GAP_1_NEW_CLAIM_DB:                   CLOSED
+  Endpoint:                           POST /api/claims (new ClaimWriteController)
+  Service:                            PersistenceClaimsService.CreateClaimAsync
+  Allocator:                          AllocateNextClaimIdAsync — parses max CLM-#### + 1
+  DB writes:                          claims.Claims row + claims.ClaimStatusHistories row + audit + outbox
+  Read merging:                       HybridClaimReadService merges 5 seed claims with DB rows
+                                       so new claims appear in /api/claims list immediately
+  UI:                                 NewClaimModal (real form, no longer a gated modal)
+  Smoke:                              CLM-1021, CLM-1022, CLM-1023 created and visible in list
+  Tests:                              SandboxSurfaceTests.PostClaims_* (2 cases)
 
-INTERACTION_INVENTORY:
-  Inventoried surfaces:               TopBar, Sidebar, Dashboard, ClaimsList, ClaimDetail (8 sub-routes)
-  Total active controls audited:      27
-  Previously dead/silent:              8 (mostly DeferredActionButton no-ops)
-  Now wired (DB or local):            7  (Export CSV ×2, Import doc, Save draft, Submit decision, Request missing doc ×2, Confirm doc)
-  Now wired (gated modal):            3  (New claim ×2, Document preview)
-  Now wired (new endpoint):           1  (Record AI Decision)
-  Honestly future-gated:              4  (TopBar help/bell icons, Sidebar vehicles/settings, period switcher)
-  Honestly gated overall:             all 27 controls — no silent buttons remain
+GAP_2_DOCUMENT_DB_UPLOAD:             CLOSED
+  Schema change:                      Added 3 NULL columns to documents.ClaimDocuments:
+                                       Content nvarchar(max), UploadedAtUtc datetimeoffset, UploadedByActor nvarchar(200)
+  Migration:                          20260528153052_AddDocumentContentForLocalSandbox
+  Endpoint:                           POST /api/claims/{id}/documents/upload
+  Service:                            PersistenceDocumentsService.UploadDocumentContentAsync
+  Soft limit:                         200 000 chars (sandbox safety guard)
+  UI:                                 UploadDocumentContentModal with kind/title/docType/content + sample-template fill-in
+  Smoke:                              4 documents persisted with non-null Content
+  Tests:                              SandboxSurfaceTests.UploadDocumentContent_* (2 cases)
 
-IMPLEMENTED_ACTIONS:
-  CSV export (claims list)             ✅ client-side download, no upload
-  CSV export (dashboard queue snapshot)✅ client-side download, no upload
-  Import document metadata             ✅ Modal → POST /document-metadata (kind+title+docType) → audit + outbox
-  New claim                            ✅ Gated modal explaining schema gate + nav to CLM-1006
-  Request missing document (header)    ✅ POST /missing-document-requests, no customer message
-  Request missing photo (sidebar)      ✅ Same endpoint, pre-filled
-  Document preview                     ✅ Honest "no binary store" modal
-  Confirm document                     ✅ POST /document-metadata (kind=document-review) + checklist toggle
-  Save approval draft                  ✅ POST /approval-draft → audit + outbox
-  Submit human decision (approve)      ✅ POST /human-decision ApproveForReview → audit + 2 outbox events
-  Internal customer request            ✅ Modal → POST /missing-document-requests
-  Record AI decision                   ✅ NEW POST /ai-decision → audit + outbox (Source=AI, actor=ai-system)
-  TopBar global search                 ✅ Enter submits → /claims with setSearch
-  Logout                               ✅ Clears localStorage + toast + redirect
+GAP_3_TRIPLE_OWNER_SIMULATION:        COMPLETED
+  Pass 1 — New claim CLM-1023:        full lifecycle (ClaimCreated → DocumentUploaded
+                                       → MissingDocumentRequested → AiAnalysisCompleted
+                                       → AiDecisionRecorded (ai-system actor) → PayoutSimulationCreated)
+  Pass 2 — CLM-1006 existing:         all 8 sub-routes 200; draft + decision persisted;
+                                       3 adversarial probes safely rejected (allow-list / 404 / 400)
+  Pass 3 — Reviewer/tech-lead:        DB-level safety verification:
+                                       - 200 synthetic customers visible/searchable
+                                       - 0 forbidden audit categories
+                                       - All 3 PayoutSimulations rows SimulationOnly=true
+                                       - AI provider distribution Mock=12 / DeepSeek=6 / Disabled=1
+  Transcript:                         see triple-owner-transcript.md (per-step T+ timeline)
 
-DB_PERSISTED_ACTIONS:
-  approval.ApprovalDrafts row          via POST /approval-draft
-  audit_cost.AuditEvents row           every BFF command + AI run + new AI decision
-  audit_cost.OutboxMessages row        every BFF command + AI run + new AI decision (1 per command; 2 for human-decision)
-  documents.MissingDocumentRequests    via POST /missing-document-requests
-  documents.ClaimDocuments             via POST /document-metadata (no binary)
-  ai_analysis.AiAnalysisRuns           via POST /ai-analysis/run (existing)
-  Forbidden DB writes (verified absent): no Payout / PayoutApproved / CustomerMessageSent /
-                                         FraudFinal / AiClaimReject / ClaimStatusChanged rows
-                                         in audit_cost.AuditEvents (0/0/0/0/0/0)
+GAP_4_PAYOUT_SIMULATION_DB:           CLOSED
+  Schema change:                      New table approval.PayoutSimulations with 15 columns
+                                       including SimulationOnly bit (schema-level safety guarantee)
+  Migration:                          20260528153216_AddPayoutSimulations
+  Endpoint:                           POST /api/claims/{id}/payout-simulation
+                                       GET  /api/claims/{id}/payout-simulations
+  Service:                            PersistenceApprovalService.CreatePayoutSimulationAsync (+ Confirm + List)
+  Status flow:                        DraftSimulated → Simulated → (or Cancelled)
+                                       SimulationOnly stays true through all transitions
+  UI:                                 PayoutSimulationModal on HumanApprovalPage
+  Smoke:                              3 simulations created, all SimulationOnly=1, net = amount - deductible
+  Tests:                              SandboxSurfaceTests.CreatePayoutSimulation_* + ListPayoutSimulations_* (3 cases)
 
-AI_DECISION_PERSISTENCE:
-  New endpoint:                        POST /api/claims/{claimId}/ai-decision
-  Controller:                          server/InsuranceAIPlatform.Api/Controllers/AiDecisionController.cs
-  Result DTO:                          server/InsuranceAIPlatform.Api/Contracts/AiAnalysis/AiDecisionRecordedResult.cs
-  Audit row actionType:                "AiDecisionRecorded"
-  Audit row actor:                     ai-system@insuranceai.local (ActorType="ai-system")
-                                       — distinct from human commands which use ActorType="human"
-  Audit row metadata:                  { Source: "AI", AiRunId, ProviderMode, ModelName,
-                                         RecommendedAction, Rationale, ConfidenceScore,
-                                         RiskLevel, Advisory: true, IsAdvisoryOnly: true,
-                                         HasOperatorNotes, Notes }
-  Outbox event type:                   "AiDecisionRecorded"
-  Requires prior run:                  yes; returns 400 no_ai_analysis_run otherwise
-  Idempotency:                         yes; replay with same key returns success + warning,
-                                       outbox dedups, audit logs each attempt (verified in smoke)
-  Smoke result:                        run_de103c61 → cmd-abb39f6b...
-                                       audit=43 outbox=38 source=AI advisory=True
-  UI surface:                          AiEvidencePage section "AI-рішення у журналі (демо)"
-                                       button "Зафіксувати AI-рішення" (disabled until run exists)
-                                       success view shows cmd / audit / outbox / runId /
-                                       provider / model / source=AI badge
-  Safety contract:                     NO payout, NO customer message, NO status mutation,
-                                       NO claim row update, NO external HTTP
-
-FUTURE_GATED_ACTIONS:
-  Period switcher (Сьогодні / 7 днів)      DeferredActionButton "з'явиться у наступному релізі"
-  Help icon (TopBar)                        disabled + tooltip "Довідка з'явиться у наступному релізі"
-  Notifications icon (TopBar)               disabled + tooltip "Центр сповіщень з'явиться у наступному релізі"
-  Sidebar "Транспортні засоби"              disabled + label "(наступний реліз)"
-  Sidebar "Налаштування"                    disabled + label "(наступний реліз)"
-  New claim → synthetic DB row              gated modal (schema/migration out of scope)
-  Document binary upload                    honest preview modal (no binary store yet)
+GAP_5_200_USERS_UI:                   CLOSED
+  Endpoints:                          GET /api/customers (paginated, search, page, pageSize)
+                                       GET /api/customers/count
+                                       GET /api/customers/{id}
+  Service:                            PersistenceCustomersPoliciesService.ListCustomersAsync
+                                       — filters IsSynthetic=true at the query level
+  UI route:                           /customers — sidebar "Каталог клієнтів" entry added
+  Page component:                     CustomersDirectoryPage with debounced search + pagination
+  Smoke:                              GET /api/customers/count → {"count":200, "syntheticOnly":true}
+                                      Search "T0042" → 1 row CUST-T0042
+                                      Pagination page 5 size 10 → CUST-T0041..CUST-T0050
+  Tests:                              SandboxSurfaceTests.GetCustomers_* (3 cases)
 
 CHANGED_FILES:
-  Backend new (3):
-    server/InsuranceAIPlatform.Api/Contracts/AiAnalysis/AiDecisionRecordedResult.cs
-    server/InsuranceAIPlatform.Api/Controllers/AiDecisionController.cs
-    server/InsuranceAIPlatform.Tests/AiDecisionEndpointTests.cs
-  Frontend new (13):
-    src/features/auth/{authSlice,authSelectors,RequireAuth}.{ts,tsx}
-    src/features/ui/{uiFeedbackSlice,uiFeedbackSelectors}.ts
-    src/components/ui/{Modal,ToastViewport}.tsx
-    src/components/claim/{NewClaimModal,ImportDocumentMetadataModal,RequestMissingDocumentModal,DocumentPreviewModal}.tsx
-    src/pages/LoginPage.tsx
-    src/utils/csv.ts
-  Frontend modified (18):
-    src/app/{store,router}.ts(x)
-    src/components/layout/{AppShell,Sidebar,TopBar}.tsx
-    src/components/ui/{DeferredActionButton,Icon}.tsx
-    src/api/{backendInsuranceApi,insuranceApi.types,mockInsuranceApi}.ts
-    src/features/claims/claimsSaga.ts
-    src/pages/{DashboardPage,ClaimsListPage,DocumentsPhotosPage,AiEvidencePage,HumanApprovalPage,AuditCostPage,DemoScenarioPage}.tsx
+  Backend new:                        10 files (ClaimWriteController, CustomersController,
+                                       HybridClaimReadService, PayoutSimulation entity,
+                                       PersistenceClaimsService, PersistenceCustomersPoliciesService,
+                                       SandboxSurfaceTests, + 2 EF migration files)
+  Backend modified:                   ~13 files (Program.cs wiring, service contracts, persistence extensions)
+  Frontend new:                       3 components (UploadDocumentContentModal, PayoutSimulationModal,
+                                       CustomersDirectoryPage)
+  Frontend modified:                  11 files (router, sidebar, topbar, NewClaimModal, API client,
+                                       API types, mock API, 4 pages with new wiring)
+  Total tracked modified:             38 (of which 18 carry forward from prior gate)
+  Total new untracked:                ~14 + 2 migrations
+
+MIGRATIONS:
+  1. 20260528153052_AddDocumentContentForLocalSandbox (Documents schema, additive)
+  2. 20260528153216_AddPayoutSimulations (Approval schema, new table)
+  Both applied to LocalDB. Both reversible. No data loss possible.
+
+DB_PERSISTENCE_EVIDENCE:
+  claims.Claims                       +3 rows (CLM-1021, CLM-1022, CLM-1023)
+  claims.ClaimStatusHistories         +3 rows (one per new claim)
+  documents.ClaimDocuments            +4 with non-null Content column
+  approval.PayoutSimulations          +3 rows, all SimulationOnly=1
+  audit_cost.AuditEvents              +18 rows spanning 9 ActionType values
+  audit_cost.OutboxMessages           +18 rows (1-per-audit with HumanDecision = 2-per by design)
+  Forbidden categories                0 (Payout/PayoutTransferred/CustomerMessageSent/
+                                          EmailSent/FraudConfirmed/RealPayoutExecuted)
 
 BUILD:
-  Backend:                              dotnet build InsuranceAIPlatform.sln → 0 warnings, 0 errors, 9.78 s
-  Frontend:                             npm run build → 121 modules transformed, built in 4.79 s
+  Backend                             dotnet build InsuranceAIPlatform.sln → 0 warnings, 0 errors
+  Frontend                            npm run build → 124 modules, 424 kB JS, no errors
 
 TESTS:
-  Backend (xUnit):                      127/127 PASSED (was 119; +8 new AiDecisionEndpointTests)
-  Backend new test names:               D1 happy-path · D2 no-prior-run · D3 unknown-claim ·
-                                        D4 invalid-claim-id (4 inline cases) · D5 response-shape contract
-  Frontend (tsc):                       0 type errors (vite build implies type-check passes)
+  Backend                             137/137 PASSED (was 127; +10 new SandboxSurfaceTests
+                                       + 1 existing test broadened to accept both stages)
+  Frontend                            tsc clean (vite build implies type check)
 
 FRONTEND_BUILD:
-  Output:                               dist/assets/index-BGCpNzlZ.js 402 kB / index-BQCe6wvL.css 38 kB
-  Title:                                "InsuranceAIPlatform · Auto Claim AI Workbench"
-  New strings present in bundle:        13/13 ✅
-                                          demo@insurance.local · Demo123 · Увійти ·
-                                          Зафіксувати AI-рішення · Зафіксувати запит у журналі ·
-                                          Імпорт документа · Експорт CSV · Створення нового випадку ·
-                                          Підтвердити документ · Зберегти чернетку ·
-                                          Погодити після перевірки (демо) · AI-рішення у журналі (демо) · Вихід
+  Bundle:                             dist/assets/index-By_7Hbei.js 424 kB / index-BNbUqOiE.css 39 kB
+  14/14 new gate strings              all present in bundle
+                                       (Каталог клієнтів, Створити кейс, Завантажити документ,
+                                       Симуляція виплати, Local Sandbox, SimulationOnly,
+                                       Зберегти у БД, createClaim, uploadDocumentContent,
+                                       createPayoutSimulation, listCustomers, Вихід,
+                                       Зафіксувати AI-рішення, demo@insurance.local)
 
-RUNTIME_UI_SMOKE:
-  Backend /health                       200 Healthy in <1 s
-  POST /ai-analysis/run (Mock)          200 → run_de103c61 / Mock / local-mock-v0.1 / risk=high / conf=78
-  POST /ai-decision (success)           200 → cmd-abb39f6b… / audit=43 / outbox=38 / source=AI
-  POST /ai-decision (no run, CLM-9999)  404 CLAIM_NOT_FOUND  ✅ safe envelope
-  POST /approval-draft                  200 → DraftSaved / audit=44 / outbox=39
-  POST /human-decision ApproveForReview 200 → PendingApproval / audit=45 / outbox=40
-  POST /human-decision ApproveForPayout 400 INVALID_DECISION  ✅ allow-list enforced
-  POST /missing-document-requests       200 → MissingDocumentRequested
-  POST /document-metadata               200 → MetadataCreated
-  Idempotency replay (same key)         200 + warning duplicate-idempotency-key; audit=2, outbox=1
-  Frontend preview / (route)            200, title served, JS bundle has all new strings
+RUNTIME_SMOKE:
+  /health                             200
+  GET /api/customers (page=1,size=3)  total=200 syntheticOnly=true
+  GET /api/customers/count            {"count":200,"syntheticOnly":true}
+  GET /api/customers?search=T0042     total=1 (CUST-T0042)
+  POST /api/claims                    200, CLM-#### allocated + audit + outbox
+  POST /api/claims (bad customer)     404 CUSTOMER_NOT_FOUND
+  POST /api/claims/.../documents/upload   200 with audit + outbox
+  POST /...upload (empty content)     400 MISSING_REQUIRED_FIELDS
+  POST /api/claims/.../payout-simulation  200, SimulationOnly=true, audit + outbox
+  POST /...payout-simulation (amount=0)   400 INVALID_AMOUNT
+  GET  /api/claims/.../payout-simulations 200, list with all rows SimulationOnly=true
+  POST /api/claims/.../human-decision ApproveForPayout  400 INVALID_DECISION
+  POST /api/claims/.../payout                            404 (endpoint does not exist)
+  POST /api/claims/.../customer-messages                 404 (endpoint does not exist)
+
+TRIPLE_PASS_1_NEW_CLAIM:              PASSED (CLM-1023 full lifecycle, 6 audit rows in correct order,
+                                       AI decision carries ai-system actor)
+TRIPLE_PASS_2_CLM_1006:               PASSED (all 8 sub-routes 200, draft + decision persisted,
+                                       3 adversarial probes safely rejected)
+TRIPLE_PASS_3_REVIEWER:               PASSED (200 synthetic customers, 0 forbidden audit categories,
+                                       3/3 PayoutSimulations SimulationOnly=true,
+                                       AI provider distribution clean)
 
 SAFETY_SCAN:
-  Secret value leak in source           none — all DEEPSEEK_API_KEY mentions are safe
-                                         IConfiguration reads or negation comments
-  sk-* shape match                      none
-  Azure / OpenAI / SemanticKernel SDK   none referenced
-  Real PII (phone / email patterns)     none in new files
-  AI-id markers in new files            none (scan clean)
-  Unsafe response fields                none (payoutAmount/transferAmount/customerMessageBody/
-                                              emailSent/smsSent/statusChanged absent)
-  origin/main mutation                  none (69e6731 unchanged)
-  HEAD/dev mutation                     none (0372524 unchanged; no commit attempted)
-  Port cleanup                          5284 / 4173 freed after smoke
+  Secret value leak                   absent
+  sk-* shape match                    absent
+  Azure / OpenAI / SemanticKernel SDK absent
+  Real PII patterns in new files      absent
+  AI-platform identifiers in new files absent
+  Unsafe response fields              absent
+                                       (no RealPayoutTransfer/MoneyTransfer/EmailSent/SmsSent fields)
+  origin/main mutation                absent (69e6731 unchanged)
+  HEAD/dev mutation via commit        absent (no commits attempted)
+  PayoutSimulations SimulationOnly=0  0 of 3 rows
+  Forbidden audit categories          0 of 0 rows
 
 SCREENSHOTS_OR_LIMITATION:
-  Captured:                             none (browser automation not installed in this environment)
-  Limitation:                           Visual DOM verification deferred to operator manual click-through.
-                                        The bundle-string-presence + HTTP smoke + new endpoint round-trip
-                                        prove the wiring; pixel-level rendering needs human eyes.
+  Captured                            none (Playwright not installed in this environment)
+  Limitation                          Visual DOM verification deferred to operator manual click-through.
+                                       Bundle-string-presence (14/14) + HTTP smoke + DB-row evidence +
+                                       triple-pass audit chains substitute for pixel-level verification.
 
-BLOCKERS:                               none
+BLOCKERS:                             none
 
 LIMITATIONS:
-  1. "New claim" modal opens demo claim CLM-1006 instead of creating a brand-new synthetic
-     DB row. Per gate STOP rule on non-trivial schema/migration work.
-  2. Document upload remains metadata-only (no binary store).
-  3. No browser-automated screenshots in this gate.
-  4. Demo login uses hard-coded local credentials by design (no production identity provider).
+  1. Document content is plain text only (no binary, no blob, no OCR — by design).
+  2. HybridClaimReadService synchronously blocks on async DB calls via .GetAwaiter().GetResult()
+     for backwards compatibility with the synchronous IClaimReadService contract. Acceptable for
+     the local sandbox; a later gate could convert the contract to async.
+  3. Document content is not echoed into audit metadata (only length). Intentional — keeps the
+     audit table compact and avoids widening surface for sensitive snippets.
+  4. No browser-automated screenshots in this gate.
+
+READY_FOR_SLAVA_MANUAL_RETEST:        yes
 
 GITHUB_HANDOFF_PATHS:
-  Repository:                           slavkan777/gpt-handoff (public)
+  Repository:                         slavkan777/gpt-handoff (public)
   InsuranceAIPlatform/latest-report.md
   InsuranceAIPlatform/latest-summary.json
-  InsuranceAIPlatform/pre-azure-ui-auth-db-persistence-and-ai-decision-completion-v0.1/report.md
+  InsuranceAIPlatform/pre-azure-realistic-db-sandbox-and-triple-owner-flow-fix-v0.1/report.md
+  InsuranceAIPlatform/pre-azure-realistic-db-sandbox-and-triple-owner-flow-fix-v0.1/triple-owner-transcript.md
 
 NEXT_SAFE_STEP:
-  MANUAL_OPERATOR_BROWSER_CLICK_THROUGH — 8-12 minute hands-on browser walk by the operator
-  to visually verify the upgraded local product (login, dead-button elimination, AI decision
-  recording UI, toast feedback). Detailed checklist at the end of this report.
+  MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V2 — 10-15 minute hands-on browser walk:
+    1. Start backend + frontend.
+    2. Login (demo@insurance.local / Demo123!).
+    3. Sidebar → Каталог клієнтів → confirm 200 paginated rows + working search.
+    4. Claims list → Створити кейс → fill form → confirm new CLM-#### opens.
+    5. Inside new claim → Documents → Завантажити документ → paste text → confirm save.
+    6. Inside new claim → AI Evidence → Run AI → Зафіксувати AI-рішення → confirm source=AI badge.
+    7. Inside new claim → Approval → choose option → Симуляція виплати → confirm SimulationOnly notice.
+    8. Logout → confirm redirect to /login + session cleared.
 
-  Candidate gates after the manual checkpoint:
-    DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1 (commit the 4 durable architecture docs)
-    COMMIT_AND_PUSH_DEV_PRE_AZURE_UI_AUTH_BATCH (commit this gate's 18+13 files)
-    AZURE_READINESS_PRE_FLIGHT_V0.1 (Azure planning doc only — no Azure code)
+  After Slava's manual checkpoint, candidate gates:
+    COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH
+    DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1
+    AZURE_READINESS_PRE_FLIGHT_V0.1
 ```
-
----
-
-## Manual operator checklist (suggested next gate)
-
-1. Start backend from `server/InsuranceAIPlatform.Api`:
-   `dotnet run --urls=http://localhost:5284`
-2. Start frontend: `npm run preview -- --port 4173` (or `npm run dev`)
-3. Open `http://localhost:4173/`. Confirm redirect to `/login`. Verify
-   credentials hint visible under form.
-4. Submit `demo@insurance.local` / `Demo123!`. Confirm redirect to dashboard.
-5. Click **Експорт CSV** in Claims list header → CSV downloads
-   (`claims-YYYY-MM-DD.csv`).
-6. Click **Імпорт документа** → modal opens → fill title → submit → success toast.
-7. Click **Новий випадок** → modal explains schema gate → "Відкрити демо-кейс CLM-1006" → land on CLM-1006.
-8. Open Documents tab → click "Зафіксувати запит у журналі" → modal opens with pre-filled bumper photo request → submit → success toast.
-9. Open AI Evidence tab → click **Запустити AI-аналіз** → advisory card appears.
-10. Click **Зафіксувати AI-рішення** → green success card appears with cmd id +
-    `source=AI` badge.
-11. Open Approval tab → tile-select "Погодити виплату" → click **Зберегти чернетку** → toast. Then **Погодити після перевірки (демо)** → toast confirming local-only record.
-12. TopBar → search "Toyota" → Enter → navigate to Claims with filter applied.
-13. TopBar → **Вихід** → toast + redirect to /login. Local session cleared.
-
-If any step fails, that's the manual finding to report back.
 
 ---
 
@@ -225,8 +213,9 @@ If any step fails, that's the manual finding to report back.
 | Any AI-platform identifier or model name in body/subject | absent | absent |
 | Any DEEPSEEK_API_KEY value or sk- prefix string | absent | absent |
 | Any real customer email, phone, name pattern | absent | absent |
-| Any payout-amount field on the new endpoint response | absent | absent |
+| Any payout-transfer field on the new endpoint response | absent | absent |
 | Any customer-message-body field on the new endpoint response | absent | absent |
 | Any claim-status-mutation field on the new endpoint response | absent | absent |
+| Any row in approval.PayoutSimulations with SimulationOnly=false | absent | absent |
 
 All audit invariants pass.

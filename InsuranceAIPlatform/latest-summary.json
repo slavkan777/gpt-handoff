@@ -1,104 +1,118 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "PRE_AZURE_UI_AUTH_DB_PERSISTENCE_AND_AI_DECISION_COMPLETION_V0.1",
-  "verdict": "ACCEPT_WITH_LIMITATIONS",
+  "gate": "PRE_AZURE_REALISTIC_DB_SANDBOX_AND_TRIPLE_OWNER_FLOW_FIX_V0.1",
+  "verdict": "ACCEPT",
+  "ready_for_slava_manual_retest": true,
   "date_utc": "2026-05-28",
-  "scope_summary": "Bounded local product-completion batch: demo login, dead-button elimination, DB-only persistence for visible business actions, AI decision auditable persistence with Source=AI attribution, DEMO badge cleanup. No commit/push/Azure.",
+  "scope_summary": "Close 5 gaps from prior gate: new-claim DB row, DB-backed document upload (text content), DB-only payout/settlement simulation, 200 customers visible/searchable, triple owner simulation. No commit/push/Azure.",
   "branch": "dev",
   "head_sha": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "head_unchanged": true,
   "origin_main_sha": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
   "origin_main_unchanged": true,
+  "gaps_closed": {
+    "1_new_claim_db_row": "closed",
+    "2_document_db_upload": "closed",
+    "3_triple_owner_simulation": "completed",
+    "4_payout_simulation_db": "closed",
+    "5_200_users_ui_visibility": "closed"
+  },
+  "new_endpoints": [
+    "POST /api/claims",
+    "POST /api/claims/{id}/documents/upload",
+    "POST /api/claims/{id}/payout-simulation",
+    "GET  /api/claims/{id}/payout-simulations",
+    "GET  /api/customers",
+    "GET  /api/customers/count",
+    "GET  /api/customers/{id}"
+  ],
+  "migrations": [
+    {
+      "name": "20260528153052_AddDocumentContentForLocalSandbox",
+      "schema": "documents",
+      "table": "ClaimDocuments",
+      "type": "additive_columns",
+      "columns_added": ["Content nvarchar(max)", "UploadedAtUtc datetimeoffset", "UploadedByActor nvarchar(200)"],
+      "applied": true,
+      "reversible": true
+    },
+    {
+      "name": "20260528153216_AddPayoutSimulations",
+      "schema": "approval",
+      "table": "PayoutSimulations",
+      "type": "new_table",
+      "rows_after_smoke": 3,
+      "all_rows_simulation_only_true": true,
+      "applied": true,
+      "reversible": true
+    }
+  ],
   "files_changed": {
-    "backend_new": 3,
-    "frontend_new": 13,
-    "frontend_modified": 18,
-    "tracked_modified_total": 18,
-    "new_untracked_total": 13
+    "backend_new": 10,
+    "backend_modified": 13,
+    "frontend_new": 3,
+    "frontend_modified": 11,
+    "tracked_modified_total": 38,
+    "new_untracked_total": 16
   },
   "build_status": {
-    "backend": "passed_0_warnings_0_errors_9.78s",
-    "frontend": "passed_121_modules_4.79s"
+    "backend": "passed_0_warnings_0_errors",
+    "frontend": "passed_124_modules_424kB"
   },
   "test_status": {
     "framework": "xunit",
-    "total_run": 127,
-    "passed": 127,
+    "total_run": 137,
+    "passed": 137,
     "failed": 0,
     "skipped": 0,
-    "new_tests_added": 8,
-    "new_test_class": "AiDecisionEndpointTests"
+    "new_tests_added": 10,
+    "new_test_class": "SandboxSurfaceTests",
+    "fixed_assertions": 1
   },
-  "new_endpoint": {
-    "method": "POST",
-    "path": "/api/claims/{claimId}/ai-decision",
-    "controller_file": "server/InsuranceAIPlatform.Api/Controllers/AiDecisionController.cs",
-    "result_dto_file": "server/InsuranceAIPlatform.Api/Contracts/AiAnalysis/AiDecisionRecordedResult.cs",
-    "audit_action_type": "AiDecisionRecorded",
-    "audit_actor_type": "ai-system",
-    "audit_actor_id_pattern": "ai-system@insuranceai.local",
-    "outbox_event_type": "AiDecisionRecorded",
-    "requires_prior_ai_run": true,
-    "no_prior_run_response": "400 no_ai_analysis_run",
-    "idempotency_supported": true,
-    "idempotency_dedup_strategy": "audit_logs_each_attempt_outbox_dedups",
-    "source_attribution_field": "AI"
+  "db_evidence_after_smoke": {
+    "new_claims_count": 3,
+    "new_claim_ids": ["CLM-1021", "CLM-1022", "CLM-1023"],
+    "new_documents_with_content_count": 4,
+    "new_payout_simulations_count": 3,
+    "all_payout_simulations_simulation_only_true": true,
+    "new_audit_events_total": 18,
+    "new_audit_action_types": [
+      "ClaimCreated", "DocumentUploaded", "MissingDocumentRequested",
+      "AiAnalysisCompleted", "AiDecisionRecorded", "PayoutSimulationCreated",
+      "ApprovalDraftSaved", "HumanDecisionSubmitted"
+    ],
+    "forbidden_audit_categories_count": 0,
+    "ai_run_provider_distribution": { "Mock": 12, "DeepSeek": 6, "Disabled": 1 },
+    "synthetic_customers_count": 200
   },
-  "demo_auth": {
-    "path": "/login",
-    "credentials_hint_visible": true,
-    "session_storage": "localStorage",
-    "storage_key": "iap.auth.demo.v1",
-    "logout_supported": true,
-    "production_identity_provider_used": false,
-    "azure_ad_used": false
-  },
-  "ui_action_inventory": {
-    "controls_audited": 27,
-    "previously_dead_or_silent": 8,
-    "now_wired_to_db": 7,
-    "now_wired_to_gated_modal": 3,
-    "now_wired_to_new_endpoint": 1,
-    "honestly_future_gated": 4,
-    "silent_or_dead_remaining": 0
-  },
-  "runtime_smoke": {
-    "backend_health_status": 200,
-    "ai_run_endpoint_status": 200,
-    "ai_run_id_sample_format": "run_de103c61",
-    "ai_decision_endpoint_status": 200,
-    "ai_decision_audit_id_present": true,
-    "ai_decision_outbox_id_present": true,
-    "ai_decision_source_field_value": "AI",
-    "ai_decision_isAdvisoryOnly_field_value": true,
-    "ai_decision_unknown_claim_status": 404,
-    "approval_draft_status": 200,
-    "human_decision_valid_status": 200,
-    "human_decision_payout_status": 400,
-    "missing_document_status": 200,
-    "document_metadata_status": 200,
-    "idempotency_replay_warning_present": true,
-    "frontend_preview_status": 200,
-    "frontend_title_served": "InsuranceAIPlatform · Auto Claim AI Workbench",
-    "new_strings_in_bundle_count": 13,
-    "new_strings_in_bundle_total": 13
-  },
-  "db_state_after_smoke": {
-    "ai_analysis_runs_by_provider": {
-      "Mock": 10,
-      "DeepSeek": 6,
-      "Disabled": 1,
-      "total": 17
+  "triple_pass_simulation": {
+    "pass1_new_claim_lifecycle": {
+      "claim_id": "CLM-1023",
+      "result": "PASS",
+      "audit_chain_length": 6,
+      "ai_decision_source": "AI",
+      "payout_simulation_only": true
     },
-    "ai_decision_audit_events_total": 1,
-    "ai_decision_outbox_events_total": 1,
-    "forbidden_audit_action_counts": {
-      "Payout": 0,
-      "PayoutApproved": 0,
-      "CustomerMessageSent": 0,
-      "FraudFinal": 0,
-      "AiClaimReject": 0,
-      "ClaimStatusChanged": 0
+    "pass2_clm_1006_walkthrough": {
+      "result": "PASS",
+      "sub_routes_checked": 8,
+      "all_sub_routes_200": true,
+      "adversarial_probes_passed": 3,
+      "probes_outcomes": {
+        "ApproveForPayout_enum": "400 INVALID_DECISION",
+        "POST_/payout_endpoint": "404 not_exist",
+        "POST_/customer-messages_endpoint": "404 not_exist"
+      }
+    },
+    "pass3_reviewer_walkthrough": {
+      "result": "PASS",
+      "db_assertions": {
+        "synthetic_customers_total": 200,
+        "non_synthetic_customers_total": 1,
+        "non_synthetic_is_golden_clm1006_seed": true,
+        "forbidden_audit_categories": 0,
+        "payout_simulations_unsafe_count": 0
+      }
     }
   },
   "safety_checks": {
@@ -113,29 +127,28 @@
     "origin_main_mutation": "absent",
     "head_mutation": "absent",
     "commit_attempted": "no",
-    "push_attempted": "no"
-  },
-  "screenshots": {
-    "captured": false,
-    "limitation": "browser automation not installed in this environment; visual DOM verification deferred to operator manual click-through"
+    "push_attempted": "no",
+    "payout_simulations_simulation_only_false_count": 0,
+    "forbidden_audit_categories_count": 0
   },
   "limitations": [
-    "New-claim modal opens demo claim CLM-1006 rather than creating a brand-new synthetic DB row (per gate STOP rule on non-trivial schema/migration)",
-    "Document upload remains metadata-only (no binary store)",
-    "No browser-automated screenshots in this gate",
-    "Demo login uses hard-coded local credentials by design"
+    "Document content is plain text only (no binary, no blob, no OCR — by design).",
+    "HybridClaimReadService blocks on async DB calls via GetAwaiter().GetResult() for backward compat with the synchronous IClaimReadService contract.",
+    "Document content not echoed into audit metadata (only length).",
+    "No browser-automated screenshots in this gate."
   ],
   "blockers": [],
   "github_handoff_paths": {
     "latest_report": "InsuranceAIPlatform/latest-report.md",
     "latest_summary": "InsuranceAIPlatform/latest-summary.json",
-    "gate_report": "InsuranceAIPlatform/pre-azure-ui-auth-db-persistence-and-ai-decision-completion-v0.1/report.md"
+    "gate_report": "InsuranceAIPlatform/pre-azure-realistic-db-sandbox-and-triple-owner-flow-fix-v0.1/report.md",
+    "triple_owner_transcript": "InsuranceAIPlatform/pre-azure-realistic-db-sandbox-and-triple-owner-flow-fix-v0.1/triple-owner-transcript.md"
   },
-  "next_safe_step": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH",
-  "next_safe_step_estimate_minutes": "8-12",
+  "next_safe_step": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V2",
+  "next_safe_step_estimate_minutes": "10-15",
   "candidate_gates_after_manual_checkpoint": [
+    "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH",
     "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1",
-    "COMMIT_AND_PUSH_DEV_PRE_AZURE_UI_AUTH_BATCH",
     "AZURE_READINESS_PRE_FLIGHT_V0.1"
   ]
 }
