@@ -1,157 +1,99 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "REAL_DEEPSEEK_ROTATED_KEY_SHORT_SMOKE_RETRY_V0.1",
-  "verdict": "ACCEPT",
-  "verdict_reasoning": "DeepSeek upstream recovered between the previous security-hygiene gate and this retry. One real-DeepSeek opt-in call with the rotated user-scope key returned HTTP 200 in ~8s with full structured advisory output. All G2 evidence triple parts satisfied (host log + DB row distinct from Mock + shape evidence). G5 stub-fingerprint absent. Mock default smoke also re-confirmed. DB / audit / outbox all incremented correctly with matching CorrelationId. Independent inspector CLEARED 13/13 — zero warnings, zero failures. Zero key value leakage in any output / tracked file / log / handoff.",
+  "gate": "COMMIT_AND_PUSH_DEV_REAL_DEEPSEEK_OPT_IN_LOCAL_INTEGRATION_ONLY",
+  "verdict": "COMMIT_PUSH_DONE",
+  "verdict_reasoning": "Real DeepSeek opt-in provider committed to dev and fast-forward pushed to origin/dev. Exactly the 11-file accepted scope staged and committed (5 new + 6 modified). Commit message exact. No Co-Authored-By footer. No 'Generated with' footer. main untouched. Push was FF, not force. All pre-commit verification PASS (backend build, 113/113 tests, frontend build, safety scan with zero key value / zero sk-shape / zero provider SDK / zero Azure / zero real PII).",
   "branch": "dev",
-  "head": "918e8a3aec82462bde9239aeec91d3a46b1082b4",
-  "origin_dev": "918e8a3aec82462bde9239aeec91d3a46b1082b4",
-  "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-  "source_commit_created_this_gate": false,
-  "source_push_this_gate": false,
+  "previous_head": "918e8a3aec82462bde9239aeec91d3a46b1082b4",
+  "new_commit": "1b824b012f5d7075ce07d626dd07c4f9ddff42e7",
+  "commit_message": "feat: add real DeepSeek opt-in provider",
+  "commit_body": "",
+  "commit_co_authored_by_present": false,
+  "commit_generated_with_footer_present": false,
+  "origin_dev_before_push": "918e8a3aec82462bde9239aeec91d3a46b1082b4",
+  "origin_dev_after_push": "1b824b012f5d7075ce07d626dd07c4f9ddff42e7",
+  "origin_main_before_push": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+  "origin_main_after_push": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
   "main_touched": false,
-  "working_tree_summary": {
-    "modified_tracked": 6,
-    "untracked_total": 20,
-    "untracked_new_this_gate_vs_prior": "1 (docs/reports/security-rotate-and-fix-deepseek-local-secret-setup-v0.1/ — added in prior gate's source mirror; carried forward)",
-    "unexpected_code_changes_beyond_known_deepseek_impl": false
-  },
-  "key_present": true,
-  "key_source_kind": "user-scope-env-registry",
-  "key_shape_plausible": true,
-  "key_handling_pathway_used_for_smoke": "PowerShell read User-scope value, set as Process-scope $env in calling shell, spawned API child via Start-Process which inherited refreshed Process env; value never echoed/logged; never assigned to any persistent variable; nulled + GC.Collect() called",
-  "auth_result": "accepted",
-  "leakage_scan": {
-    "sk_shape_in_tracked": "PASS",
-    "sk_shape_in_untracked": "PASS",
-    "key_literal_in_appsettings": "PASS",
-    "key_literal_in_any_csproj": "PASS",
-    "key_in_api_stdout_log": "PASS",
-    "key_in_api_stderr_log": "PASS",
-    "provider_sdk_package_in_any_csproj": "PASS (none)",
-    "azure_resources_referenced": "PASS (none)",
-    "real_pii": "PASS (synthetic CLM-1006 only)",
-    "_aggregate": "PASS"
-  },
-  "backend_build_status": "PASS (reused from prior gate verification — source identical, binaries intact)",
-  "backend_build_warnings": 0,
-  "backend_build_errors": 0,
-  "backend_test_status": "PASS (reused from prior gate verification — source identical)",
-  "backend_tests_total": 113,
-  "backend_tests_passed": 113,
-  "backend_tests_failed": 0,
-  "backend_tests_skipped": 0,
-  "frontend_build_status": "PASS (reused from prior gate verification — source identical)",
-  "frontend_modules": 107,
-  "mock_smoke": {
-    "port": 5284,
-    "endpoint": "POST /api/claims/CLM-1006/ai-analysis/run",
-    "http_status": 200,
-    "provider_mode": "Mock",
-    "model_name": "local-mock-v0.1",
-    "confidence_score": 78,
-    "estimated_cost": 0.0187,
-    "guardrails_all_advisory_only": true,
-    "all_can_flags_false": true,
-    "run_id_db_persisted": "run_5687085a"
-  },
-  "real_deepseek_retry_smoke": {
-    "port": 5285,
-    "endpoint": "POST /api/claims/CLM-1006/ai-analysis/run",
-    "attempts": 1,
-    "attempts_note": "First attempt returned 200; per gate rules 'do not run a second call unless needed for confirmation', no further attempts executed",
-    "http_status": 200,
-    "elapsed_seconds": 8,
-    "provider_mode": "DeepSeek",
-    "model_name_configured": "deepseek-chat",
-    "model_name_returned": "deepseek-v4-flash",
-    "model_name_note": "DeepSeek API server resolved configured 'deepseek-chat' to alias 'deepseek-v4-flash' in the response; orchestrator persists the server-returned value",
-    "tokens_used": 688,
-    "estimated_cost_response": 0.00018576,
-    "estimated_cost_db_rounded": 0.0002,
-    "currency_code": "USD",
-    "confidence_score": 75,
-    "risk_level": "high",
-    "findings_count": 2,
-    "evidence_count": 2,
-    "risks_count": 2,
-    "summary_language": "English (real provider output) — Mock fingerprint is Ukrainian",
-    "summary_snippet": "Claim CLM-1006 involves a 2021 Toyota Camry in a road traffic accident near Boryspil. The recommended payout ($2720) is...",
-    "recommended_action_present": true,
-    "recommended_action_shape": "object with {action, rationale, confidenceScore}",
-    "policy_coverage_explanation_present": true,
-    "policy_coverage_explanation_length": 159,
-    "guardrails_all_advisory_only": true,
-    "can_approve_payout": false,
-    "can_reject_claim": false,
-    "can_accuse_fraud_final": false,
-    "can_send_customer_message": false,
-    "can_change_claim_status": false,
-    "correlation_id_echoed": true,
-    "run_id_db_persisted": "run_817e340b",
-    "key_value_in_logs_or_exceptions": false
-  },
-  "g2_external_call_evidence_triple": {
-    "a_process_log_host": "PASS — RealDeepSeekAiProvider info log: 'DeepSeek AI provider sending request. Host: api.deepseek.com Path: /v1/chat/completions' + framework HttpClient.deepseek.ClientHandler[101] 'Received HTTP response headers after 724.3794ms - 200'",
-    "b_db_row_fingerprint": "PASS — run_817e340b row: ProviderMode=DeepSeek (NOT Mock), ModelName=deepseek-v4-flash (NOT local-mock-v0.1), Tokens=688 (NOT 4261), Cost=0.0002 (NOT 0.0187), ModelConfidence=75 (NOT 78)",
-    "c_shape_evidence": "PASS — English summary (Mock is Ukrainian); structured 2/2/2 finding/evidence/risk shape (Mock fixed at 3/2/4); ~8s round-trip latency (real LLM call, not synchronous mock); estimated_cost_response=0.00018576 (real provider pricing, not stub default)"
-  },
-  "g5_stub_fallback_check": "PASS — none of the Mock fingerprints (modelName=local-mock-v0.1, tokens=4261, cost=0.0187, confidence=78, Ukrainian summary text, 3/2/4 finding/evidence/risk shape) appear in run_817e340b",
-  "db_state": {
-    "ai_analysis_runs_total": 10,
-    "ai_analysis_runs_by_mode": {"Disabled": 1, "Mock": 6, "DeepSeek": 3},
-    "ai_analysis_runs_new_this_gate": 2,
-    "ai_analysis_runs_new_this_gate_breakdown": "1 Mock (run_5687085a) + 1 DeepSeek (run_817e340b)",
-    "audit_events_AiAnalysisCompleted_total": 9,
-    "audit_events_new_this_gate": 2,
-    "outbox_messages_AiAnalysisCompleted_total": 9,
-    "outbox_messages_new_this_gate": 2,
-    "audit_outbox_correlation_match_for_run_817e340b": "PASS — both rows reference corr-retry-real-001"
-  },
-  "provider_classification": "provider_recovered_200_success",
-  "independent_inspector_review": {
-    "performed": true,
-    "claims_verified": 13,
-    "verdict": "CLEARED",
-    "passes": 13,
-    "warnings": 0,
-    "failures": 0,
-    "security_specific_checks": {
-      "key_value_in_any_output": "NO",
-      "key_value_in_any_tracked_file": "NO",
-      "key_value_in_any_log": "NO",
-      "repository_leakage": "NO",
-      "any_401_returned": "NO",
-      "successful_200_response": "YES"
-    },
-    "non_binding_recommendations": [
-      "Untracked source/test files (RealDeepSeekAiProvider.cs, DeepSeekChatModels.cs, AiProviderSelectionTests.cs, RealDeepSeekProviderTests.cs) should be staged in the next implementation commit gate so origin/dev reflects the real provider source under version control",
-      "Persisted log files (api-real-deepseek-retry.stdout.log) helped this audit; consider archiving them alongside the per-run report dir for future replay",
-      "Audit/Outbox delta vs AiAnalysisRuns CreatedAtUtc is ~6.5s — informational, not a defect; flag only if SLA tightens"
+  "force_push": false,
+  "push_type": "fast-forward",
+  "push_observed_line": "918e8a3..1b824b0  dev -> dev",
+  "ahead_behind_dev_vs_origin_dev_after_push": "0/0",
+  "committed_files_count": 11,
+  "committed_files_grouped": {
+    "new_source_code": [
+      "server/InsuranceAIPlatform.Services.AiAnalysis/Providers/RealDeepSeekAiProvider.cs",
+      "server/InsuranceAIPlatform.Services.AiAnalysis/Providers/DeepSeekChatModels.cs"
+    ],
+    "new_tests": [
+      "server/InsuranceAIPlatform.Tests/RealDeepSeekProviderTests.cs",
+      "server/InsuranceAIPlatform.Tests/AiProviderSelectionTests.cs"
+    ],
+    "new_architecture_doc": [
+      "docs/architecture/REAL_DEEPSEEK_OPT_IN_LOCAL_INTEGRATION_V0.1.md"
+    ],
+    "modified_provider_layer": [
+      "server/InsuranceAIPlatform.Services.AiAnalysis/AiProviderMode.cs",
+      "server/InsuranceAIPlatform.Services.AiAnalysis/Configuration/AiProviderOptions.cs",
+      "server/InsuranceAIPlatform.Services.AiAnalysis/InsuranceAIPlatform.Services.AiAnalysis.csproj",
+      "server/InsuranceAIPlatform.Services.AiAnalysis/Orchestration/PersistenceAiAnalysisOrchestrator.cs"
+    ],
+    "modified_api_layer": [
+      "server/InsuranceAIPlatform.Api/Program.cs",
+      "server/InsuranceAIPlatform.Api/appsettings.Development.json"
     ]
   },
-  "safety_scan": {
-    "deepseek_api_key_in_appsettings": false,
-    "sk_credential_shape_in_repo": false,
-    "provider_sdk_packages_in_any_csproj": false,
-    "azure": false,
-    "payout_execution": false,
-    "customer_messaging": false,
-    "binary_upload": false,
-    "bff_aianalysis_controller_dbcontext": false,
-    "guardrail_flags_immutable_can_all_false": true,
-    "devdept_touched": false,
-    "main_touched": false,
-    "force_push": false,
-    "real_pii": false
+  "commit_diff_stats": {
+    "insertions": 931,
+    "deletions": 21
   },
-  "known_limitations": [
-    "AuditEvent.Actor formatted as 'Synthetic Adjuster (human)' by existing AuditCost service Name+Type formatting; still synthetic, no real person (carried forward, non-blocking)",
-    "Legacy seed run run_8f3d2a7e keeps ProviderMode='Disabled' + NULL new columns; expected for additive nullable migration (carried forward)"
-  ],
-  "limitations_removed_this_gate": [
-    "Previous gate's limitation 'no successful 200 in window due to DeepSeek upstream 503/timeouts' — now resolved by this gate's 200 success on run_817e340b"
-  ],
+  "verification_results": {
+    "backend_build": "PASS — 0 warnings, 0 errors, 8.20s",
+    "backend_build_command": "dotnet build server/InsuranceAIPlatform.sln -c Release --nologo",
+    "backend_tests": "PASS — 113/113/0, ~2s",
+    "backend_tests_command": "dotnet test server/InsuranceAIPlatform.Tests/InsuranceAIPlatform.Tests.csproj -c Release --no-build --nologo --verbosity quiet",
+    "frontend_build": "PASS — 107 modules, 4.48s",
+    "frontend_build_command": "npm run build (root)"
+  },
+  "safety_scan": {
+    "sk_shape_in_11_committed_files": "PASS — 0 hits",
+    "deepseek_api_key_literal_in_committed_scope": "PASS — 0 hits",
+    "key_value_in_appsettings_development_json": "PASS — only Mode/RealCallsEnabled/Model/Endpoint/TimeoutSeconds present",
+    "ApiKey_property_in_any_committed_file": "PASS — 0 hits",
+    "provider_sdk_in_committed_csproj": "PASS — only Microsoft.Extensions.* + EF Core; zero Azure.AI / OpenAI / SemanticKernel / DeepSeek-*",
+    "provider_sdk_in_any_csproj_in_repo": "PASS — none",
+    "azure_resources_or_config": "PASS — none",
+    "real_pii": "PASS — synthetic CLM-1006 only",
+    "payout_execution": "PASS — none",
+    "customer_messaging": "PASS — none",
+    "binary_upload": "PASS — none",
+    "guardrail_flags_immutable_can_all_false": "PASS — preserved",
+    "dotenv_or_secrets_file_staged": "PASS — none",
+    "bin_obj_dist_node_modules_staged": "PASS — none",
+    "_aggregate": "PASS"
+  },
+  "items_not_staged_carry_forward": {
+    "untracked_architecture_planning_docs": 9,
+    "untracked_per_run_report_dirs": 7,
+    "rationale": "Per gate prompt: DO NOT STAGE docs/reports/** per-run dirs or planning docs not in the 11-file scope; carry-forward for separate gates"
+  },
+  "ai_identification_in_commit": {
+    "co_authored_by": "absent",
+    "generated_with_footer": "absent",
+    "model_name_in_message": "absent",
+    "author_email_format": "Slava <claude@4.partners> — operator's persona email; not an AI-identification footer; not added by this gate; matches author on prior accepted commits 54b6e9c and 918e8a3 already on origin/dev"
+  },
   "blockers": "none",
-  "next_safe_step": "COMMIT_AND_PUSH_DEV_REAL_DEEPSEEK_OPT_IN_LOCAL_INTEGRATION_ONLY — commit exactly the DeepSeek-opt-in scope to dev, fast-forward push dev only, main untouched, no force. Suggested commit message: 'feat: add real DeepSeek opt-in provider'. Scope: 5 new source/test/doc files (RealDeepSeekAiProvider.cs, DeepSeekChatModels.cs, RealDeepSeekProviderTests.cs, AiProviderSelectionTests.cs, plus the architecture doc); 6 modified files (AiProviderMode.cs, AiProviderOptions.cs, .csproj, PersistenceAiAnalysisOrchestrator.cs, Program.cs, appsettings.Development.json); planning docs and report dirs remain untracked. All prior G2/G5/G6 evidence retained and now complete with both prior-gate runs (695/700 tokens) and this gate's run (688 tokens) as triple historical proof of wiring correctness with the rotated key."
+  "known_limitations_carry_forward": [
+    "AuditEvent.Actor formatted as 'Synthetic Adjuster (human)' by existing AuditCost service Name+Type formatting; still synthetic, no real person",
+    "Legacy seed run run_8f3d2a7e keeps ProviderMode='Disabled' + NULL on 9 new nullable columns; expected for additive nullable migration",
+    "Real DeepSeek smoke evidence captured at runtime but not committed; per-run report dirs (7 total) remain untracked carry-forward",
+    "AI Analysis BFF endpoints have no UI wiring yet — additive frontend client only; pages/components untouched (carried forward from earlier gates)"
+  ],
+  "github_handoff_paths": [
+    "InsuranceAIPlatform/latest-report.md",
+    "InsuranceAIPlatform/latest-summary.json",
+    "InsuranceAIPlatform/commit-and-push-dev-real-deepseek-opt-in-local-integration-only/report.md"
+  ],
+  "next_safe_step": "OPERATOR_CHOICE_AMONG_THREE — (1) FRONTEND_AI_ANALYSIS_UI_WIRING gate: bring the AI Analysis BFF endpoints into the React UI behind a dev-only feature flag (still no auto-decisioning, advisory-only display); (2) PROVIDER_RESILIENCE_HARDENING_V0.1 gate: add Polly retry/circuit-breaker/timeout policies around the DeepSeek HttpClient (since the 503 event observed in the prior smoke gate could happen in any future demo run); (3) DOCS_PLANNING_REPORTS_CONSOLIDATION_TRIAGE gate: triage which of the 9 untracked architecture docs and 7 untracked report dirs should be committed vs archived, since they're cluttering the working tree. No gate is started in this gate; awaiting operator selection."
 }
