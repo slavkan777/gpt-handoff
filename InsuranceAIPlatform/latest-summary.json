@@ -1,260 +1,141 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AUTOMATED_OWNER_SIMULATION_DRY_RUN_V0.1",
+  "gate": "PRE_AZURE_UI_AUTH_DB_PERSISTENCE_AND_AI_DECISION_COMPLETION_V0.1",
   "verdict": "ACCEPT_WITH_LIMITATIONS",
-  "verdict_reasoning": "Owner-simulation dry run completed end-to-end against the committed local system (HEAD/origin-dev 0372524, origin/main 69e6731 untouched). Source unchanged. Backend + frontend both started. Owner walkthrough covered: claims queue + KPI summary + demo scenario; CLM-1006 details + customer/vehicle + policy + risk + audit + approval; 7 documents (1 missing flagged); 4 safe write commands all returned success with audit+outbox; idempotency replay deduplicates outbox while preserving the second audit (intentional 'attempt recorded, side-effect published once'); Mock AI advisory shape complete; real DeepSeek opt-in HTTP 200 in 6s with run_6fcc493e / deepseek-v4-flash / 702 tokens / conf 75 / English summary / all guardrails advisory-only and every Can-* false; 15/15 advisory-only UI strings in JS bundle; adversarial probes confirmed no /payout, /customer-messages, /fraud-confirm endpoint exists, invalid decision-enum rejected with helpful message, unknown claim returns sanitized 'no_ai_analysis_run' error. Zero forbidden audit events across all four categories. Single LIMITATION: no browser-DOM automation available, so visual rendering of the AI advisory card and guardrail pills is verified by JS-bundle string presence + HTTP smoke evidence only — DOM-level pixel verification deferred to the operator manual checkpoint. Slava can proceed to MANUAL_OPERATOR_CLICK_THROUGH_SMOKE with high confidence.",
+  "date_utc": "2026-05-28",
+  "scope_summary": "Bounded local product-completion batch: demo login, dead-button elimination, DB-only persistence for visible business actions, AI decision auditable persistence with Source=AI attribution, DEMO badge cleanup. No commit/push/Azure.",
   "branch": "dev",
-  "head": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
-  "origin_dev": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
-  "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-  "git_status_summary": {
-    "modified_tracked": 0,
-    "staged": 0,
-    "untracked_total": 17,
-    "untracked_kind": "9 architecture planning docs + 8 prior per-run reports (all carry-forward; no new artifacts introduced this gate)"
+  "head_sha": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "head_unchanged": true,
+  "origin_main_sha": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+  "origin_main_unchanged": true,
+  "files_changed": {
+    "backend_new": 3,
+    "frontend_new": 13,
+    "frontend_modified": 18,
+    "tracked_modified_total": 18,
+    "new_untracked_total": 13
   },
-  "startup": {
-    "backend_health": "200",
-    "backend_port": 5284,
-    "backend_default_mode": "Mock",
-    "frontend_preview_root": "200",
-    "frontend_port": 4173,
+  "build_status": {
+    "backend": "passed_0_warnings_0_errors_9.78s",
+    "frontend": "passed_121_modules_4.79s"
+  },
+  "test_status": {
+    "framework": "xunit",
+    "total_run": 127,
+    "passed": 127,
+    "failed": 0,
+    "skipped": 0,
+    "new_tests_added": 8,
+    "new_test_class": "AiDecisionEndpointTests"
+  },
+  "new_endpoint": {
+    "method": "POST",
+    "path": "/api/claims/{claimId}/ai-decision",
+    "controller_file": "server/InsuranceAIPlatform.Api/Controllers/AiDecisionController.cs",
+    "result_dto_file": "server/InsuranceAIPlatform.Api/Contracts/AiAnalysis/AiDecisionRecordedResult.cs",
+    "audit_action_type": "AiDecisionRecorded",
+    "audit_actor_type": "ai-system",
+    "audit_actor_id_pattern": "ai-system@insuranceai.local",
+    "outbox_event_type": "AiDecisionRecorded",
+    "requires_prior_ai_run": true,
+    "no_prior_run_response": "400 no_ai_analysis_run",
+    "idempotency_supported": true,
+    "idempotency_dedup_strategy": "audit_logs_each_attempt_outbox_dedups",
+    "source_attribution_field": "AI"
+  },
+  "demo_auth": {
+    "path": "/login",
+    "credentials_hint_visible": true,
+    "session_storage": "localStorage",
+    "storage_key": "iap.auth.demo.v1",
+    "logout_supported": true,
+    "production_identity_provider_used": false,
+    "azure_ad_used": false
+  },
+  "ui_action_inventory": {
+    "controls_audited": 27,
+    "previously_dead_or_silent": 8,
+    "now_wired_to_db": 7,
+    "now_wired_to_gated_modal": 3,
+    "now_wired_to_new_endpoint": 1,
+    "honestly_future_gated": 4,
+    "silent_or_dead_remaining": 0
+  },
+  "runtime_smoke": {
+    "backend_health_status": 200,
+    "ai_run_endpoint_status": 200,
+    "ai_run_id_sample_format": "run_de103c61",
+    "ai_decision_endpoint_status": 200,
+    "ai_decision_audit_id_present": true,
+    "ai_decision_outbox_id_present": true,
+    "ai_decision_source_field_value": "AI",
+    "ai_decision_isAdvisoryOnly_field_value": true,
+    "ai_decision_unknown_claim_status": 404,
+    "approval_draft_status": 200,
+    "human_decision_valid_status": 200,
+    "human_decision_payout_status": 400,
+    "missing_document_status": 200,
+    "document_metadata_status": 200,
+    "idempotency_replay_warning_present": true,
+    "frontend_preview_status": 200,
     "frontend_title_served": "InsuranceAIPlatform · Auto Claim AI Workbench",
-    "secrets_in_startup_log": false
+    "new_strings_in_bundle_count": 13,
+    "new_strings_in_bundle_total": 13
   },
-  "owner_walkthrough_persona": "Skeptical product owner / technical reviewer; checks visible flow, AI safety, demo storyline, secret hygiene; decides whether operator manual testing is now worth the time.",
-  "read_flow_evidence": {
-    "claims_queue": "5 claims visible; CLM-1006 surfaces with customer 'Роберт Джонсон', risk='Високий', aiStatus='AI-перевірено'",
-    "claims_summary_kpis": {"totalActive": 47, "pendingReview": 12, "highRisk": 8, "avgSlaRemainingHours": 14.3, "processedToday": 6, "aiAnalysisRunning": 2},
-    "demo_scenario_steps": 7,
-    "claim_detail_endpoints_status": {
-      "GET /api/claims/CLM-1006": 200,
-      "GET /api/claims/CLM-1006/customer-vehicle": 200,
-      "GET /api/claims/CLM-1006/policy": 200,
-      "GET /api/claims/CLM-1006/risks": 200,
-      "GET /api/claims/CLM-1006/approval": 200,
-      "GET /api/claims/CLM-1006/audit": 200
+  "db_state_after_smoke": {
+    "ai_analysis_runs_by_provider": {
+      "Mock": 10,
+      "DeepSeek": 6,
+      "Disabled": 1,
+      "total": 17
     },
-    "claim_detail_owner_relevant_fields": {
-      "customer": "Роберт Джонсон",
-      "vehicle": "Toyota Camry 2021",
-      "policy_id": "POL-2025-AC-4421",
-      "event_type": "ДТП",
-      "event_date": "2026-05-18",
-      "status": "В роботі",
-      "risk": "Високий",
-      "risk_score": 82,
-      "confidence": 78,
-      "estimate": 2720.0,
-      "expected_benchmark": 1970.0,
-      "deductible": 500.0,
-      "recommended_payout": 1800.0,
-      "documents_received_of_total": "6/7",
-      "missing_document": "Фото пошкодження заднього бампера"
-    },
-    "unknown_claim_404": "GET /api/claims/CLM-9999 → 404 (well-formed unknown id)",
-    "malformed_claim_400": "GET /api/claims/INVALID → 400 (format validation rejects before DB)",
-    "correlation_id_echo": "PASS — X-Correlation-Id 'owner-walk-001' round-tripped"
+    "ai_decision_audit_events_total": 1,
+    "ai_decision_outbox_events_total": 1,
+    "forbidden_audit_action_counts": {
+      "Payout": 0,
+      "PayoutApproved": 0,
+      "CustomerMessageSent": 0,
+      "FraudFinal": 0,
+      "AiClaimReject": 0,
+      "ClaimStatusChanged": 0
+    }
   },
-  "document_flow_evidence": {
-    "endpoint": "GET /api/claims/CLM-1006/documents",
-    "http_status": 200,
-    "items_returned": 7,
-    "breakdown": {"documents": 4, "photos": 3, "missing_items": 1},
-    "first_missing": "Фото — задній бампер (status=missing)",
-    "binary_upload_attempted": false
+  "safety_checks": {
+    "secret_value_in_source": "absent",
+    "sk_prefix_string_in_source": "absent",
+    "provider_sdk_referenced": "absent",
+    "real_pii_in_new_files": "absent",
+    "ai_id_markers_in_new_files": "absent",
+    "unsafe_response_fields_present": "absent",
+    "azure_packages_added": "absent",
+    "azure_resources_created": "absent",
+    "origin_main_mutation": "absent",
+    "head_mutation": "absent",
+    "commit_attempted": "no",
+    "push_attempted": "no"
   },
-  "safe_write_flow_evidence": {
-    "commands_executed": [
-      {"endpoint": "POST /api/claims/CLM-1006/approval-draft", "result": "success=true cmd=cmd-ee3c961e audit=35 outbox=30"},
-      {"endpoint": "POST /api/claims/CLM-1006/human-decision", "result": "success=true cmd=cmd-02d2cc1b status=AwaitingInformation"},
-      {"endpoint": "POST /api/claims/CLM-1006/missing-document-requests", "result": "success=true cmd=cmd-b92469db"},
-      {"endpoint": "POST /api/claims/CLM-1006/document-metadata (NO binary upload)", "result": "success=true cmd=cmd-ef40db4c"}
-    ],
-    "idempotency_replay_owner_sim_draft": {
-      "second_call_response": "success=true with warning 'duplicate-idempotency-key: outbox row 30 already exists'",
-      "audit_rows_for_correlation_owner_sim_draft_001": 2,
-      "outbox_rows_for_correlation_owner_sim_draft_001": 1,
-      "design_note": "Audit records every attempt (2 rows = '2 attempts made'); Outbox deduplicates side effect (1 row = 'side effect published once'). Intentional pattern."
-    },
-    "forbidden_actions_attempted_in_walkthrough": "none — no payout, no customer message send, no binary upload, no auto-reject"
+  "screenshots": {
+    "captured": false,
+    "limitation": "browser automation not installed in this environment; visual DOM verification deferred to operator manual click-through"
   },
-  "ai_mock_flow_evidence": {
-    "endpoint": "POST /api/claims/CLM-1006/ai-analysis/run (default mode)",
-    "http_status": 200,
-    "run_id_persisted": "run_d72d9196",
-    "provider_mode": "Mock",
-    "model_name": "local-mock-v0.1",
-    "tokens": 4261,
-    "estimated_cost": 0.0187,
-    "confidence_score": 78,
-    "risk_level": "high",
-    "findings_count": 3,
-    "evidence_count": 2,
-    "risks_count": 4,
-    "recommended_action_snippet": "Запросіть відсутнє фото бампера.",
-    "advisory_only": true,
-    "requires_human_review": true,
-    "all_can_flags_false": true,
-    "notice": "AI output is advisory only — human decision is final."
-  },
-  "ai_deepseek_flow_evidence": {
-    "port": 5285,
-    "key_present": true,
-    "key_source_kind": "user-scope-env-registry",
-    "key_shape_plausible": true,
-    "auth_result": "accepted (no 401/403)",
-    "endpoint": "POST /api/claims/CLM-1006/ai-analysis/run --AiProvider:Mode=DeepSeek --AiProvider:RealCallsEnabled=true",
-    "attempts": 1,
-    "http_status": 200,
-    "elapsed_seconds": 6,
-    "run_id_persisted": "run_6fcc493e",
-    "provider_mode": "DeepSeek",
-    "model_name_returned": "deepseek-v4-flash",
-    "tokens": 702,
-    "tokens_non_determinism_proof": "702 differs from Mock (4261), prior real runs (688/695/700/706/708) — proves real LLM, not cached/synthetic",
-    "estimated_cost": 0.00018954,
-    "confidence_score": 75,
-    "risk_level": "high",
-    "findings_count": 2,
-    "evidence_count": 2,
-    "risks_count": 2,
-    "summary_language": "English (real provider) — Mock fingerprint is Ukrainian",
-    "summary_snippet": "Claim CLM-1006 involves a 2021 Toyota Camry in a road traffi...",
-    "recommended_action_snippet": "Request the missing rear bumper photo before proceeding. Com...",
-    "advisory_only": true,
-    "requires_human_review": true,
-    "all_can_flags_false": true,
-    "correlation_id_echoed": "owner-sim-real-001",
-    "process_log_host_hit": "Host: api.deepseek.com Path: /v1/chat/completions",
-    "process_log_response": "Received HTTP response headers after 538.5364ms - 200",
-    "retry_observed_live": false,
-    "retry_logic_coverage": "verified deterministically by unit tests R6-R11; not exercised live (200 first attempt)",
-    "key_value_in_log": false,
-    "deepseek_api_key_literal_in_log": false,
-    "provider_classification": "available — 200 on first attempt"
-  },
-  "g2_external_call_evidence_triple": {
-    "a_process_log_host": "PASS — 'Host: api.deepseek.com Path: /v1/chat/completions' + 'Received HTTP response headers after 538.5364ms - 200'",
-    "b_db_row_fingerprint": "PASS — run_6fcc493e: ProviderMode=DeepSeek, ModelName=deepseek-v4-flash, Tokens=702, ModelConfidence=75 — distinct from all Mock fingerprints",
-    "c_shape_evidence": "PASS — 702 tokens unique across all 6 historical DeepSeek runs; English summary vs Ukrainian Mock; ~6s round-trip"
-  },
-  "g5_stub_fallback_check": "PASS — run_6fcc493e carries zero Mock fingerprint values",
-  "frontend_ui_evidence": {
-    "preview_http_status": 200,
-    "served_title": "InsuranceAIPlatform · Auto Claim AI Workbench",
-    "js_asset_url": "assets/index-DqfPgff0.js",
-    "advisory_ui_strings_in_bundle": {
-      "Advisory-only AI": true,
-      "Останній прогон AI-аналізу": true,
-      "Guardrails (порадницький режим)": true,
-      "Зведення": true,
-      "Рекомендована дія (порадницька)": true,
-      "Поліс / покриття": true,
-      "Запустити AI-аналіз": true,
-      "canApprovePayout": true,
-      "canRejectClaim": true,
-      "canAccuseFraudFinal": true,
-      "canSendCustomerMessage": true,
-      "canChangeClaimStatus": true,
-      "advisoryOnly": true,
-      "requiresHumanReview": true,
-      "loadLatestAiAnalysis": true
-    },
-    "advisory_ui_strings_count": "15/15 present",
-    "browser_automation_available": false,
-    "browser_automation_limitation": "No Playwright/Puppeteer installed; visual DOM-pixel verification of the AI advisory card + guardrail pills + provider/risk chips deferred to operator manual click-through gate"
-  },
-  "audit_outbox_evidence": {
-    "ai_analysis_runs_total_post_gate": 16,
-    "ai_analysis_runs_new_this_gate": 2,
-    "ai_analysis_runs_by_mode_post_gate": {"Mock": 9, "DeepSeek": 6, "Disabled": 1},
-    "owner_sim_audit_events_total": 7,
-    "owner_sim_outbox_messages_total": 7,
-    "owner_sim_audit_event_breakdown": [
-      "owner-sim-real-001 → AiAnalysisCompleted",
-      "owner-sim-mock-ai-001 → AiAnalysisCompleted",
-      "owner-sim-draft-001 → ApprovalDraftSaved (×2 — original + idempotency replay attempt)",
-      "owner-sim-docmeta-001 → DocumentMetadataCreated",
-      "owner-sim-missing-001 → MissingDocumentRequested",
-      "owner-sim-decision-001 → HumanDecisionSubmitted"
-    ],
-    "outbox_dedup_for_owner_sim_draft_001": "1 row (replay correctly deduped at outbox layer)"
-  },
-  "adversarial_safety_evidence": {
-    "ai_cannot_approve_payout_route_exists": "NO — POST /api/claims/CLM-1006/payout → 404",
-    "ai_cannot_send_customer_message_route_exists": "NO — POST /api/claims/CLM-1006/customer-messages → 404",
-    "ai_cannot_accuse_fraud_route_exists": "NO — POST /api/claims/CLM-1006/fraud-confirm → 404",
-    "ai_cannot_change_final_status_via_disallowed_enum": "PASS — human-decision with 'ApproveForPayout' rejected with safe message \"Decision 'ApproveForPayout' is not allowed. Allowed values: ...\"",
-    "no_secret_in_any_response_body": "PASS — 0 sk-shape across responses",
-    "unknown_claim_safe_error_envelope": "PASS — GET /api/claims/CLM-9999/ai-analysis returns sanitized {code:'no_ai_analysis_run', message:..., traceId:...} envelope; no DB exception leak",
-    "duplicate_idempotency_command_safe": "PASS — second attempt returns success with explicit duplicate-idempotency-key warning; outbox not re-emitted",
-    "real_provider_failure_silently_faked_as_mock": "NO — orchestrator skips persistence on provider exception; G5 fingerprint separation preserved",
-    "azure_dependency_required_for_local_run": "NO — only LocalDB + DEEPSEEK_API_KEY env var; no Azure SDK, no Key Vault, no App Configuration required",
-    "forbidden_audit_event_categories_count": {"Payout": 0, "CustomerMessage": 0, "FraudFinal": 0, "AiClaimReject": 0}
-  },
-  "portfolio_readiness_notes": {
-    "demonstrable_in_interview_or_portfolio": [
-      "Backend: .NET 9, EF Core 9, 6 service-owned schemas with own DbContexts + migrations, BFF/API gateway, sanitized error envelopes, idempotency, audit + outbox-as-record-of-side-effects",
-      "AI: provider abstraction (IAiProvider) with three opt-in-gated providers, advisory-only guardrails enforced at the GuardrailFlags type level (private ctor + immutable Advisory singleton), forbidden-token scan via AdvisoryOnlyGuardrailEvaluator, real DeepSeek HTTP adapter with bounded retry + sanitized error path",
-      "Frontend: React + TypeScript + Vite + Redux Toolkit + Redux Saga + shadcn/ui, BFF-only API surface, env-driven facade switch (mock/backend), Ukrainian + English content paths",
-      "Testing: 119 backend tests including 6 retry-semantics tests; smoke evidence triple (host log + DB fingerprint + shape) preserved across 6 historical real DeepSeek runs",
-      "Security: secret stays out of repo / appsettings / csproj / logs / exceptions; opt-in resolved at request time via IConfiguration; rotation precedent documented"
-    ],
-    "what_the_project_proves_technically": [
-      "Multi-AI workflow (implementer + reviewer + auditor) with bounded gate prompts can ship audit-grade work without privileged access leaks",
-      "Provider-agnostic AI integration without SDK lock-in; raw HttpClient + structured JSON contract",
-      "Domain authority separation: AI is advisory; human decision is final by design (compile-time type-level guarantee, not runtime check)"
-    ],
-    "still_intentionally_local_only": [
-      "LocalDB SQL Server (no Azure SQL yet)",
-      "DEEPSEEK_API_KEY in user-scope env (no Key Vault yet)",
-      "No Application Insights / no App Configuration / no managed identity",
-      "No HTTPS termination / no rate-limiting at edge / no CDN"
-    ],
-    "must_be_visually_checked_by_operator_in_manual_step": [
-      "AI advisory card renders correctly with provider chip, model badge, summary, recommended-action read-only block, policy explanation, all 7 guardrail pills colour-coded",
-      "Page does NOT show any decision-as-action button (approve-payout/reject/fraud-confirm/send-message)",
-      "Switching between Mock and DeepSeek modes (via env var + restart) produces visibly different content and metadata"
-    ],
-    "must_not_be_claimed_yet_before_azure": [
-      "Production-ready security posture (current state is single-machine demo)",
-      "Multi-tenant or production-customer use",
-      "SLA on AI latency (only local-environment timings)",
-      "Disaster recovery / backup automation"
-    ]
-  },
-  "final_safety_scan": {
-    "git_modified_tracked": 0,
-    "git_staged": 0,
-    "git_HEAD_unchanged": true,
-    "git_origin_main_unchanged": true,
-    "no_commit_or_push_occurred": true,
-    "no_source_edits": true,
-    "no_migrations_or_schema_changes": true,
-    "no_secret_in_logs_or_handoff": true,
-    "no_azure_resources_or_config": true,
-    "no_provider_sdk": true,
-    "no_real_pii": true,
-    "no_payout_or_customer_message_or_binary_upload": true,
-    "ports_freed_after_smoke": true,
-    "_aggregate": "PASS"
-  },
-  "screenshots_or_limitation": "No screenshots captured — no browser automation in this environment. Visual rendering verification relied on: (1) frontend preview HTTP 200 + correct served title; (2) JS bundle string presence for all 15 advisory-only UI labels; (3) backend Mock + real DeepSeek HTTP smoke through the BFF — the upstream contract the UI consumes is sound; (4) bundle does NOT contain any decision-as-action keywords beyond the 5 read-only Can-* labels in their negation context.",
-  "blockers": "none",
   "limitations": [
-    "No browser-DOM automation available; visual rendering of AI advisory card + guardrail pills + provider/risk chips deferred to operator manual click-through",
-    "AuditEvent.Actor still formatted 'Synthetic Adjuster (human)' (carried forward)",
-    "Legacy seed run_8f3d2a7e keeps ProviderMode='Disabled' + NULL on new columns (carried forward; expected)",
-    "Legacy 'Azure OpenAI' literal in src/api/mockInsuranceApi.ts:94 inside unrelated getAuditTrace mock (out of scope; cleanup gate recommended)",
-    "Idempotency design records every attempt in audit (2 rows for owner-sim-draft-001) while deduplicating outbox (1 row) — intentional 'attempts logged, side-effect published once' pattern; operator should know this is by design when reviewing audit",
-    "9 untracked architecture planning docs + 8 untracked prior per-run report dirs remain in working tree per the triage classification"
+    "New-claim modal opens demo claim CLM-1006 rather than creating a brand-new synthetic DB row (per gate STOP rule on non-trivial schema/migration)",
+    "Document upload remains metadata-only (no binary store)",
+    "No browser-automated screenshots in this gate",
+    "Demo login uses hard-coded local credentials by design"
   ],
-  "github_handoff_paths": [
-    "InsuranceAIPlatform/latest-report.md",
-    "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/automated-owner-simulation-dry-run-v0.1/report.md",
-    "InsuranceAIPlatform/automated-owner-simulation-dry-run-v0.1/transcript.md"
-  ],
-  "next_safe_step": "MANUAL_OPERATOR_CLICK_THROUGH_SMOKE — operator (Slava) can now confidently do a hands-on browser walk of the AI Analysis page in both Mock and DeepSeek opt-in modes; the upstream contract is proven sound and every backend safety check has passed in this simulation. Suggested operator checklist: (1) start backend + frontend, (2) open Claims list → click CLM-1006, (3) navigate to AI Evidence page, (4) confirm advisory card renders with provider chip + 7 guardrail pills, (5) click 'Запустити AI-аналіз' in Mock mode and confirm visible update, (6) restart backend with --AiProvider:Mode=DeepSeek --AiProvider:RealCallsEnabled=true and re-run to confirm visible provider/model change. Time estimate: 5-10 min."
+  "blockers": [],
+  "github_handoff_paths": {
+    "latest_report": "InsuranceAIPlatform/latest-report.md",
+    "latest_summary": "InsuranceAIPlatform/latest-summary.json",
+    "gate_report": "InsuranceAIPlatform/pre-azure-ui-auth-db-persistence-and-ai-decision-completion-v0.1/report.md"
+  },
+  "next_safe_step": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH",
+  "next_safe_step_estimate_minutes": "8-12",
+  "candidate_gates_after_manual_checkpoint": [
+    "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1",
+    "COMMIT_AND_PUSH_DEV_PRE_AZURE_UI_AUTH_BATCH",
+    "AZURE_READINESS_PRE_FLIGHT_V0.1"
+  ]
 }

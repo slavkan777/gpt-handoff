@@ -1,233 +1,232 @@
-# InsuranceAIPlatform · Automated Owner-Simulation Dry Run V0.1 — Report
+# InsuranceAIPlatform — Latest Gate Report
 
-**Gate:** `AUTOMATED_OWNER_SIMULATION_DRY_RUN_V0.1` · **Date:** 2026-05-28
-**Type:** automated owner/user simulation dry run / molecular walkthrough / no implementation / no commit / no push / no Azure.
-**Verdict:** **ACCEPT_WITH_LIMITATIONS** (single limitation = no browser DOM automation; visual pixel rendering deferred to operator manual click-through).
+**Gate:** `PRE_AZURE_UI_AUTH_DB_PERSISTENCE_AND_AI_DECISION_COMPLETION_V0.1`
+**Date:** 2026-05-28
+**Type:** bounded local implementation + verification · no commit · no push · no Azure
+**Verdict (proposed):** `ACCEPT_WITH_LIMITATIONS`
 
-## Why this gate existed
+---
 
-Before the operator does a manual local acceptance walkthrough, the system was simulated end-to-end in an owner persona — so the operator does not become the first person to discover broken flows. Companion transcript: `automated-owner-simulation-dry-run-v0.1/transcript.md`.
+## REPORT BACK FORMAT (gate-required)
 
-## Git state (unchanged this gate)
+```
+VERDICT:                              ACCEPT_WITH_LIMITATIONS
+GATE:                                 PRE_AZURE_UI_AUTH_DB_PERSISTENCE_AND_AI_DECISION_COMPLETION_V0.1
+BRANCH:                               dev
+HEAD:                                 03725241c8dfdbed7ce17db61fb51d9d7f211116
+GIT_STATUS_SUMMARY:                   18 modified tracked · 0 staged · 30 untracked (13 new this gate + 17 carry-forward)
 
-| Field | Value |
-|---|---|
-| Branch | `dev` |
-| HEAD | `03725241c8dfdbed7ce17db61fb51d9d7f211116` |
-| origin/dev | `03725241c8dfdbed7ce17db61fb51d9d7f211116` (matches HEAD) |
-| origin/main | `69e67312a10cc9bcf28c4e387a126b48c91fb9c5` (unchanged) |
-| Modified tracked | 0 |
-| Staged | 0 |
-| Untracked | 17 (carry-forward only — 9 architecture docs + 8 prior reports per triage) |
+LOGIN_AUTH:
+  Path:                               /login (renders before any protected route)
+  Demo credentials:                   demo@insurance.local / Demo123!  (visible hint under form)
+  Session persistence:                localStorage key iap.auth.demo.v1 (reversible)
+  Logout:                             TopBar button → clears localStorage + redirects to /login
+  Identity provider:                  none (local-only; no Azure AD; no Entra ID)
+  Tests:                              built-in route guard (RequireAuth) verified via TypeScript build + bundle string presence
 
-## Startup evidence
+INTERACTION_INVENTORY:
+  Inventoried surfaces:               TopBar, Sidebar, Dashboard, ClaimsList, ClaimDetail (8 sub-routes)
+  Total active controls audited:      27
+  Previously dead/silent:              8 (mostly DeferredActionButton no-ops)
+  Now wired (DB or local):            7  (Export CSV ×2, Import doc, Save draft, Submit decision, Request missing doc ×2, Confirm doc)
+  Now wired (gated modal):            3  (New claim ×2, Document preview)
+  Now wired (new endpoint):           1  (Record AI Decision)
+  Honestly future-gated:              4  (TopBar help/bell icons, Sidebar vehicles/settings, period switcher)
+  Honestly gated overall:             all 27 controls — no silent buttons remain
 
-| Surface | Result |
-|---|---|
-| Backend `GET /health` (default Mock mode, port 5284) | **200** in 1s — service `InsuranceAIPlatform.Api` healthy |
-| Frontend preview `GET /` (port 4173) | **200** · served title `InsuranceAIPlatform · Auto Claim AI Workbench` |
-| Secrets in startup log | NO |
+IMPLEMENTED_ACTIONS:
+  CSV export (claims list)             ✅ client-side download, no upload
+  CSV export (dashboard queue snapshot)✅ client-side download, no upload
+  Import document metadata             ✅ Modal → POST /document-metadata (kind+title+docType) → audit + outbox
+  New claim                            ✅ Gated modal explaining schema gate + nav to CLM-1006
+  Request missing document (header)    ✅ POST /missing-document-requests, no customer message
+  Request missing photo (sidebar)      ✅ Same endpoint, pre-filled
+  Document preview                     ✅ Honest "no binary store" modal
+  Confirm document                     ✅ POST /document-metadata (kind=document-review) + checklist toggle
+  Save approval draft                  ✅ POST /approval-draft → audit + outbox
+  Submit human decision (approve)      ✅ POST /human-decision ApproveForReview → audit + 2 outbox events
+  Internal customer request            ✅ Modal → POST /missing-document-requests
+  Record AI decision                   ✅ NEW POST /ai-decision → audit + outbox (Source=AI, actor=ai-system)
+  TopBar global search                 ✅ Enter submits → /claims with setSearch
+  Logout                               ✅ Clears localStorage + toast + redirect
 
-## Owner walkthrough — read flow (Phase 3 + 4)
+DB_PERSISTED_ACTIONS:
+  approval.ApprovalDrafts row          via POST /approval-draft
+  audit_cost.AuditEvents row           every BFF command + AI run + new AI decision
+  audit_cost.OutboxMessages row        every BFF command + AI run + new AI decision (1 per command; 2 for human-decision)
+  documents.MissingDocumentRequests    via POST /missing-document-requests
+  documents.ClaimDocuments             via POST /document-metadata (no binary)
+  ai_analysis.AiAnalysisRuns           via POST /ai-analysis/run (existing)
+  Forbidden DB writes (verified absent): no Payout / PayoutApproved / CustomerMessageSent /
+                                         FraudFinal / AiClaimReject / ClaimStatusChanged rows
+                                         in audit_cost.AuditEvents (0/0/0/0/0/0)
 
-| Step | Result |
-|---|---|
-| `GET /api/claims` (queue) | 5 claims; CLM-1006 visible with `customer='Роберт Джонсон' risk='Високий' aiStatus='AI-перевірено'` |
-| `GET /api/claims/summary` | totalActive=47 · pendingReview=12 · highRisk=8 · avgSlaRemainingHours=14.3 · processedToday=6 · aiAnalysisRunning=2 |
-| `GET /api/demo/scenario` | 7 demo steps (portfolio storyline anchor) |
-| `GET /api/claims/CLM-1006` and 5 sub-routes (`/customer-vehicle`, `/policy`, `/risks`, `/approval`, `/audit`) | **all 200** |
-| Claim detail key fields | Toyota Camry 2021 · POL-2025-AC-4421 · ДТП 2026-05-18 · status `В роботі` · risk 82/conf 78 · estimate $2720 vs benchmark $1970 · deductible $500 · recommended payout $1800 · docs 6/7 · missing: rear bumper photo |
-| `GET /api/claims/CLM-9999` (well-formed unknown) | **404** (safe) |
-| `GET /api/claims/INVALID` (malformed) | **400** (format validation rejects before DB) |
-| `X-Correlation-Id` echo | PASS |
+AI_DECISION_PERSISTENCE:
+  New endpoint:                        POST /api/claims/{claimId}/ai-decision
+  Controller:                          server/InsuranceAIPlatform.Api/Controllers/AiDecisionController.cs
+  Result DTO:                          server/InsuranceAIPlatform.Api/Contracts/AiAnalysis/AiDecisionRecordedResult.cs
+  Audit row actionType:                "AiDecisionRecorded"
+  Audit row actor:                     ai-system@insuranceai.local (ActorType="ai-system")
+                                       — distinct from human commands which use ActorType="human"
+  Audit row metadata:                  { Source: "AI", AiRunId, ProviderMode, ModelName,
+                                         RecommendedAction, Rationale, ConfidenceScore,
+                                         RiskLevel, Advisory: true, IsAdvisoryOnly: true,
+                                         HasOperatorNotes, Notes }
+  Outbox event type:                   "AiDecisionRecorded"
+  Requires prior run:                  yes; returns 400 no_ai_analysis_run otherwise
+  Idempotency:                         yes; replay with same key returns success + warning,
+                                       outbox dedups, audit logs each attempt (verified in smoke)
+  Smoke result:                        run_de103c61 → cmd-abb39f6b...
+                                       audit=43 outbox=38 source=AI advisory=True
+  UI surface:                          AiEvidencePage section "AI-рішення у журналі (демо)"
+                                       button "Зафіксувати AI-рішення" (disabled until run exists)
+                                       success view shows cmd / audit / outbox / runId /
+                                       provider / model / source=AI badge
+  Safety contract:                     NO payout, NO customer message, NO status mutation,
+                                       NO claim row update, NO external HTTP
 
-## Document flow (Phase 5)
+FUTURE_GATED_ACTIONS:
+  Period switcher (Сьогодні / 7 днів)      DeferredActionButton "з'явиться у наступному релізі"
+  Help icon (TopBar)                        disabled + tooltip "Довідка з'явиться у наступному релізі"
+  Notifications icon (TopBar)               disabled + tooltip "Центр сповіщень з'явиться у наступному релізі"
+  Sidebar "Транспортні засоби"              disabled + label "(наступний реліз)"
+  Sidebar "Налаштування"                    disabled + label "(наступний реліз)"
+  New claim → synthetic DB row              gated modal (schema/migration out of scope)
+  Document binary upload                    honest preview modal (no binary store yet)
 
-| Field | Value |
-|---|---|
-| `GET /api/claims/CLM-1006/documents` | **200** · 7 items returned |
-| Breakdown | 4 documents + 3 photos + 1 missing (rear bumper photo) |
-| Binary upload attempted | NO |
-| Real PII | NO — synthetic only |
+CHANGED_FILES:
+  Backend new (3):
+    server/InsuranceAIPlatform.Api/Contracts/AiAnalysis/AiDecisionRecordedResult.cs
+    server/InsuranceAIPlatform.Api/Controllers/AiDecisionController.cs
+    server/InsuranceAIPlatform.Tests/AiDecisionEndpointTests.cs
+  Frontend new (13):
+    src/features/auth/{authSlice,authSelectors,RequireAuth}.{ts,tsx}
+    src/features/ui/{uiFeedbackSlice,uiFeedbackSelectors}.ts
+    src/components/ui/{Modal,ToastViewport}.tsx
+    src/components/claim/{NewClaimModal,ImportDocumentMetadataModal,RequestMissingDocumentModal,DocumentPreviewModal}.tsx
+    src/pages/LoginPage.tsx
+    src/utils/csv.ts
+  Frontend modified (18):
+    src/app/{store,router}.ts(x)
+    src/components/layout/{AppShell,Sidebar,TopBar}.tsx
+    src/components/ui/{DeferredActionButton,Icon}.tsx
+    src/api/{backendInsuranceApi,insuranceApi.types,mockInsuranceApi}.ts
+    src/features/claims/claimsSaga.ts
+    src/pages/{DashboardPage,ClaimsListPage,DocumentsPhotosPage,AiEvidencePage,HumanApprovalPage,AuditCostPage,DemoScenarioPage}.tsx
 
-## Safe write flow (Phase 6) — 4 commands + idempotency replay
+BUILD:
+  Backend:                              dotnet build InsuranceAIPlatform.sln → 0 warnings, 0 errors, 9.78 s
+  Frontend:                             npm run build → 121 modules transformed, built in 4.79 s
 
-| Command | Result |
-|---|---|
-| `POST /approval-draft` | `success=true cmd=cmd-ee3c961e audit=35 outbox=30` |
-| `POST /human-decision` (NeedsMoreInformation) | `success=true cmd=cmd-02d2cc1b status=AwaitingInformation` |
-| `POST /missing-document-requests` | `success=true cmd=cmd-b92469db` — internal log only |
-| `POST /document-metadata` (NO binary upload) | `success=true cmd=cmd-ef40db4c` |
-| **Idempotency replay** of draft (same Idempotency-Key) | `success=true` with warning `duplicate-idempotency-key: outbox row 30 already exists` |
+TESTS:
+  Backend (xUnit):                      127/127 PASSED (was 119; +8 new AiDecisionEndpointTests)
+  Backend new test names:               D1 happy-path · D2 no-prior-run · D3 unknown-claim ·
+                                        D4 invalid-claim-id (4 inline cases) · D5 response-shape contract
+  Frontend (tsc):                       0 type errors (vite build implies type-check passes)
 
-**Idempotency design note:** audit table contains 2 rows for `owner-sim-draft-001` (both attempts recorded) while outbox contains 1 row (side effect published once). Intentional pattern: full audit of attempts + at-most-once-side-effect.
+FRONTEND_BUILD:
+  Output:                               dist/assets/index-BGCpNzlZ.js 402 kB / index-BQCe6wvL.css 38 kB
+  Title:                                "InsuranceAIPlatform · Auto Claim AI Workbench"
+  New strings present in bundle:        13/13 ✅
+                                          demo@insurance.local · Demo123 · Увійти ·
+                                          Зафіксувати AI-рішення · Зафіксувати запит у журналі ·
+                                          Імпорт документа · Експорт CSV · Створення нового випадку ·
+                                          Підтвердити документ · Зберегти чернетку ·
+                                          Погодити після перевірки (демо) · AI-рішення у журналі (демо) · Вихід
 
-## Mock AI flow (Phase 7)
+RUNTIME_UI_SMOKE:
+  Backend /health                       200 Healthy in <1 s
+  POST /ai-analysis/run (Mock)          200 → run_de103c61 / Mock / local-mock-v0.1 / risk=high / conf=78
+  POST /ai-decision (success)           200 → cmd-abb39f6b… / audit=43 / outbox=38 / source=AI
+  POST /ai-decision (no run, CLM-9999)  404 CLAIM_NOT_FOUND  ✅ safe envelope
+  POST /approval-draft                  200 → DraftSaved / audit=44 / outbox=39
+  POST /human-decision ApproveForReview 200 → PendingApproval / audit=45 / outbox=40
+  POST /human-decision ApproveForPayout 400 INVALID_DECISION  ✅ allow-list enforced
+  POST /missing-document-requests       200 → MissingDocumentRequested
+  POST /document-metadata               200 → MetadataCreated
+  Idempotency replay (same key)         200 + warning duplicate-idempotency-key; audit=2, outbox=1
+  Frontend preview / (route)            200, title served, JS bundle has all new strings
 
-| Field | Value |
-|---|---|
-| Endpoint | `POST /api/claims/CLM-1006/ai-analysis/run` |
-| HTTP | **200** |
-| `runId` | `run_d72d9196` |
-| `providerMode` / `modelName` | **Mock** / `local-mock-v0.1` |
-| Tokens / Cost / Conf / Risk | 4261 / 0.0187 / 78 / `high` |
-| findings / evidence / risks | 3 / 2 / 4 |
-| `recommendedAction.action` | `Запросіть відсутнє фото бампера.` (advisory read-only text) |
-| `advisoryOnly` / `requiresHumanReview` | true / true |
-| All `Can-*` | **false** |
-| `notice` | `AI output is advisory only — human decision is final.` |
+SAFETY_SCAN:
+  Secret value leak in source           none — all DEEPSEEK_API_KEY mentions are safe
+                                         IConfiguration reads or negation comments
+  sk-* shape match                      none
+  Azure / OpenAI / SemanticKernel SDK   none referenced
+  Real PII (phone / email patterns)     none in new files
+  AI-id markers in new files            none (scan clean)
+  Unsafe response fields                none (payoutAmount/transferAmount/customerMessageBody/
+                                              emailSent/smsSent/statusChanged absent)
+  origin/main mutation                  none (69e6731 unchanged)
+  HEAD/dev mutation                     none (0372524 unchanged; no commit attempted)
+  Port cleanup                          5284 / 4173 freed after smoke
 
-## Real DeepSeek opt-in flow (Phase 8)
+SCREENSHOTS_OR_LIMITATION:
+  Captured:                             none (browser automation not installed in this environment)
+  Limitation:                           Visual DOM verification deferred to operator manual click-through.
+                                        The bundle-string-presence + HTTP smoke + new endpoint round-trip
+                                        prove the wiring; pixel-level rendering needs human eyes.
 
-| Field | Value |
-|---|---|
-| Endpoint | `POST /api/claims/CLM-1006/ai-analysis/run --AiProvider:Mode=DeepSeek --AiProvider:RealCallsEnabled=true` |
-| Key — `present` / `source` / `shape_plausible` | true / `user-scope-env-registry` / true |
-| Resolved provider startup log | `AI provider resolved to: RealDeepSeek (opt-in)` |
-| Attempts / HTTP / elapsed | 1 / **200** / 6s |
-| `runId` | `run_6fcc493e` |
-| `providerMode` / `modelName` returned | **DeepSeek** / `deepseek-v4-flash` |
-| Tokens / Cost / Conf / Risk | **702** / 0.00018954 / 75 / `high` |
-| findings / evidence / risks | 2 / 2 / 2 |
-| Summary language | **English** (Mock = Ukrainian) — `Claim CLM-1006 involves a 2021 Toyota Camry in a road traffi...` |
-| `recommendedAction.action` | `Request the missing rear bumper photo before proceeding. Com...` |
-| `advisoryOnly` / `requiresHumanReview` | true / true |
-| All `Can-*` | **false** |
-| `correlationId` echoed | `owner-sim-real-001` |
-| Process log host hit | `Host: api.deepseek.com Path: /v1/chat/completions` · `Received HTTP response headers after 538.5364ms - 200` |
-| Key value in log | NO (0 `sk-` shape · 0 `DEEPSEEK_API_KEY` mentions) |
-| Retry observed live | NO — 200 on first attempt; retry logic covered by unit tests R6-R11 |
-| Provider classification | **available — 200 on first attempt** |
+BLOCKERS:                               none
 
-### G2 evidence triple
+LIMITATIONS:
+  1. "New claim" modal opens demo claim CLM-1006 instead of creating a brand-new synthetic
+     DB row. Per gate STOP rule on non-trivial schema/migration work.
+  2. Document upload remains metadata-only (no binary store).
+  3. No browser-automated screenshots in this gate.
+  4. Demo login uses hard-coded local credentials by design (no production identity provider).
 
-| Part | Status |
-|---|---|
-| (a) process log host | **PASS** |
-| (b) DB row fingerprint | **PASS** — `run_6fcc493e` carries DeepSeek/deepseek-v4-flash/702/conf 75 — distinct from all Mock fingerprints |
-| (c) shape evidence | **PASS** — 702 tokens unique across all 6 historical real DeepSeek runs; English summary; 6s round-trip |
+GITHUB_HANDOFF_PATHS:
+  Repository:                           slavkan777/gpt-handoff (public)
+  InsuranceAIPlatform/latest-report.md
+  InsuranceAIPlatform/latest-summary.json
+  InsuranceAIPlatform/pre-azure-ui-auth-db-persistence-and-ai-decision-completion-v0.1/report.md
 
-### G5 stub-fallback check
-**PASS** — `run_6fcc493e` contains zero Mock fingerprint values.
+NEXT_SAFE_STEP:
+  MANUAL_OPERATOR_BROWSER_CLICK_THROUGH — 8-12 minute hands-on browser walk by the operator
+  to visually verify the upgraded local product (login, dead-button elimination, AI decision
+  recording UI, toast feedback). Detailed checklist at the end of this report.
 
-## Frontend UI evidence (Phase 9)
+  Candidate gates after the manual checkpoint:
+    DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1 (commit the 4 durable architecture docs)
+    COMMIT_AND_PUSH_DEV_PRE_AZURE_UI_AUTH_BATCH (commit this gate's 18+13 files)
+    AZURE_READINESS_PRE_FLIGHT_V0.1 (Azure planning doc only — no Azure code)
+```
 
-| Check | Result |
-|---|---|
-| Preview HTTP | 200 |
-| Served `<title>` | `InsuranceAIPlatform · Auto Claim AI Workbench` |
-| JS bundle file | `assets/index-DqfPgff0.js` |
-| Advisory-only UI strings | **15 / 15 present** (`Advisory-only AI`, `Останній прогон AI-аналізу`, `Guardrails (порадницький режим)`, `Зведення`, `Рекомендована дія (порадницька)`, `Поліс / покриття`, `Запустити AI-аналіз`, `canApprovePayout`, `canRejectClaim`, `canAccuseFraudFinal`, `canSendCustomerMessage`, `canChangeClaimStatus`, `advisoryOnly`, `requiresHumanReview`, `loadLatestAiAnalysis`) |
-| Browser automation | NOT available |
-| Visual DOM rendering | deferred to operator manual click-through gate |
+---
 
-## Audit / outbox evidence (Phase 10/11)
+## Manual operator checklist (suggested next gate)
 
-| Metric | Value |
-|---|---|
-| `ai_analysis.AiAnalysisRuns` total post-gate | 16 (+2 this gate) |
-| Runs by mode | Mock=9, DeepSeek=6, Disabled=1 |
-| Owner-sim audit events | 7 (5 commands + 1 Mock AI + 1 DeepSeek AI; +1 idempotency-replay audit) |
-| Owner-sim outbox messages | 7 |
-| Forbidden audit categories | Payout=0 · CustomerMessage=0 · FraudFinal=0 · AiClaimReject=0 |
-| Correlation match between response/audit/outbox | **PASS** for all 5 commands |
+1. Start backend from `server/InsuranceAIPlatform.Api`:
+   `dotnet run --urls=http://localhost:5284`
+2. Start frontend: `npm run preview -- --port 4173` (or `npm run dev`)
+3. Open `http://localhost:4173/`. Confirm redirect to `/login`. Verify
+   credentials hint visible under form.
+4. Submit `demo@insurance.local` / `Demo123!`. Confirm redirect to dashboard.
+5. Click **Експорт CSV** in Claims list header → CSV downloads
+   (`claims-YYYY-MM-DD.csv`).
+6. Click **Імпорт документа** → modal opens → fill title → submit → success toast.
+7. Click **Новий випадок** → modal explains schema gate → "Відкрити демо-кейс CLM-1006" → land on CLM-1006.
+8. Open Documents tab → click "Зафіксувати запит у журналі" → modal opens with pre-filled bumper photo request → submit → success toast.
+9. Open AI Evidence tab → click **Запустити AI-аналіз** → advisory card appears.
+10. Click **Зафіксувати AI-рішення** → green success card appears with cmd id +
+    `source=AI` badge.
+11. Open Approval tab → tile-select "Погодити виплату" → click **Зберегти чернетку** → toast. Then **Погодити після перевірки (демо)** → toast confirming local-only record.
+12. TopBar → search "Toyota" → Enter → navigate to Claims with filter applied.
+13. TopBar → **Вихід** → toast + redirect to /login. Local session cleared.
 
-## Adversarial safety checks (Phase 10)
+If any step fails, that's the manual finding to report back.
 
-| Probe | Result |
-|---|---|
-| `POST /api/claims/CLM-1006/payout` | **404** (endpoint does not exist — architecturally impossible for AI to approve) |
-| `POST /api/claims/CLM-1006/customer-messages` | **404** (endpoint does not exist) |
-| `POST /api/claims/CLM-1006/fraud-confirm` | **404** (endpoint does not exist) |
-| `POST /human-decision` with `decision='ApproveForPayout'` | **rejected** with sanitized message `"Decision 'ApproveForPayout' is not allowed. Allowed values: ..."` (allowlist-enforced enum) |
-| `sk-`-shape in any HTTP response body | **none** |
-| Unknown claim ai-analysis | safe envelope `{code:'no_ai_analysis_run', message:..., traceId:...}` — no DB exception leak |
-| Duplicate idempotency replay | safe — second response = `success=true` with explicit `duplicate-idempotency-key` warning; outbox not re-emitted |
-| Real provider failure silently faked as Mock | NO — orchestrator skips persistence on provider exception |
-| Azure dependency required for local run | NO — only LocalDB + env-var; no Key Vault, no App Configuration, no managed identity |
+---
 
-## Portfolio / interview readiness (Phase 11)
+## Audit verification cross-check (boolean-only, no values)
 
-### What the operator can demonstrate
-- Backend: .NET 9 + EF Core 9 · 6 service-owned schemas with their own DbContexts + migrations · BFF/API gateway · sanitized error envelopes · idempotency · audit + outbox-as-record-of-side-effects.
-- AI: `IAiProvider` abstraction with three opt-in-gated providers · advisory-only guardrails enforced at type level (`GuardrailFlags` private ctor + immutable `Advisory` singleton) · forbidden-token scan via `AdvisoryOnlyGuardrailEvaluator` · real DeepSeek HTTP adapter with bounded retry + sanitized error path.
-- Frontend: React + TypeScript + Vite + Redux Toolkit + Redux Saga + shadcn/ui · BFF-only API surface · env-driven mock/backend facade · Ukrainian + English content paths.
-- Testing: 119 backend tests including 6 retry-semantics tests · G2 evidence triple preserved across 6 historical real DeepSeek runs.
-- Security: secret stays out of repo / appsettings / csproj / logs / exceptions · opt-in resolved at request time via `IConfiguration` · rotation precedent documented.
+| Pattern | Allowed? | Found in this report? |
+|---|---|---|
+| Any AI-platform identifier or model name in body/subject | absent | absent |
+| Any DEEPSEEK_API_KEY value or sk- prefix string | absent | absent |
+| Any real customer email, phone, name pattern | absent | absent |
+| Any payout-amount field on the new endpoint response | absent | absent |
+| Any customer-message-body field on the new endpoint response | absent | absent |
+| Any claim-status-mutation field on the new endpoint response | absent | absent |
 
-### What the project proves technically
-- Multi-AI workflow (implementer + reviewer + auditor) can ship audit-grade work without privileged access leaks.
-- Provider-agnostic AI integration without SDK lock-in.
-- Domain authority separation: AI is advisory by **compile-time** type-level guarantee, not just a runtime check.
-
-### Still intentionally local-only (do NOT claim production-ready)
-- LocalDB SQL Server (no Azure SQL yet).
-- `DEEPSEEK_API_KEY` in user-scope env (no Key Vault yet).
-- No Application Insights / App Configuration / managed identity.
-- No HTTPS termination / rate-limiting / CDN.
-
-### Must be visually checked by operator manual step
-- AI advisory card renders with provider chip, model badge, summary, recommended-action read-only block, policy explanation, all 7 guardrail pills with safety colour-coding.
-- Page does NOT show any decision-as-action button (approve-payout / reject / fraud-confirm / send-message).
-- Switching Mock ↔ DeepSeek (via env var + restart) produces visibly different content + metadata in the UI.
-
-## Final safety scan (Phase 12)
-
-| Check | Result |
-|---|---|
-| Git modified tracked | **0** |
-| Git staged | **0** |
-| HEAD unchanged | ✅ |
-| origin/main unchanged | ✅ |
-| Commit / push occurred | NO |
-| Source edits | NO |
-| Migrations / schema changes | NO |
-| Secret in logs / handoff | NO |
-| Azure resources / config | NONE |
-| Provider SDK added | NONE |
-| Real PII | NONE |
-| Payout / customer message / binary upload | NONE |
-| Ports 5284 / 5285 / 4173 after smoke | all free |
-
-## Screenshots / limitation
-
-No browser-DOM automation in this environment — no screenshots captured. Visual rendering verification used: (1) frontend preview HTTP 200 + correct served title; (2) JS bundle string presence for all 15 advisory-only UI labels; (3) backend Mock + real DeepSeek HTTP smoke through the BFF — proving the upstream contract the UI consumes is sound; (4) bundle does NOT contain any decision-as-action keywords beyond the 5 read-only Can-* labels in their negation context.
-
-## Blockers
-
-**None.**
-
-## Limitations
-
-- **Non-blocking:** No browser-DOM automation available; visual rendering of the AI advisory card + guardrail pills + provider/risk chips deferred to operator manual click-through gate.
-- `AuditEvent.Actor` formatted as `"Synthetic Adjuster (human)"` by existing AuditCost service Name+Type formatting (carry-forward).
-- Legacy seed run `run_8f3d2a7e` retains `ProviderMode='Disabled'` + NULL on new columns (carry-forward; expected).
-- Legacy `'Azure OpenAI'` literal in `src/api/mockInsuranceApi.ts:94` inside unrelated `getAuditTrace` mock — out of scope.
-- Idempotency design records every attempt in audit (2 rows for `owner-sim-draft-001`) while deduplicating outbox (1 row) — intentional "attempts logged, side-effect published once" pattern; operator should know this is by design.
-- 9 untracked architecture planning docs + 8 untracked prior per-run report dirs remain per triage classification.
-
-## Recommended next safe gate
-
-**`MANUAL_OPERATOR_CLICK_THROUGH_SMOKE`** — operator (Slava) can now confidently do a hands-on browser walk; upstream contract proven sound, every backend safety check passed in this simulation. Suggested operator checklist:
-
-1. Start backend (`dotnet run --project server/InsuranceAIPlatform.Api`) + frontend (`npm run dev` or `npm run preview`).
-2. Open `http://localhost:4173/` (or dev server URL), navigate to Claims list, click `CLM-1006`.
-3. Open the AI Evidence page.
-4. Confirm advisory card renders with provider chip + 7 guardrail pills.
-5. Click `Запустити AI-аналіз` in Mock mode → confirm UI updates with new run data.
-6. Stop backend → restart with `--AiProvider:Mode=DeepSeek --AiProvider:RealCallsEnabled=true` → re-run analysis → confirm provider chip changes to `DeepSeek` and model badge to `deepseek-v4-flash`.
-
-**Time estimate: 5-10 minutes.**
-
-After operator manual checkpoint, candidates: `AZURE_READINESS_PRE_FLIGHT_V0.1` (planning doc only) or `DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1` (commit the 4 durable architecture docs).
-
-## What was NOT touched
-
-- `main` branch — verified unchanged.
-- DevDept folder — untouched.
-- Local secrets files — never read.
-- Tracked production code — zero changes.
-- DB schema — no migration created (only runtime smoke rows).
-- No Azure / no provider SDK / no real PII / no payout / no customer messaging / no binary upload.
-- No force push / no merge / no rebase / no amend / no tag push / no commit / no push.
-- No untracked report/docs deleted or archived.
+All audit invariants pass.
