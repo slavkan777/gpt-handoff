@@ -1,14 +1,15 @@
 # InsuranceAIPlatform — Latest gate report
 
-**Gate:** POST_MANUAL_V4_CREATED_CLAIM_DETAIL_BINDING_FIX_V0.1
+**Gate:** AIKB_AND_CLAUDEOS_E2E_SEMANTIC_ASSERTION_RULE_UPDATE_V0.1
+**Type:** durable knowledge / rules / state maintenance
 **Date (UTC):** 2026-05-28
-**Branch:** dev
-**HEAD before:** `03725241c8dfdbed7ce17db61fb51d9d7f211116`
-**HEAD after:**  `03725241c8dfdbed7ce17db61fb51d9d7f211116` *(unchanged — gate is no-commit/no-push by spec)*
-**origin/main:**  `69e67312a10cc9bcf28c4e387a126b48c91fb9c5` *(unchanged)*
+**InsuranceAIPlatform source `dev` HEAD before:** `03725241c8dfdbed7ce17db61fb51d9d7f211116`
+**InsuranceAIPlatform source `dev` HEAD after:**  `03725241c8dfdbed7ce17db61fb51d9d7f211116` *(unchanged — gate is no-source-commit/no-source-push by spec)*
+**InsuranceAIPlatform source `origin/main`:**     `69e67312a10cc9bcf28c4e387a126b48c91fb9c5` *(unchanged)*
+**AIKB repo updates committed and pushed** (see GITHUB_HANDOFF_PATHS below).
+**ClaudeOS / claude-vault:** SKIPPED_PROTECTED — sacred CLAUDE.md root constraint.
 
-**Full report:** [post-manual-v4-created-claim-detail-binding-fix-v0.1/report.md](post-manual-v4-created-claim-detail-binding-fix-v0.1/report.md)
-**Playwright run details:** [post-manual-v4-created-claim-detail-binding-fix-v0.1/e2e-results.md](post-manual-v4-created-claim-detail-binding-fix-v0.1/e2e-results.md)
+**Full report:** [aikb-claudeos-e2e-semantic-assertion-rule-update-v0.1/report.md](aikb-claudeos-e2e-semantic-assertion-rule-update-v0.1/report.md)
 
 ---
 
@@ -16,36 +17,56 @@
 
 ```
 VERDICT: ACCEPT
-GATE: POST_MANUAL_V4_CREATED_CLAIM_DETAIL_BINDING_FIX_V0.1
-BRANCH: dev
-HEAD_BEFORE: 03725241c8dfdbed7ce17db61fb51d9d7f211116
-HEAD_AFTER:  03725241c8dfdbed7ce17db61fb51d9d7f211116
-ORIGIN_MAIN: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5
-GIT_STATUS_SUMMARY: working-tree only changes across 7 frontend files + 3 backend files + 1 new e2e spec; 0 staged; no commit; no push
-MANUAL_BUG_REPRODUCED: yes — reproduced by e2e/21-created-claim-detail-binding.spec.ts (case 1) which fails on the pre-fix code and passes on the fixed code
-ROOT_CAUSE: rootSaga.ts:22 dispatched loadClaimDetail('CLM-1006') ONLY at app boot; no per-route re-dispatch existed, so Redux state stayed locked on CLM-1006 forever. ClaimShell.tsx breadcrumb literally hardcoded `c = goldenClaim`. ClaimHeader.tsx and ClaimWorkspacePage.tsx used `claimDetail ?? goldenClaim` so for any non-CLM-1006 route they leaked CLM-1006 customer/vehicle. ClaimWorkspacePage's bottom-rail buttons navigated to /claims/CLM-1006/... hardcoded. Secondary: HybridClaimReadService returned Description: string.Empty (and SyntheticClaimSummary did not even carry Description) so the submitted description was dropped on the read path even after the FE was fixed.
-FIX_SUMMARY: ClaimShell dispatches loadClaimDetail(claimId) on route change; header/breadcrumb/page render loaded detail only when id === route claimId (no goldenClaim fallback for non-golden routes); bottom-rail navigates via useParams().claimId; rootSaga boot dispatch removed; sub-resource fallbacks empty-honest for non-golden ids; mock getClaimById is claimId-aware; SyntheticClaimSummary + ToSummary + HybridClaimReadService now carry Description through.
-CREATED_CLAIM_DETAIL_BINDING: pass — header / breadcrumb / description tile all carry created customer/vehicle/VIN/event-type/location/description; sandbox notice visible; no CLM-1006 leak in DOM
-CLM_1006_REGRESSION: pass — direct nav to /claims/CLM-1006 still shows CLM-1006 + Роберт Джонсон + Toyota Camry; rich timeline/photos/STO/key-risks fixtures still render; bottom-rail still navigates within CLM-1006
-PLAYWRIGHT_REGRESSION: e2e/21-created-claim-detail-binding.spec.ts — 2 cases, both PASS (would FAIL on pre-fix code)
-E2E_RESULTS: 89 / 89 PASS (87 prior spec files + 1 new spec file with 2 new cases; 0 flaky; 0 retries)
-FILES_CHANGED: src/components/layout/ClaimShell.tsx; src/components/claim/ClaimHeader.tsx; src/pages/ClaimWorkspacePage.tsx; src/app/rootSaga.ts; src/features/claims/claimsSaga.ts; src/api/mockInsuranceApi.ts; src/components/claim/NewClaimModal.tsx; server/InsuranceAIPlatform.Services.Claims/IClaimsService.cs; server/InsuranceAIPlatform.Services.Claims/Persistence/PersistenceClaimsService.cs; server/InsuranceAIPlatform.Api/Services/HybridClaimReadService.cs; e2e/21-created-claim-detail-binding.spec.ts (NEW)
-BACKEND_BUILD: PASS — 0 warnings, 0 errors, 10 projects
-BACKEND_TESTS: PASS — 137 / 137 (xunit)
-FRONTEND_BUILD: PASS — 125 modules, 436.21 kB JS, 39.15 kB CSS
-SAFETY_SCAN: clean — no secret values, 0 Azure SDK refs, no real PII, AI-vendor phrase scan on changed files clean, origin/main unchanged, source dev HEAD unchanged
+GATE: AIKB_AND_CLAUDEOS_E2E_SEMANTIC_ASSERTION_RULE_UPDATE_V0.1
+AIKB_FILES_READ:
+  - 00_CONTROL_CENTER/ACTIVE_PROJECTS.md
+  - 00_CONTROL_CENTER/ACCEPTANCE_FIRST_DELIVERY_RULE.md
+  - 00_CONTROL_CENTER/ADVERSARIAL_REVIEW_RULE.md
+  - 01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md
+  - 01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md
+  - 01_PROJECTS/InsuranceAIPlatform/DECISIONS/ (list)
+  - 01_PROJECTS/InsuranceAIPlatform/DECISIONS/DECISION_2026-05-27_azure_ready_microservice_architecture_local_first.md
+  - 02_TEMPLATES/TEMPLATE_CLAUDE_PROMPT.md
+AIKB_FILES_UPDATED:
+  - 00_CONTROL_CENTER/E2E_SEMANTIC_ASSERTION_RULE.md (NEW)
+  - 01_PROJECTS/InsuranceAIPlatform/DECISIONS/DECISION_2026-05-28_e2e_semantic_assertion_rule.md (NEW)
+  - 01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md (status, snapshot, gate sequence, lesson, verified facts, current/next gate, limitations)
+  - 01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md (6 new entries: zero-to-end, total-UI, Manual V4 rejection, PostManualV4 fix, Manual V5 acceptance, this maintenance gate)
+  - 02_TEMPLATES/TEMPLATE_CLAUDE_PROMPT.md (4-layer evidence section for UI/E2E gates)
+  - 00_CONTROL_CENTER/ACTIVE_PROJECTS.md (InsuranceAIPlatform status + per-project subsection)
+DECISION_FILE: 01_PROJECTS/InsuranceAIPlatform/DECISIONS/DECISION_2026-05-28_e2e_semantic_assertion_rule.md
+TASK_LEDGER_UPDATED: yes — 6 new entries appended chronologically (PostManualZeroToEnd V0.2, TotalUIExploratory V0.1 with overturned caveat, Manual V4 rejection, PostManualV4 fix, Manual V5 acceptance, this maintenance gate)
+CURRENT_STATE_UPDATED: yes — status changed BFF_SKELETON_COMMITTED_TO_DEV → MANUAL_V5_ACCEPTED_CREATED_CLAIM_DETAIL_BINDING_FIXED_READY_FOR_COMMIT_GATE; recent-gate sequence + verified facts + false-positive lesson + next-gate sequence added; original architectural baseline preserved as historical section
+CLAUDEOS_FILES_READ:
+  - C:/Users/DEVELOPER/Claude/GitHub/claude-vault/ (directory listing; HEAD 903c344 with uncommitted vault changes already present)
+CLAUDEOS_FILES_UPDATED: none — SKIPPED_PROTECTED
+PROTECTED_OR_SKIPPED_FILES:
+  - C:/Users/DEVELOPER/CLAUDE.md (home-dir project memory) — SACRED per feedback_foundational_contract.md
+  - C:/Users/DEVELOPER/Claude/CLAUDE.md (Vault-root project memory) — SACRED
+  - C:/Users/DEVELOPER/Claude/GitHub/claude-vault/CLAUDE.md and root operating rules — SACRED + uncommitted vault state already present
+  - InsuranceAIPlatform product source under C:/Projects/InsuranceAIPlatform/ — out of scope; not opened for write
+RULE_PERSISTED: E2E Semantic Assertion Rule — four required evidence layers for every UI create/open/update gate: MECHANICAL_PASS (chain fired), SEMANTIC_PASS (visible DOM carries entity business data via testids+strings), PERSISTENCE_PASS (reload/search/re-open still shows the data), NEGATIVE_PASS (stale fixture/fallback data is asserted absent — for InsuranceAIPlatform: CLM-1006, Роберт Джонсон, Toyota Camry markers). A 100% pass rate is rejected without explicit SEMANTIC_PASS + NEGATIVE_PASS assertions. Required report fields: MECHANICAL_PASS/SEMANTIC_PASS/PERSISTENCE_PASS/NEGATIVE_PASS/SEMANTIC_EVIDENCE/NEGATIVE_EVIDENCE/SPEC_FILE_PATH/TEST_CASE_NAME.
+PROMPT_TEMPLATE_SNIPPET_ADDED: yes — embedded in 02_TEMPLATES/TEMPLATE_CLAUDE_PROMPT.md EVIDENCE / REPORT REQUIREMENTS section as "Mandatory for UI / E2E create / open / update gates" subsection with the four labelled layers, required report fields, and the copy-paste snippet "Do not count URL / navigation / toast as success. Assert visible business data via testids and asserted strings, and assert stale fixture / fallback data is absent. ..."
+PRODUCT_SOURCE_CHANGED: no
+SOURCE_COMMIT_ATTEMPTED: no
+SOURCE_PUSH_ATTEMPTED: no
+AZURE_TOUCHED: no
+GITHUB_HANDOFF_PATHS:
+  - InsuranceAIPlatform/latest-report.md (gpt-handoff)
+  - InsuranceAIPlatform/latest-summary.json (gpt-handoff)
+  - InsuranceAIPlatform/aikb-claudeos-e2e-semantic-assertion-rule-update-v0.1/report.md (gpt-handoff)
+  - ai-kb 00_CONTROL_CENTER/E2E_SEMANTIC_ASSERTION_RULE.md (durable cross-project rule)
+  - ai-kb 01_PROJECTS/InsuranceAIPlatform/DECISIONS/DECISION_2026-05-28_e2e_semantic_assertion_rule.md (project-level decision)
+  - ai-kb 01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md (state refresh)
+  - ai-kb 01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md (6 new entries)
+  - ai-kb 02_TEMPLATES/TEMPLATE_CLAUDE_PROMPT.md (4-layer evidence requirement)
+  - ai-kb 00_CONTROL_CENTER/ACTIVE_PROJECTS.md (index update)
 BLOCKERS: none
 LIMITATIONS:
-  1) Description fix required a small backend change (SyntheticClaimSummary + ToSummary + HybridClaimReadService) — surfaced by the regression itself; fixed in this gate.
-  2) Sub-resource tabs for fresh DB-created claims render honest empty states; per-tab seeding for new claims is out of scope.
-  3) Single-browser (Chromium) coverage; Firefox/WebKit not exercised.
-  4) HybridClaimReadService sync→async via .GetAwaiter().GetResult() inherited from prior gate; unchanged.
-  5) Pre-existing 08-zero-to-end was URL-only; preserved as-is; new 21-* is the content-level guard.
-READY_FOR_SLAVA_MANUAL_RETEST: yes
-GITHUB_HANDOFF_PATHS:
-  - InsuranceAIPlatform/latest-report.md
-  - InsuranceAIPlatform/latest-summary.json
-  - InsuranceAIPlatform/post-manual-v4-created-claim-detail-binding-fix-v0.1/report.md
-  - InsuranceAIPlatform/post-manual-v4-created-claim-detail-binding-fix-v0.1/e2e-results.md
-NEXT_SAFE_STEP: MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V5 — Slava re-runs the exact manual flow he reported (create claim → land on /claims/CLM-#### → verify visible detail shows the new customer/vehicle/VIN/description, not CLM-1006). After that the queued candidate gates remain: COMMIT_AND_PUSH_DEV_*, DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1, AZURE_READINESS_PRE_FLIGHT_V0.1.
+  1) ClaudeOS / claude-vault not mirrored — sacred-file constraint; AIKB is the canonical durable-rules repo for this rule; separate approval gate needed if a vault mirror is wanted.
+  2) Prompt-template change applies forward only — past accepted reports are not retroactively re-classified.
+  3) The rule is a process rule, not a runtime check — Claude labels, GPT enforces; tooling auto-grep is out of scope.
+  4) Project-specific NEGATIVE markers explicit for InsuranceAIPlatform only; other projects inherit the cross-project four-layer requirement and should add their own markers when they introduce UI/E2E gates.
+  5) No new product test runs in this gate (89/89, 137/137, FE build PASS are inherited from PostManualV4 fix gate's run on `da51cd3..719a0c3`); this is a knowledge-only gate.
+NEXT_SAFE_STEP: COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1 — operator opens explicitly; bounded commit-only gate for the accumulated dev working-tree (4 gates' worth of changes), separate commit and push subphases, explicit file list, no new edits, no Azure, no main-branch touch. Then DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1, then AZURE_READINESS_PRE_FLIGHT_V0.1 (planning doc only).
 ```
