@@ -1,234 +1,98 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "PRE_AZURE_LOCAL_COMPLETION_BATCH_UI_AI_RESILIENCE_DOCS_TRIAGE_V0.1",
-  "verdict": "ACCEPT",
-  "verdict_reasoning": "Three bounded scopes completed and verified locally: (A) Frontend AI Analysis UI is now wired to the BFF advisory-only AI seam — loads latest run on mount, dispatches new runs with claimId, renders providerMode, modelName, summary, recommendedAction (read-only), policyCoverageExplanation, riskLevel, confidence, findings/evidence/risks, cost/tokens, and all 7 guardrail pills (advisoryOnly+requiresHumanReview=true; every Can-* authority flag=false). (B) Backend DeepSeek provider gained bounded retry (max 2 attempts default) for safe transient failures (408/429/500/502/503/504/timeout) with sanitized error messages — auth/validation failures (400/401/403) never retry. (C) 9 untracked architecture docs + 8 prior report dirs classified in a triage note without deletion. Backend build PASS, tests 119/119 (113 prior + 6 new retry tests R6-R11), frontend build PASS 108 modules, Mock smoke PASS, real DeepSeek opt-in smoke returned HTTP 200 in ~6.7s (run_a88dc9d0; 708 tokens; deepseek-v4-flash). Independent inspector CLEARED 12/12 with zero warnings, zero failures.",
+  "gate": "COMMIT_AND_PUSH_DEV_PRE_AZURE_LOCAL_COMPLETION_BATCH_ONLY",
+  "verdict": "COMMIT_PUSH_DONE",
+  "verdict_reasoning": "Pre-Azure local completion batch committed to dev and fast-forward pushed to origin/dev. Exactly the 9-file accepted scope staged and committed (8 modified + 1 new triage doc). Commit message exact. No Co-Authored-By footer. No 'Generated with' footer. main untouched. Push was FF, not force. All pre-commit verification PASS (backend build, 119/119 tests, frontend build, safety scan).",
   "branch": "dev",
-  "head": "1b824b012f5d7075ce07d626dd07c4f9ddff42e7",
-  "origin_dev": "1b824b012f5d7075ce07d626dd07c4f9ddff42e7",
-  "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+  "previous_head": "1b824b012f5d7075ce07d626dd07c4f9ddff42e7",
+  "new_commit": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "commit_message": "feat: wire AI analysis UI and DeepSeek resilience",
+  "commit_body": "",
+  "commit_co_authored_by_present": false,
+  "commit_generated_with_footer_present": false,
+  "origin_dev_before_push": "1b824b012f5d7075ce07d626dd07c4f9ddff42e7",
+  "origin_dev_after_push": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "origin_main_before_push": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+  "origin_main_after_push": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
   "main_touched": false,
-  "source_commit_created_this_gate": false,
-  "source_push_this_gate": false,
-  "files_changed_modified_tracked": [
-    "server/InsuranceAIPlatform.Services.AiAnalysis/Configuration/AiProviderOptions.cs",
-    "server/InsuranceAIPlatform.Services.AiAnalysis/Providers/RealDeepSeekAiProvider.cs",
-    "server/InsuranceAIPlatform.Tests/RealDeepSeekProviderTests.cs",
-    "src/api/mockInsuranceApi.ts",
-    "src/features/aiReview/aiReviewSaga.ts",
-    "src/features/aiReview/aiReviewSelectors.ts",
-    "src/features/aiReview/aiReviewSlice.ts",
-    "src/pages/AiEvidencePage.tsx"
-  ],
-  "files_changed_new_untracked_this_gate": [
-    "docs/reports/pre-azure-local-completion-batch-ui-ai-resilience-docs-triage-v0.1/triage-notes.md"
-  ],
-  "files_carried_forward_untracked": {
-    "architecture_planning_docs": 9,
-    "prior_per_run_report_dirs": 8,
-    "total": 17,
-    "rationale": "No deletion; triage classification produced for future docs-only gate"
-  },
-  "ui_ai_wiring": {
-    "page": "src/pages/AiEvidencePage.tsx",
-    "approach": "Existing BFF/API seam via insuranceApi facade — no direct service calls",
-    "mount_load": "useEffect dispatches loadLatestAiAnalysis(claim.id) on mount and on claim change",
-    "run_action": "Run button dispatches runAiAnalysis(claim.id); saga keeps short progress animation + calls insuranceApi.runClaimAiAnalysis(claimId)",
-    "displayed_fields": [
-      "providerMode (Mock/DeepSeek/Unknown chip)",
-      "modelName",
-      "status",
-      "summaryText",
-      "recommendedAction (object {action, rationale, confidenceScore} — rendered read-only, NOT a decision button)",
-      "policyCoverageExplanation",
-      "riskLevel (low/moderate/high chip)",
-      "confidenceScore",
-      "findings (count + list)",
-      "evidence (count)",
-      "risks (count)",
-      "costTrace.tokens",
-      "costTrace.estimatedCost + currencyCode",
-      "all 7 guardrail flags rendered as compact pills with safety colour-coding"
+  "force_push": false,
+  "push_type": "fast-forward",
+  "push_observed_line": "1b824b0..0372524  dev -> dev",
+  "ahead_behind_dev_vs_origin_dev_after_push": "0/0",
+  "committed_files_count": 9,
+  "committed_files_grouped": {
+    "backend_provider_layer": [
+      "server/InsuranceAIPlatform.Services.AiAnalysis/Configuration/AiProviderOptions.cs",
+      "server/InsuranceAIPlatform.Services.AiAnalysis/Providers/RealDeepSeekAiProvider.cs"
     ],
-    "guardrail_authority_pills_rendered_all_false": true,
-    "advisory_notice_displayed": true,
-    "auto_decision_buttons_added": false,
-    "secrets_displayed_in_ui": false,
-    "secrets_requested_from_user": false,
-    "azure_openai_hardcoded_string_removed_from_page": true,
-    "feature_flag_pattern": "VITE_INSURANCE_API_MODE existing env-driven facade (mock|backend) — no new flag needed",
-    "frontend_tests_added": "No formal frontend test harness in project; verification relied on TypeScript build pass + runtime smoke + JS-bundle string check",
-    "mock_api_stubs_added": "mockInsuranceApi.getClaimAiAnalysis + runClaimAiAnalysis return synthetic AiAnalysisDto so the UI works identically in mock mode (typeof facade satisfied; default mock build no longer breaks types)"
-  },
-  "provider_resilience": {
-    "scope": "RealDeepSeekAiProvider.AnalyzeAsync only — Mock path untouched",
-    "approach": "Inline bounded retry inside AnalyzeAsync — no external resilience package, no provider SDK",
-    "max_attempts_default": 2,
-    "max_attempts_configurable_via": "AiProvider:DeepSeek:MaxAttempts",
-    "retry_base_delay_ms_default": 200,
-    "retry_base_delay_configurable_via": "AiProvider:DeepSeek:RetryBaseDelayMs",
-    "retryable_status_codes": [408, 429, 500, 502, 503, 504],
-    "retryable_exception_kinds": ["TaskCanceledException without caller cancellation (timeout)"],
-    "non_retryable_examples": [400, 401, 403, 404, 405],
-    "exception_message_sanitization": "No key, no response body, no secret config in any exception text — preserved across all paths",
-    "tests_added": ["R6: 503 retry succeeds on attempt 2 (callCount=2)", "R7: 429 retry succeeds (callCount=2)", "R8: timeout retry succeeds (callCount=2)", "R9: 401 NO retry (callCount=1) + key sentinel absent in exception message", "R10: 403 NO retry (callCount=1)", "R11: 400 NO retry (callCount=1)"],
-    "guardrails_still_applied_after_provider_success": "Yes — orchestrator's existing AdvisoryOnlyGuardrailEvaluator path unchanged",
-    "mock_fallback_falsely_reported_as_deepseek_success": "No — orchestrator behaviour unchanged; G5 stub-fingerprint absence preserved"
-  },
-  "docs_reports_triage": {
-    "triage_doc_path": "docs/reports/pre-azure-local-completion-batch-ui-ai-resilience-docs-triage-v0.1/triage-notes.md",
-    "no_deletion_performed": true,
-    "no_file_moved": true,
-    "classification_summary": {
-      "architecture_planning_docs": {
-        "COMMIT_LATER_SOURCE_DOC": 4,
-        "DEFER": 5
-      },
-      "prior_per_run_report_dirs": {
-        "ARCHIVE_LATER": 8,
-        "DEFER": 1
-      }
-    },
-    "recommended_follow_up_gates": [
-      "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1 — commit the 4 durable architecture docs to dev",
-      "DOCS_REPORTS_ARCHIVE_V0.1 — move 8 prior report dirs to archive or commit as historical evidence"
+    "backend_tests": [
+      "server/InsuranceAIPlatform.Tests/RealDeepSeekProviderTests.cs"
+    ],
+    "frontend_state_and_api": [
+      "src/api/mockInsuranceApi.ts",
+      "src/features/aiReview/aiReviewSlice.ts",
+      "src/features/aiReview/aiReviewSaga.ts",
+      "src/features/aiReview/aiReviewSelectors.ts"
+    ],
+    "frontend_page": [
+      "src/pages/AiEvidencePage.tsx"
+    ],
+    "docs": [
+      "docs/reports/pre-azure-local-completion-batch-ui-ai-resilience-docs-triage-v0.1/triage-notes.md"
     ]
   },
-  "backend_build_status": "PASS",
-  "backend_build_warnings": 0,
-  "backend_build_errors": 0,
-  "backend_test_status": "PASS",
-  "backend_tests_total": 119,
-  "backend_tests_passed": 119,
-  "backend_tests_failed": 0,
-  "backend_tests_skipped": 0,
-  "backend_tests_breakdown": "113 prior + 6 new retry tests (R6-R11)",
-  "frontend_build_status": "PASS",
-  "frontend_modules": 108,
-  "runtime_smoke": {
-    "api_health_5284": "PASS",
-    "frontend_preview_4173": "PASS — HTTP 200, title 'InsuranceAIPlatform · Auto Claim AI Workbench' served",
-    "mock_ai_run_via_bff": {
-      "endpoint": "POST /api/claims/CLM-1006/ai-analysis/run",
-      "http_status": 200,
-      "provider_mode": "Mock",
-      "model_name": "local-mock-v0.1",
-      "run_id_db_persisted": "run_6a22cf95",
-      "confidence_score": 78,
-      "risk_level": "high",
-      "guardrails_all_advisory_only": true,
-      "all_can_flags_false": true,
-      "correlation_id_echoed": true
-    },
-    "get_latest_ai_analysis": {
-      "endpoint": "GET /api/claims/CLM-1006/ai-analysis",
-      "http_status": 200,
-      "returns_persisted_run": true,
-      "returned_run_id_matches_post": "run_6a22cf95"
-    },
-    "js_bundle_strings_present": [
-      "Guardrails (порадницький режим)",
-      "Останній прогон AI-аналізу",
-      "canApprovePayout",
-      "loadLatestAiAnalysis",
-      "Запустити AI-аналіз"
-    ],
-    "browser_automation_available": false,
-    "browser_automation_limitation_note": "No Playwright in this environment; runtime verification used HTTP/API seam + frontend dist HTTP 200 + JS bundle string presence. The page itself rendered to a 'document.title'-bearing index.html — DOM-level render verification deferred to operator manual click-through gate."
+  "commit_diff_stats": {
+    "insertions": 837,
+    "deletions": 118
   },
-  "real_deepseek_optional_smoke": {
-    "port": 5285,
-    "attempts": 1,
-    "http_status": 200,
-    "elapsed_ms": 6672,
-    "provider_mode": "DeepSeek",
-    "model_name_configured": "deepseek-chat",
-    "model_name_returned": "deepseek-v4-flash",
-    "model_name_note": "DeepSeek API server resolved configured 'deepseek-chat' to alias 'deepseek-v4-flash' in the response; orchestrator persists the server-returned value",
-    "tokens": 708,
-    "estimated_cost_response": 0.00019116,
-    "confidence_score": 75,
-    "risk_level": "high",
-    "guardrails_all_advisory_only": true,
-    "all_can_flags_false": true,
-    "correlation_id_echoed": true,
-    "run_id_db_persisted": "run_a88dc9d0",
-    "retry_observed": false,
-    "retry_observed_note": "First attempt succeeded immediately; retry logic was therefore exercised only by the new unit tests R6-R11, not by this live smoke",
-    "key_in_log": false,
-    "key_in_exception": false,
-    "provider_classification": "available — 200 on first attempt"
-  },
-  "g2_external_call_evidence_triple": {
-    "a_process_log_host": "PASS — 'DeepSeek AI provider sending request. Host: api.deepseek.com Path: /v1/chat/completions' + 'Received HTTP response headers after Xms - 200' in api-pre-azure-real.stdout.log",
-    "b_db_row_fingerprint": "PASS — run_a88dc9d0: ProviderMode=DeepSeek, ModelName=deepseek-v4-flash, Tokens=708, Cost=0.0002, ModelConfidence=75 — all distinct from Mock fingerprint (4261/0.0187/78/local-mock-v0.1)",
-    "c_shape_evidence": "PASS — Tokens=708 differs from prior DeepSeek runs (688/695/700) proving real LLM non-determinism; 6.7s round-trip vs synchronous mock; non-default cost 0.00019116"
-  },
-  "g5_stub_fallback_check": "PASS — run_a88dc9d0 carries no Mock fingerprint values (modelName=local-mock-v0.1, tokens=4261, cost=0.0187, confidence=78); orchestrator and retry logic preserve fingerprint separation",
-  "db_state": {
-    "ai_analysis_runs_total": 12,
-    "ai_analysis_runs_by_mode": {"Disabled": 1, "Mock": 7, "DeepSeek": 4},
-    "ai_analysis_runs_new_this_gate": 2,
-    "ai_analysis_runs_new_this_gate_breakdown": "1 Mock (run_6a22cf95) + 1 DeepSeek (run_a88dc9d0)",
-    "audit_events_AiAnalysisCompleted_total": 11,
-    "outbox_messages_AiAnalysisCompleted_total": 11,
-    "audit_outbox_correlation_match_for_run_a88dc9d0": "PASS — both rows reference corr-pre-azure-real"
+  "verification_results": {
+    "backend_build": "PASS — 0 warnings, 0 errors, 5.93s",
+    "backend_build_command": "dotnet build server/InsuranceAIPlatform.sln -c Release --nologo",
+    "backend_tests": "PASS — 119/119/0, ~1s",
+    "backend_tests_command": "dotnet test server/InsuranceAIPlatform.Tests/InsuranceAIPlatform.Tests.csproj -c Release --no-build --nologo --verbosity quiet",
+    "frontend_build": "PASS — 108 modules, 3.68s",
+    "frontend_build_command": "npm run build (root)"
   },
   "safety_scan": {
-    "sk_shape_in_8_changed_files": "PASS — 0 hits",
-    "deepseek_api_key_literal_in_changed_scope": "PASS — 0 hits",
-    "key_value_in_appsettings_development_json": "PASS — only Mode/RealCallsEnabled/Model/Endpoint/TimeoutSeconds",
-    "provider_sdk_in_any_csproj": "PASS — none",
+    "sk_shape_in_9_committed_files": "PASS — 0 hits",
+    "deepseek_api_key_literal_in_committed_scope": "PASS — 0 hits",
+    "key_value_in_appsettings_development_json": "PASS — only Mode/RealCallsEnabled/Model/Endpoint/TimeoutSeconds (no key value committed)",
+    "ApiKey_property_in_any_committed_file": "PASS — 0 hits",
+    "provider_sdk_in_committed_csproj": "PASS — no Azure.AI / OpenAI / SemanticKernel / DeepSeek SDK in any csproj",
+    "provider_sdk_across_all_csproj_in_repo": "PASS — none",
     "azure_resources_or_config": "PASS — none",
     "real_pii": "PASS — synthetic CLM-1006 only",
     "payout_execution": "PASS — none",
     "customer_messaging": "PASS — none",
     "binary_upload": "PASS — none",
     "guardrail_flags_immutable_can_all_false": "PASS — zero Can-*=true literals anywhere in repo",
-    "main_touched": false,
-    "force_push": false,
+    "dotenv_or_secrets_file_staged": "PASS — none",
+    "bin_obj_dist_node_modules_staged": "PASS — none",
     "_aggregate": "PASS"
   },
-  "ai_identification_check": {
+  "items_not_staged_carry_forward": {
+    "untracked_architecture_planning_docs": 9,
+    "untracked_per_run_report_dirs_excluding_this_gate_triage": 8,
+    "rationale": "Per gate's DO NOT STAGE rules; planning docs and per-run reports stay untracked for separate docs gate per the triage classification"
+  },
+  "ai_identification_in_commit": {
     "co_authored_by": "absent",
     "generated_with_footer": "absent",
-    "model_name_in_any_changed_file_text": "absent except for the test sentinel 'sk-' literal in Assert.DoesNotContain assertions",
-    "_aggregate": "clean"
+    "model_name_in_message": "absent",
+    "author_email_format": "Slava <claude@4.partners> — operator's persona email; matches author on prior accepted commits 54b6e9c, 918e8a3, 1b824b0 already on origin/dev"
   },
-  "independent_inspector_review": {
-    "performed": true,
-    "claims_verified": 12,
-    "verdict": "CLEARED",
-    "passes": 12,
-    "warnings": 0,
-    "failures": 0,
-    "security_specific_checks": {
-      "key_value_in_any_output": "NO",
-      "key_value_in_any_tracked_file": "NO",
-      "repository_leakage": "NO",
-      "main_touched": "NO",
-      "commit_created": "NO",
-      "ai_authority_flag_flipped_to_true": "NO",
-      "provider_sdk_added": "NO",
-      "azure_resources_or_config_added": "NO"
-    },
-    "non_binding_recommendations": [
-      "Legacy 'Azure OpenAI' literal remains at src/api/mockInsuranceApi.ts:94 inside the unrelated audit-trace mock — replace in a future cleanup gate; outside this gate's scope",
-      "Consider logging lastFailureCategory + final attempt number at WARN level on the defensive 'response is null' branch for observability",
-      "DB Cost column truncation displays .0002 — future smoke reports could query with CAST(Cost AS decimal(18,8)) to make the recorded 0.00019116 explicitly visible"
-    ]
-  },
-  "screenshots_or_limitation": "No browser automation in this environment. Runtime smoke verified via: (1) frontend preview HTTP 200 + title served; (2) JS bundle string-presence check for new advisory-only UI labels; (3) backend Mock + real DeepSeek opt-in smoke via HTTP. DOM-level visual verification deferred to operator manual click-through gate.",
   "blockers": "none",
   "known_limitations_carry_forward": [
     "AuditEvent.Actor formatted as 'Synthetic Adjuster (human)' by existing AuditCost service Name+Type formatting; still synthetic, no real person",
     "Legacy seed run run_8f3d2a7e keeps ProviderMode='Disabled' + NULL on 9 new nullable columns; expected for additive nullable migration",
-    "Legacy 'Azure OpenAI' literal in mockInsuranceApi.getAuditTrace mock (unrelated audit-trace, not AI analysis) — flagged by inspector; out of scope for this gate"
+    "Legacy 'Azure OpenAI' literal in mockInsuranceApi.getAuditTrace mock (unrelated audit-trace, not AI analysis) — flagged in prior inspector review; out of this gate's scope",
+    "No browser-automation visual smoke (DOM-level rendering) — deferred to operator manual click-through",
+    "9 untracked architecture planning docs + 8 untracked prior per-run report dirs remain in working tree per triage classification"
   ],
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/pre-azure-local-completion-batch-ui-ai-resilience-docs-triage-v0.1/report.md"
+    "InsuranceAIPlatform/commit-and-push-dev-pre-azure-local-completion-batch-only/report.md"
   ],
-  "next_safe_step": "OPERATOR_CHOICE — three paths offered, all bounded: (1) COMMIT_AND_PUSH_DEV_PRE_AZURE_LOCAL_COMPLETION_BATCH_ONLY — commit exactly the 8 modified tracked files + the triage-notes.md to dev with message 'feat: wire AI analysis UI + add DeepSeek provider resilience'; FF-push dev; main untouched. (2) MANUAL_OPERATOR_CLICK_THROUGH_SMOKE — operator does a hands-on browser walk of the AI Analysis page in Mock mode + DeepSeek opt-in mode to confirm visual rendering before commit. (3) DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1 — commit the 4 durable architecture planning docs to dev in a separate docs-only gate (per triage classification). No gate is started in this gate; awaiting operator selection."
+  "next_safe_step": "OPERATOR_CHOICE — three suggested follow-up gates: (1) MANUAL_OPERATOR_CLICK_THROUGH_SMOKE — operator does a hands-on browser walk of the AI Analysis page in Mock + DeepSeek opt-in modes to validate visual rendering of the new advisory card and guardrail pills; (2) DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1 — commit the 4 durable architecture docs to dev in a docs-only gate per triage classification; (3) AZURE_READINESS_PRE_FLIGHT_V0.1 — bounded Azure-readiness checklist (no Azure code yet) classifying what changes when the app moves from LocalDB + DEEPSEEK_API_KEY env to Azure SQL + Key Vault + App Configuration. No gate started; awaiting operator selection."
 }
