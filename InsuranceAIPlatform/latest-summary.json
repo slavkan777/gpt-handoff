@@ -1,125 +1,160 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AIKB_AND_CLAUDEOS_E2E_SEMANTIC_ASSERTION_RULE_UPDATE_V0.1",
-  "gate_type": "durable knowledge / rules / state maintenance",
-  "verdict": "ACCEPT",
+  "gate": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1",
+  "gate_type": "final verification + commit + push of accepted dev working tree",
+  "verdict": "REWORK_REQUIRED",
+  "verdict_reason": "Playwright verification failed at Subphase 3 — 88/89 PASS with 1 reproducible failure in e2e/06-claim-actions.spec.ts:54 (AI decision recording). Per gate spec: 'If any verification fails: do not stage; do not commit; do not push; report REWORK_REQUIRED or BLOCKED with exact failure.' Per FORBIDDEN item 7: cannot edit product code in this commit-only gate.",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "knowledge-only gate; no product behavior changed; Manual V5 already accepted on 2026-05-28 and recorded in TASK_LEDGER",
+  "ready_for_slava_manual_retest_reason": "Verification failed; no commit/push attempted; operator must open separate investigation gate to disambiguate flake vs real regression in AI decision recording flow",
   "date_utc": "2026-05-28",
-  "supersedes": "POST_MANUAL_V4_CREATED_CLAIM_DETAIL_BINDING_FIX_V0.1",
-  "scope_summary": "Persist the E2E Semantic Assertion Rule (four required evidence layers MECHANICAL/SEMANTIC/PERSISTENCE/NEGATIVE for every UI create/open/update gate) in AIKB at cross-project + project-specific levels; update prompt template; refresh CURRENT_STATE + TASK_LEDGER + ACTIVE_PROJECTS to reflect Manual V5 acceptance and the recent gate sequence; skip claude-vault under sacred-file constraint. No product source changed, no source commit/push, no Azure.",
-  "source_repo_head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
-  "source_repo_head_after":  "03725241c8dfdbed7ce17db61fb51d9d7f211116",
-  "source_repo_head_unchanged": true,
-  "source_repo_origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-  "source_repo_origin_main_unchanged": true,
-  "aikb_repo_head_before": "19de40e8b73431bce40a326267c204e27af065af",
-  "aikb_files_read": [
-    "00_CONTROL_CENTER/ACTIVE_PROJECTS.md",
-    "00_CONTROL_CENTER/ACCEPTANCE_FIRST_DELIVERY_RULE.md",
-    "00_CONTROL_CENTER/ADVERSARIAL_REVIEW_RULE.md",
-    "01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md",
-    "01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md",
-    "01_PROJECTS/InsuranceAIPlatform/DECISIONS/",
-    "01_PROJECTS/InsuranceAIPlatform/DECISIONS/DECISION_2026-05-27_azure_ready_microservice_architecture_local_first.md",
-    "02_TEMPLATES/TEMPLATE_CLAUDE_PROMPT.md"
-  ],
-  "aikb_files_updated": {
-    "00_CONTROL_CENTER/E2E_SEMANTIC_ASSERTION_RULE.md": "NEW — durable cross-project rule; four layers + required report fields + GPT/Claude rule + worked InsuranceAIPlatform example",
-    "01_PROJECTS/InsuranceAIPlatform/DECISIONS/DECISION_2026-05-28_e2e_semantic_assertion_rule.md": "NEW — project-level adoption with forbidden fixture markers (CLM-1006, Роберт Джонсон, Toyota Camry, seed claim ids)",
-    "01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md": "status snapshot, recent gate sequence, false-positive lesson, verified facts, new current/next gate, known limitations; original architectural baseline preserved as historical section",
-    "01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md": "6 new entries: PostManualZeroToEnd V0.2, TotalUIExploratory V0.1 with overturned caveat, Manual V4 rejection, PostManualV4 fix, Manual V5 acceptance, this maintenance gate",
-    "02_TEMPLATES/TEMPLATE_CLAUDE_PROMPT.md": "added Mandatory for UI/E2E create/open/update gates subsection with four labelled layers + required report fields + copy-paste prompt snippet + explicit rejection rule",
-    "00_CONTROL_CENTER/ACTIVE_PROJECTS.md": "InsuranceAIPlatform index row + per-project subsection updated to new status MANUAL_V5_ACCEPTED_..._READY_FOR_COMMIT_GATE with verified facts and next-safe-step"
+  "supersedes_intent": "AIKB_AND_CLAUDEOS_E2E_SEMANTIC_ASSERTION_RULE_UPDATE_V0.1 (the maintenance gate completed; this commit gate was intended to land the accumulated dev work but stopped at verification)",
+  "scope_summary": "Single commit + push of the 4-gates' worth of accumulated dev working-tree (backend persistence + write actions + AI advisory + realistic-DB sandbox + Playwright E2E + PostManualV4 fix). Bounded commit-only gate; no Azure; no main; no force; no new features. Stopped at Subphase 3 because Playwright suite failed 88/89.",
+  "branch": "dev",
+  "repo_path": "C:/Projects/InsuranceAIPlatform",
+  "repo_remote": "slavkan777/InsuranceAIPlatform",
+  "head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "head_after":  "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "head_unchanged": true,
+  "origin_dev_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "origin_dev_after":  "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "origin_dev_unchanged": true,
+  "origin_main_before": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+  "origin_main_after":  "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+  "origin_main_unchanged": true,
+  "git_status_before": {
+    "changed_or_untracked_count": 97,
+    "staged_count": 0
   },
-  "claudeos_files_read": [
-    "C:/Users/DEVELOPER/Claude/GitHub/claude-vault/ (directory listing; HEAD 903c344 with uncommitted vault changes already present)"
-  ],
-  "claudeos_files_updated": [],
-  "protected_or_skipped_files": [
-    {
-      "path": "C:/Users/DEVELOPER/CLAUDE.md",
-      "reason": "SACRED per feedback_foundational_contract.md / how-to-work-with-slava.md — CLAUDE.md root files require explicit operator approval to modify"
+  "file_inventory_summary": {
+    "tracked_modified": 44,
+    "untracked_new_files_or_dirs": 53,
+    "approved_total": 96,
+    "excluded_total": 1,
+    "approved_breakdown": {
+      "APPROVED_SOURCE_backend": "21 modified .cs files + 5 new Controllers/Services + 4 EF migration files + 2 persistence files = ~32",
+      "APPROVED_SOURCE_frontend": "21 modified .tsx/.ts files + 6 new modals + 1 customers/ folder + 2 ui components + 1 auth/ folder (3 files) + 1 ui/ folder (2 files) + 2 pages + 1 util = ~38",
+      "APPROVED_TEST": "playwright.config.ts + e2e/ tree (21 specs + 1 helper) + 2 new xunit files (AiDecisionEndpointTests, SandboxSurfaceTests) = 25",
+      "APPROVED_DOC": "9 architecture docs + 12 report folders = 21",
+      "APPROVED_CONFIG": "package.json + package-lock.json + playwright.config.ts (already counted above) = 2"
     },
-    {
-      "path": "C:/Users/DEVELOPER/Claude/CLAUDE.md",
-      "reason": "SACRED — Vault-root project memory; same constraint"
-    },
-    {
-      "path": "C:/Users/DEVELOPER/Claude/GitHub/claude-vault/CLAUDE.md and root operating rules",
-      "reason": "SACRED + claude-vault already has uncommitted vault state; no safe editable rule-target file identified within this gate's scope. AIKB is the canonical durable-rules repo per ACTIVE_PROJECTS.md convention."
-    },
-    {
-      "path": "C:/Projects/InsuranceAIPlatform/* (product source)",
-      "reason": "Out of this gate's scope; not opened for write; HEAD unchanged at 03725241"
+    "excluded": {
+      "test-results/": "EXCLUDE_GENERATED — Playwright local artifacts; FORBIDDEN item 11",
+      ".env.development": "EXCLUDE_LOCAL_ENV — already ignored by .gitignore .env.* pattern; intentional local-only config for npm run dev backend mode"
     }
-  ],
-  "rule_persisted": {
-    "name": "E2E Semantic Assertion Rule",
-    "location": "00_CONTROL_CENTER/E2E_SEMANTIC_ASSERTION_RULE.md (cross-project) + 01_PROJECTS/InsuranceAIPlatform/DECISIONS/DECISION_2026-05-28_e2e_semantic_assertion_rule.md (project)",
-    "core_requirement": "Every UI create/open/update gate must produce four labelled evidence layers: MECHANICAL_PASS, SEMANTIC_PASS, PERSISTENCE_PASS, NEGATIVE_PASS",
-    "layers": {
-      "MECHANICAL_PASS": "click/nav/toast/form-submit chain fires — necessary but not sufficient",
-      "SEMANTIC_PASS": "visible DOM carries the entity's actual business data via specific testids + asserted strings, not body-contains-substring",
-      "PERSISTENCE_PASS": "reload/search/re-open still shows the data; volatile UI-only state does NOT count",
-      "NEGATIVE_PASS": "stale fixture/fallback/golden-demo data is asserted absent via explicit not.toMatch / .not.toContainText assertions"
-    },
-    "required_report_fields": [
-      "MECHANICAL_PASS: yes/no/n-a (+ why)",
-      "SEMANTIC_PASS: yes/no/n-a (+ why)",
-      "PERSISTENCE_PASS: yes/no/n-a (+ why)",
-      "NEGATIVE_PASS: yes/no/n-a (+ why)",
-      "SEMANTIC_EVIDENCE: list of testids + asserted strings",
-      "NEGATIVE_EVIDENCE: list of forbidden strings confirmed absent",
-      "SPEC_FILE_PATH",
-      "TEST_CASE_NAME"
-    ],
-    "insurance_ai_platform_forbidden_markers": [
-      "CLM-1006",
-      "Роберт Джонсон",
-      "Toyota Camry",
-      "seed claim ids CLM-1006..CLM-1010 (when out of context)",
-      "goldenClaim customerId / vehicleVin / policyId / riskScore (when incongruent with route)"
-    ],
-    "canonical_reference_spec_for_insurance_ai_platform": "e2e/21-created-claim-detail-binding.spec.ts (added in PostManualV4 fix gate)",
-    "rejection_rule": "100% pass rate is rejected if SEMANTIC_PASS or NEGATIVE_PASS were not explicitly asserted in the spec",
-    "active_from": "2026-05-28",
-    "applies_to": "all future UI/E2E gates, all projects"
   },
-  "prompt_template_snippet_added": true,
-  "prompt_template_snippet_text": "Do not count URL / navigation / toast as success. Assert visible business data via testids and asserted strings, and assert stale fixture / fallback data is absent. For every create / open / update flow, separate evidence into MECHANICAL_PASS, SEMANTIC_PASS, PERSISTENCE_PASS, and NEGATIVE_PASS. The report must label each layer pass/fail/n-a with the spec file, test name, and the testids / strings actually asserted. A 100% pass rate is rejected if SEMANTIC_PASS or NEGATIVE_PASS were not explicitly asserted.",
-  "product_source_changed": false,
-  "source_commit_attempted": false,
-  "source_push_attempted": false,
+  "staged_files": [],
+  "secrets_scan": {
+    "secret_value_patterns_in_changed_files": "absent — no sk-ant-*/sk-or-*/sk-proj-*/DEEPSEEK_API_KEY values; the sk-* substrings in e2e/07-safety.spec.ts are NEGATIVE assertions confirming UI does NOT contain them",
+    "deepseek_api_key_value": "absent (only env-var NAME in safety assertion list)",
+    "connection_strings_with_passwords": "absent",
+    "azure_sdk_refs": "absent (0 Microsoft.SemanticKernel / Azure.AI.OpenAI / AddAzureOpenAI hits)",
+    "real_pii": "absent — only synthetic @insuranceai.local actor ids in 3 backend files; .local TLD = sandbox",
+    "real_payout_paths": "absent",
+    "force_push_patterns": "absent — only NEGATIVE assertions in prior gate reports ('No force push used')"
+  },
+  "build_test_results": {
+    "backend_build": {
+      "command": "dotnet build server/InsuranceAIPlatform.sln",
+      "result": "PASS",
+      "warnings": 0,
+      "errors": 0,
+      "projects": 10,
+      "duration_sec": 22.61
+    },
+    "backend_xunit": {
+      "command": "dotnet test --no-build --verbosity minimal",
+      "result": "PASS",
+      "passed": 137,
+      "failed": 0,
+      "skipped": 0,
+      "total": 137,
+      "duration_sec": 3
+    },
+    "frontend_build": {
+      "command": "npm run build",
+      "result": "PASS",
+      "modules": 125,
+      "js_kb": 436.25,
+      "css_kb": 39.15,
+      "duration_sec": 4.83
+    },
+    "playwright_e2e": {
+      "command": "npm run test:e2e",
+      "result": "FAIL",
+      "passed": 88,
+      "failed": 1,
+      "total": 89,
+      "spec_files": 21,
+      "duration_min": 5.3,
+      "failed_test": {
+        "spec_file": "e2e/06-claim-actions.spec.ts",
+        "test_name": "Claim workspace actions on CLM-1006 > AI analysis runs + AI decision recorded with source=AI",
+        "line": 54,
+        "error": "expect(locator('[data-testid=ai-decision-recorded]')).toBeVisible() failed; element not found within 15s timeout",
+        "dom_at_failure": "AI analysis card 'Останній прогон AI-аналізу' renders 'succeeded conf 78% risk high'; record-ai-decision button is stuck in disabled 'Збереження…' state; confirmation card never appeared",
+        "interpretation": "POST /api/claims/CLM-1006/ai-decision either hangs, returns slowly (>15s), or returns an error that did not flip the saga into success state"
+      },
+      "isolated_rerun": {
+        "command": "npx playwright test e2e/06-claim-actions.spec.ts --reporter=line",
+        "result": "FAIL",
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "duration_sec": 48.4,
+        "interpretation": "Same test fails on isolated re-run → NOT a flake; reproducible"
+      }
+    },
+    "semantic_regression": {
+      "spec_file": "e2e/21-created-claim-detail-binding.spec.ts",
+      "result": "PASS",
+      "cases": [
+        {
+          "name": "created claim renders its own customer/vehicle/VIN/description — not CLM-1006",
+          "result": "PASS",
+          "layers_asserted": ["MECHANICAL_PASS", "SEMANTIC_PASS", "PERSISTENCE_PASS", "NEGATIVE_PASS"]
+        },
+        {
+          "name": "CLM-1006 still renders its own golden data (no regression)",
+          "result": "PASS"
+        }
+      ],
+      "note": "The critical content-level guard from PostManualV4 fix (the layered E2E Semantic Assertion Rule) is satisfied; the single failure is in a pre-existing test path unrelated to claim-detail binding"
+    }
+  },
+  "commit_created": false,
+  "commit_sha": null,
+  "pushed_to_origin_dev": false,
+  "source_push_to_main": false,
   "azure_touched": false,
   "ai_provider_changed": false,
   "deepseek_key_touched": false,
   "sacred_files_touched": false,
+  "aikb_mutated_in_this_gate": false,
+  "gpt_handoff_mutated_in_this_gate": "yes — this maintenance report only (latest-report.md, latest-summary.json, commit-and-push-dev-realistic-sandbox-batch-v0.1/report.md)",
+  "final_git_status": {
+    "changed_or_untracked_count": 97,
+    "staged_count": 0,
+    "interpretation": "unchanged from gate start — no mutation to source repo"
+  },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/aikb-claudeos-e2e-semantic-assertion-rule-update-v0.1/report.md"
+    "InsuranceAIPlatform/commit-and-push-dev-realistic-sandbox-batch-v0.1/report.md"
   ],
-  "aikb_paths_updated": [
-    "00_CONTROL_CENTER/E2E_SEMANTIC_ASSERTION_RULE.md",
-    "01_PROJECTS/InsuranceAIPlatform/DECISIONS/DECISION_2026-05-28_e2e_semantic_assertion_rule.md",
-    "01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md",
-    "01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md",
-    "02_TEMPLATES/TEMPLATE_CLAUDE_PROMPT.md",
-    "00_CONTROL_CENTER/ACTIVE_PROJECTS.md"
+  "blockers": [
+    "e2e/06-claim-actions.spec.ts:54 (AI decision recording) reproducible failure — 2 consecutive runs same fail; record-ai-decision saga stuck in 'Збереження…' state. Cannot diagnose inside this commit-only gate per FORBIDDEN item 7."
   ],
-  "blockers": [],
   "limitations": [
-    "ClaudeOS / claude-vault not mirrored — sacred-file constraint; AIKB is the canonical durable-rules repo for this rule",
-    "Prompt-template change applies forward only — past accepted reports not retroactively re-classified",
-    "Rule is process-only — Claude labels, GPT enforces; tooling auto-grep out of scope",
-    "Project-specific NEGATIVE markers explicit for InsuranceAIPlatform only; other projects inherit the cross-project four-layer requirement",
-    "No new product test runs in this gate; 89/89, 137/137, FE build PASS are inherited from PostManualV4 fix"
+    "PostManualV4 fix gate's 89/89 result is not contradicted — it was real on the same code at that point in time. Current 88/89 is on the SAME product source (HEAD 03725241) but with an environment that may have drifted (LocalDB accumulated rows, service warm state). The AIKB session between PostManualV4 and this gate did NOT touch product source.",
+    "The semantic regression (the rule introduced by the new E2E Semantic Assertion Rule gate) PASSES — the failure is in a pre-existing test path unrelated to claim-detail binding.",
+    "Chromium-only E2E coverage; Firefox / WebKit not exercised.",
+    "Cannot reset DB / restart backend cleanly inside this gate to disambiguate accumulated-state vs real regression — that itself would be a stateful action requiring its own gate.",
+    "88/89 = 98.9% pass; operator may choose to accept-with-limitations if AI decision recording flow is considered non-critical for this batch, but per gate spec Subphase 3 the strict reading is REWORK_REQUIRED."
   ],
   "next_safe_step": {
-    "name": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1",
-    "description": "Operator opens explicitly. Bounded commit-only gate for the accumulated dev working-tree (4 gates' worth of changes). Separate commit and push subphases. Explicit file list. No new edits. No Azure. No main-branch touch.",
-    "operator_only": true,
-    "no_implementation_needed": true
+    "name": "AI_DECISION_RECORDING_E2E_FLAKE_INVESTIGATION_V0.1",
+    "description": "Bounded investigation gate: (1) reset LocalDB to a known seeded state and re-run e2e/06-claim-actions.spec.ts alone; (2) if still fails on fresh DB → diagnose AiDecisionController / recordAiDecision saga / EF Core insert path for slowness or hang; (3) if passes on fresh DB → categorize as test brittleness to accumulated DB state; harden test (raise timeout or seed-isolate) OR document as known limitation. No commit/push of fixes in the investigation gate; produce a separate fix gate after cause is identified. After fix gate is accepted and 89/89 PASS is restored on this exact working tree, re-open COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1.",
+    "operator_action_required": true,
+    "fix_gate_will_follow": true
   }
 }
