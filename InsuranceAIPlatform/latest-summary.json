@@ -1,144 +1,183 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "TOTAL_UI_EXPLORATORY_E2E_MATRIX_AND_ACTION_INVENTORY_V0.1",
+  "gate": "POST_MANUAL_V4_CREATED_CLAIM_DETAIL_BINDING_FIX_V0.1",
   "verdict": "ACCEPT",
   "ready_for_slava_manual_retest": true,
   "date_utc": "2026-05-28",
-  "supersedes": "POST_MANUAL_ZERO_TO_END_UI_FLOW_REWORK_WITH_E2E_TESTS_V0.2",
-  "scope_summary": "Total UI exploratory verification: route inventory, action inventory with status classification, 12-scenario matrix A-L, expanded Playwright suite from 32 to 87 cases. No commit, no push, no Azure. No product code changed.",
+  "supersedes": "TOTAL_UI_EXPLORATORY_E2E_MATRIX_AND_ACTION_INVENTORY_V0.1",
+  "scope_summary": "Bug fix for Slava's manually-found regression: creating a new claim and navigating to /claims/CLM-#### rendered CLM-1006 / Роберт Джонсон / Toyota Camry instead of the created claim's data. Root cause was Redux state locked on boot-time loadClaimDetail('CLM-1006') + goldenClaim fallback leak + hardcoded /claims/CLM-1006 navigation. Plus secondary backend bug: Description dropped at SyntheticClaimSummary projection and HybridClaimReadService.GetClaim. Fixed. New Playwright regression added. No commit, no push, no Azure.",
   "branch": "dev",
   "head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "head_after":  "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "head_unchanged": true,
-  "origin_main_sha": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+  "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
   "origin_main_unchanged": true,
-  "route_inventory": {
-    "mounted_routes": 13,
-    "catch_all_redirects": 1,
-    "auth_protected": 13,
-    "public": 1,
-    "disabled_future_controls": 6
-  },
-  "action_inventory": {
-    "total_controls_classified": 91,
-    "status_counts": {
-      "WORKING_DB_BACKED": 18,
-      "WORKING_BACKEND_READ_ONLY": 7,
-      "WORKING_LOCAL_UI_ONLY": 36,
-      "SAFE_SIMULATION_DB": 2,
-      "DISABLED_FUTURE_EXPLICIT": 6,
-      "INTENTIONALLY_READ_ONLY": 22,
-      "BROKEN": 0,
-      "UNKNOWN_NOT_TESTED": 0
+  "manual_bug": {
+    "reported_by": "Slava (manual operator click-through V4)",
+    "url_observed": "/claims/CLM-1032",
+    "header_observed": "CLM-1006 — Роберт Джонсон — Toyota Camry 2021",
+    "expected_header": "CLM-1032 — Synthetic Customer 042 — Honda Civic 2022",
+    "submitted_fields": {
+      "client": "Synthetic Customer 042",
+      "client_id": "CUST-T0042",
+      "auto": "Honda Civic 2022",
+      "vin": "VIN-SYN-0042",
+      "event_type": "ДТП",
+      "event_date": "28.05.2026",
+      "location": "Київ, проспект Перемоги 50",
+      "description": "Короткий опис обставин події. Синтетичний тестовий кейс для перевірки повного UI-flow."
     },
-    "broken_controls": [],
-    "unknown_not_tested_controls": []
+    "reproduced_in_gate": true,
+    "reproduced_by": "e2e/21-created-claim-detail-binding.spec.ts (case 1) — fails on pre-fix code, passes on fixed code"
   },
-  "scenario_matrix": {
-    "total": 12,
-    "covered": 12,
-    "deferred": 0,
-    "partial": 0,
-    "scenarios": ["A","B","C","D","E","F","G","H","I","J","K","L"]
-  },
-  "e2e_suite": {
-    "spec_files_before": 8,
-    "spec_files_after": 20,
-    "test_cases_before": 32,
-    "test_cases_after": 87,
-    "delta_cases": 55,
-    "duration_seconds": 233.971,
-    "browser": "chromium",
-    "browser_version": "Chrome for Testing 148.0.7778.96 (Playwright v1223)",
-    "workers": 1,
-    "results": {
-      "expected": 87,
-      "unexpected": 0,
-      "flaky": 0,
-      "skipped": 0
-    }
-  },
-  "per_spec_cases": {
-    "01-auth.spec.ts": 2,
-    "02-sidebar.spec.ts": 8,
-    "03-customers.spec.ts": 3,
-    "04-claims.spec.ts": 2,
-    "05-claim-1006.spec.ts": 1,
-    "06-claim-actions.spec.ts": 5,
-    "07-safety.spec.ts": 10,
-    "08-zero-to-end.spec.ts": 1,
-    "09-dashboard.spec.ts": 9,
-    "10-claims-deep.spec.ts": 5,
-    "11-customers-deep.spec.ts": 4,
-    "12-workspace-deep.spec.ts": 4,
-    "13-documents-deep.spec.ts": 4,
-    "14-ai-deep.spec.ts": 5,
-    "15-risks.spec.ts": 5,
-    "16-approval-validation.spec.ts": 4,
-    "17-audit.spec.ts": 4,
-    "18-persistence.spec.ts": 2,
-    "19-negative.spec.ts": 4,
-    "20-ui-resilience.spec.ts": 5
-  },
-  "fixes_made_during_audit": {
-    "product_bugs": 0,
-    "test_assertion_bugs": 3,
-    "test_bug_details": [
-      "16-approval-validation.spec.ts:30 — approve-tile selector used mock label; switched to [data-selected] attribute loop.",
-      "16-approval-validation.spec.ts:41 — amount=0 assertion expected JS error text but HTML5 min=0.01 catches it first; switched to :invalid HTML5 constraint + toast-absent.",
-      "20-ui-resilience.spec.ts:18 — cancel-NewClaim row-count comparison race-prone; switched to unique-marker + empty-state assertion."
+  "root_cause": {
+    "primary_frontend": [
+      "src/app/rootSaga.ts:22 dispatched loadClaimDetail('CLM-1006') ONCE at app boot; no per-route re-dispatch → Redux state locked on CLM-1006 forever",
+      "src/components/layout/ClaimShell.tsx:18 literally set `const c = goldenClaim;` for breadcrumb customer/vehicle — full-time CLM-1006 hardcode",
+      "src/components/claim/ClaimHeader.tsx:10 used `claimDetail ?? goldenClaim` — fallback leak",
+      "src/pages/ClaimWorkspacePage.tsx:23 same `claimDetail ?? goldenClaim` fallback leak",
+      "src/pages/ClaimWorkspacePage.tsx:197/210/213 hardcoded navigate('/claims/CLM-1006/...')"
+    ],
+    "secondary_backend": [
+      "server/InsuranceAIPlatform.Api/Services/HybridClaimReadService.cs:81 returned Description: string.Empty for DB-only claims",
+      "server/InsuranceAIPlatform.Services.Claims/IClaimsService.cs SyntheticClaimSummary record did not carry Description at all",
+      "server/InsuranceAIPlatform.Services.Claims/Persistence/PersistenceClaimsService.cs ToSummary dropped Description before projection"
     ]
   },
-  "files_changed": {
-    "product_code": 0,
-    "new_e2e_specs": 12,
-    "new_doc_artifacts": 5
+  "why_prior_tests_missed_it": "08-zero-to-end and similar specs only asserted URL match (waitForURL(/CLM-\\d+/)); none asserted the rendered header/breadcrumb/description tile contained the created customer/vehicle/VIN/description, and none asserted the absence of CLM-1006 / Роберт Джонсон / Toyota Camry as the active claim subject. URL match is necessary but not sufficient — any URL can render any data.",
+  "missing_assertion": "After /claims/{createdId}, assert visible DOM (claim-header-title, claim-shell-id/customer/vehicle, claim-detail-customer/vehicle/vin/event-type/location/description-text) contains the CREATED claim's data AND does NOT contain CLM-1006 / Роберт Джонсон / Toyota Camry as the active subject.",
+  "smallest_fix": {
+    "frontend_files": [
+      "src/components/layout/ClaimShell.tsx",
+      "src/components/claim/ClaimHeader.tsx",
+      "src/pages/ClaimWorkspacePage.tsx",
+      "src/app/rootSaga.ts",
+      "src/features/claims/claimsSaga.ts",
+      "src/api/mockInsuranceApi.ts",
+      "src/components/claim/NewClaimModal.tsx"
+    ],
+    "backend_files": [
+      "server/InsuranceAIPlatform.Services.Claims/IClaimsService.cs",
+      "server/InsuranceAIPlatform.Services.Claims/Persistence/PersistenceClaimsService.cs",
+      "server/InsuranceAIPlatform.Api/Services/HybridClaimReadService.cs"
+    ],
+    "new_test_files": [
+      "e2e/21-created-claim-detail-binding.spec.ts"
+    ],
+    "total_files_touched": 11,
+    "no_architecture_change": true,
+    "no_new_dependencies": true
   },
-  "build_status": {
-    "backend": "passed_0_warnings_0_errors",
-    "frontend": "passed_125_modules_432kB",
-    "xunit": "passed_137_of_137",
-    "playwright": "passed_87_of_87"
+  "new_regression_test": {
+    "path": "e2e/21-created-claim-detail-binding.spec.ts",
+    "cases": 2,
+    "case_1_created_claim_detail": {
+      "fails_on_old_code": true,
+      "passes_on_fixed_code": true,
+      "asserts_positive": [
+        "claim-header-title contains created CLM-#### id",
+        "claim-header-title contains created customer name",
+        "claim-shell-id has text equal to created id",
+        "claim-shell-customer contains created customer name",
+        "claim-shell-vehicle contains created vehicle label",
+        "claim-detail-customer contains created customer name",
+        "claim-detail-vehicle contains created vehicle label",
+        "claim-detail-vin contains created VIN",
+        "claim-detail-event-type contains 'ДТП'",
+        "claim-detail-location contains created location",
+        "claim-detail-description-text contains created description",
+        "claim-detail-sandbox-notice is visible",
+        "list-row click re-opens with created data",
+        "open-ai-evidence button navigates to /claims/{createdId}/ai-evidence",
+        "open-approval button navigates to /claims/{createdId}/approval",
+        "open-documents-collection button navigates to /claims/{createdId}/documents"
+      ],
+      "asserts_negative": [
+        "claim-header-title does NOT contain 'CLM-1006'",
+        "claim-header-title does NOT contain 'Роберт Джонсон'",
+        "ai-evidence URL does NOT contain 'CLM-1006'",
+        "approval URL does NOT contain 'CLM-1006'",
+        "documents URL does NOT contain 'CLM-1006'"
+      ]
+    },
+    "case_2_clm_1006_still_works": {
+      "passes": true,
+      "asserts": [
+        "/claims/CLM-1006 header contains 'CLM-1006'",
+        "/claims/CLM-1006 header contains 'Роберт Джонсон'",
+        "breadcrumb shows CLM-1006 / Роберт Джонсон / Toyota Camry",
+        "sandbox notice has count 0 (rich golden render preserved)",
+        "open-ai-evidence still lands on /claims/CLM-1006/ai-evidence"
+      ]
+    }
   },
-  "safety_checks": {
-    "secret_value_in_source": "absent",
-    "sk_prefix_substring_in_runtime_source": "absent (only enumerated in 07-safety.spec.ts as NEGATIVE assertion list)",
+  "proof_created_claim_detail_binding": "e2e/21-created-claim-detail-binding.spec.ts case 1 PASS — checks rendered DOM text on claim-header-title, claim-shell-*, claim-detail-* testids matches submitted data AND does NOT contain CLM-1006 markers",
+  "proof_clm_1006_still_works": "e2e/21-created-claim-detail-binding.spec.ts case 2 PASS + all 6 existing CLM-1006-focused specs PASS (05-claim-1006, 06-claim-actions, 08-zero-to-end, 12-workspace-deep, 15-risks, 17-audit)",
+  "build_test_results": {
+    "backend_build": {
+      "command": "dotnet build server/InsuranceAIPlatform.sln",
+      "result": "PASS",
+      "warnings": 0,
+      "errors": 0,
+      "projects": 10
+    },
+    "backend_xunit": {
+      "command": "dotnet test --no-build",
+      "result": "PASS",
+      "passed": 137,
+      "total": 137,
+      "duration_sec": 2
+    },
+    "frontend_build": {
+      "command": "npm run build",
+      "result": "PASS",
+      "modules": 125,
+      "js_kb": 436.21,
+      "css_kb": 39.15
+    },
+    "playwright_e2e": {
+      "command": "npm run test:e2e",
+      "result": "PASS",
+      "passed": 89,
+      "total": 89,
+      "spec_files": 21,
+      "new_spec_files_this_gate": 1,
+      "new_test_cases_this_gate": 2,
+      "flaky": 0,
+      "retries": 0
+    }
+  },
+  "safety_scan": {
+    "secret_values_in_changed_files": "absent",
+    "secret_prefixes_in_changed_files": "absent",
     "deepseek_api_key_value": "absent",
-    "azure_packages_added": "absent",
-    "azure_sdk_references": 0,
-    "real_pii_in_new_files": "absent",
-    "real_payout_path": "absent (verified by 07-safety + 19-negative across 8 routes)",
-    "real_customer_message_path": "absent",
-    "production_auth_users_created": "no",
-    "origin_main_mutation": "absent",
-    "head_mutation_by_gate": "absent",
-    "source_commit_attempted": "no",
-    "source_push_attempted": "no",
-    "ai_vendor_phrase_scan_on_new_docs": "clean"
+    "azure_sdk_refs": 0,
+    "real_pii_in_changed_files": "absent (all synthetic, @synthetic.invalid + timestamp markers)",
+    "real_payout_paths_in_changed_files": "absent",
+    "ai_vendor_phrase_scan_on_changed_files": "clean",
+    "origin_main_mutated": false,
+    "source_dev_head_mutated_by_gate": false,
+    "git_push_attempted_in_source_repo": false,
+    "git_commit_attempted_in_source_repo": false
   },
-  "limitations": [
-    "Single-browser (Chromium) only.",
-    "Claims-list Date filter documented as no-op (Phase-2 polish).",
-    "AI runs use Mock provider in E2E.",
-    "Audit-trace E2E asserts category labels, not specific row ids.",
-    "HybridClaimReadService still bridges sync→async via .GetAwaiter().GetResult() (inherited).",
-    "No screenshots/traces archived (no failures to capture)."
-  ],
   "blockers": [],
-  "github_handoff_paths": {
-    "latest_report":     "InsuranceAIPlatform/latest-report.md",
-    "latest_summary":    "InsuranceAIPlatform/latest-summary.json",
-    "gate_report":       "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/report.md",
-    "route_inventory":   "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/route-inventory.md",
-    "action_inventory":  "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/action-inventory.md",
-    "scenario_matrix":   "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/scenario-matrix.md",
-    "e2e_results":       "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/e2e-results.md"
-  },
-  "next_safe_step": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V4",
-  "next_safe_step_estimate_minutes": "20-30",
-  "candidate_gates_after_manual_checkpoint": [
-    "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH",
-    "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1",
-    "AZURE_READINESS_PRE_FLIGHT_V0.1"
-  ]
+  "limitations": [
+    "Description fix required a small backend change (SyntheticClaimSummary record + ToSummary + HybridClaimReadService.GetClaim) — surfaced by the regression test itself, fixed in this gate.",
+    "Sub-resource tabs (Documents/AI/Approval/Audit) for fresh DB-created claims render honest empty states; per-tab seeding for new claims is out of scope for this fix gate.",
+    "Single-browser coverage (Chromium only); Firefox/WebKit not exercised.",
+    "HybridClaimReadService still bridges sync->async via .GetAwaiter().GetResult() — inherited from prior gate, unchanged.",
+    "Pre-existing e2e/08-zero-to-end.spec.ts is URL-only; preserved as-is; new e2e/21-* is the content-level guard."
+  ],
+  "github_handoff_paths": [
+    "InsuranceAIPlatform/latest-report.md",
+    "InsuranceAIPlatform/latest-summary.json",
+    "InsuranceAIPlatform/post-manual-v4-created-claim-detail-binding-fix-v0.1/report.md",
+    "InsuranceAIPlatform/post-manual-v4-created-claim-detail-binding-fix-v0.1/e2e-results.md"
+  ],
+  "next_safe_step": {
+    "name": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V5",
+    "description": "Slava re-runs the exact manual flow he reported (create claim → land on /claims/CLM-#### → verify visible header/body shows the new customer/vehicle/VIN/description, NOT CLM-1006 / Роберт Джонсон / Toyota Camry). Expected duration 5-10 min.",
+    "operator_only": true,
+    "no_implementation_needed": true
+  }
 }
