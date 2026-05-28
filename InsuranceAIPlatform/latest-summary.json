@@ -1,97 +1,64 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "POST_MANUAL_ZERO_TO_END_UI_FLOW_REWORK_WITH_E2E_TESTS_V0.2",
+  "gate": "TOTAL_UI_EXPLORATORY_E2E_MATRIX_AND_ACTION_INVENTORY_V0.1",
   "verdict": "ACCEPT",
   "ready_for_slava_manual_retest": true,
   "date_utc": "2026-05-28",
-  "supersedes": "POST_MANUAL_UI_FLOW_REWORK_WITH_E2E_TESTS_V0.1",
-  "scope_summary": "Close 5 Slava-found UI/product bugs and prove the full zero-to-end browser flow (new customer → new claim → docs → AI → decision → payout sim → audit) with a Playwright E2E suite. No commit, no push, no Azure.",
+  "supersedes": "POST_MANUAL_ZERO_TO_END_UI_FLOW_REWORK_WITH_E2E_TESTS_V0.2",
+  "scope_summary": "Total UI exploratory verification: route inventory, action inventory with status classification, 12-scenario matrix A-L, expanded Playwright suite from 32 to 87 cases. No commit, no push, no Azure. No product code changed.",
   "branch": "dev",
   "head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "head_after":  "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "head_unchanged": true,
   "origin_main_sha": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
   "origin_main_unchanged": true,
-  "slava_bug_fixes": {
-    "bug_1_sidebar_double_active": {
-      "status": "fixed",
-      "root_cause": "/claims NavLink lacked end:true; React Router prefix-match highlighted parent AND child simultaneously.",
-      "fix": "end:true on every NavLink in Sidebar.tsx; sidebar-link-active class for E2E counter."
-    },
-    "bug_2_customers_5_rows": {
-      "status": "fixed",
-      "root_cause": "Frontend default VITE_INSURANCE_API_MODE='mock'; mock returned 5 hardcoded rows.",
-      "fix": ".env.development sets backend mode; catalog now reads from /api/customers."
-    },
-    "bug_3_clm_mock_id": {
-      "status": "fixed",
-      "root_cause": "Same as bug 2; mock createClaim returned synthesized CLM-MOCK-####.",
-      "fix": "Same .env.development flip; createClaim now POSTs to /api/claims and returns backend-allocated CLM-####."
-    },
-    "bug_4_search_filter": {
-      "status": "fixed",
-      "root_causes": [
-        "ClaimsListPage rendered rows.map unfiltered; search/filter/segment controls had no effect.",
-        "Default eventType filter was 'ДТП' silently hiding non-ДТП rows.",
-        "Queue was never reloaded after create."
-      ],
-      "fix": "filterClaimRows applied; useEffect dispatches loadClaimsQueue on mount; modal close also refreshes; claimsSlice defaults eventType/date to 'Усі'."
-    },
-    "bug_5_no_e2e": {
-      "status": "fixed",
-      "root_cause": "No Playwright; reports relied on API smokes + xunit only.",
-      "fix": "@playwright/test installed; Chromium browser downloaded; playwright.config.ts with two webServer entries; 8 spec files / 32 test cases."
-    }
+  "route_inventory": {
+    "mounted_routes": 13,
+    "catch_all_redirects": 1,
+    "auth_protected": 13,
+    "public": 1,
+    "disabled_future_controls": 6
   },
-  "zero_to_end_flow": {
-    "new_customer": "pass",
-    "new_claim": "pass",
-    "new_claim_db_backed": "pass (real CLM-####, not CLM-MOCK-*)",
-    "list_search_after_create": "pass",
-    "open_claim_from_list": "pass",
-    "document_upload_text": "pass",
-    "missing_document_request": "pass",
-    "ai_analysis_run": "pass (Mock provider)",
-    "ai_decision_recorded_source_ai": "pass",
-    "payout_simulation_simulation_only": "pass",
-    "audit_trace_renders": "pass",
-    "logout": "pass"
-  },
-  "new_endpoints": [
-    "POST /api/customers"
-  ],
-  "migrations": [],
-  "files_changed": {
-    "backend_modified": 4,
-    "frontend_modified_or_new": 16,
-    "env_new": 1,
-    "e2e_new": 10,
-    "package_modified": 2
-  },
-  "build_status": {
-    "backend": "passed_0_warnings_0_errors",
-    "frontend": "passed_125_modules_432kB"
-  },
-  "test_status": {
-    "xunit": {
-      "total_run": 137,
-      "passed": 137,
-      "failed": 0,
-      "skipped": 0
+  "action_inventory": {
+    "total_controls_classified": 91,
+    "status_counts": {
+      "WORKING_DB_BACKED": 18,
+      "WORKING_BACKEND_READ_ONLY": 7,
+      "WORKING_LOCAL_UI_ONLY": 36,
+      "SAFE_SIMULATION_DB": 2,
+      "DISABLED_FUTURE_EXPLICIT": 6,
+      "INTENTIONALLY_READ_ONLY": 22,
+      "BROKEN": 0,
+      "UNKNOWN_NOT_TESTED": 0
     },
-    "playwright": {
-      "spec_files": 8,
-      "expected": 32,
-      "unexpected": 0,
-      "flaky": 0,
-      "skipped": 0,
-      "duration_seconds": 102.263,
-      "browser": "chromium",
-      "browser_version": "Chrome for Testing 148.0.7778.96 (Playwright v1223)",
-      "workers": 1
-    }
+    "broken_controls": [],
+    "unknown_not_tested_controls": []
+  },
+  "scenario_matrix": {
+    "total": 12,
+    "covered": 12,
+    "deferred": 0,
+    "partial": 0,
+    "scenarios": ["A","B","C","D","E","F","G","H","I","J","K","L"]
   },
   "e2e_suite": {
+    "spec_files_before": 8,
+    "spec_files_after": 20,
+    "test_cases_before": 32,
+    "test_cases_after": 87,
+    "delta_cases": 55,
+    "duration_seconds": 233.971,
+    "browser": "chromium",
+    "browser_version": "Chrome for Testing 148.0.7778.96 (Playwright v1223)",
+    "workers": 1,
+    "results": {
+      "expected": 87,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0
+    }
+  },
+  "per_spec_cases": {
     "01-auth.spec.ts": 2,
     "02-sidebar.spec.ts": 8,
     "03-customers.spec.ts": 3,
@@ -99,39 +66,76 @@
     "05-claim-1006.spec.ts": 1,
     "06-claim-actions.spec.ts": 5,
     "07-safety.spec.ts": 10,
-    "08-zero-to-end.spec.ts": 1
+    "08-zero-to-end.spec.ts": 1,
+    "09-dashboard.spec.ts": 9,
+    "10-claims-deep.spec.ts": 5,
+    "11-customers-deep.spec.ts": 4,
+    "12-workspace-deep.spec.ts": 4,
+    "13-documents-deep.spec.ts": 4,
+    "14-ai-deep.spec.ts": 5,
+    "15-risks.spec.ts": 5,
+    "16-approval-validation.spec.ts": 4,
+    "17-audit.spec.ts": 4,
+    "18-persistence.spec.ts": 2,
+    "19-negative.spec.ts": 4,
+    "20-ui-resilience.spec.ts": 5
+  },
+  "fixes_made_during_audit": {
+    "product_bugs": 0,
+    "test_assertion_bugs": 3,
+    "test_bug_details": [
+      "16-approval-validation.spec.ts:30 — approve-tile selector used mock label; switched to [data-selected] attribute loop.",
+      "16-approval-validation.spec.ts:41 — amount=0 assertion expected JS error text but HTML5 min=0.01 catches it first; switched to :invalid HTML5 constraint + toast-absent.",
+      "20-ui-resilience.spec.ts:18 — cancel-NewClaim row-count comparison race-prone; switched to unique-marker + empty-state assertion."
+    ]
+  },
+  "files_changed": {
+    "product_code": 0,
+    "new_e2e_specs": 12,
+    "new_doc_artifacts": 5
+  },
+  "build_status": {
+    "backend": "passed_0_warnings_0_errors",
+    "frontend": "passed_125_modules_432kB",
+    "xunit": "passed_137_of_137",
+    "playwright": "passed_87_of_87"
   },
   "safety_checks": {
     "secret_value_in_source": "absent",
-    "sk_prefix_substring_in_runtime_source": "absent (only enumerated in 07-safety.spec.ts as the NEGATIVE assertion list)",
-    "deepseek_api_key_value": "absent (only env var NAME appears in safety test forbidden list)",
+    "sk_prefix_substring_in_runtime_source": "absent (only enumerated in 07-safety.spec.ts as NEGATIVE assertion list)",
+    "deepseek_api_key_value": "absent",
     "azure_packages_added": "absent",
     "azure_sdk_references": 0,
     "real_pii_in_new_files": "absent",
-    "real_payout_path": "absent (verified by 07-safety.spec.ts across 8 routes)",
+    "real_payout_path": "absent (verified by 07-safety + 19-negative across 8 routes)",
     "real_customer_message_path": "absent",
     "production_auth_users_created": "no",
     "origin_main_mutation": "absent",
     "head_mutation_by_gate": "absent",
-    "commit_attempted": "no",
-    "push_attempted": "no"
+    "source_commit_attempted": "no",
+    "source_push_attempted": "no",
+    "ai_vendor_phrase_scan_on_new_docs": "clean"
   },
   "limitations": [
-    "AI runs use Mock provider in E2E; DeepSeek opt-in path unchanged from prior gate.",
-    "Audit-trace E2E asserts category labels render, not specific row ids.",
-    "HybridClaimReadService still bridges sync→async via .GetAwaiter().GetResult() (inherited; not addressed here).",
-    "No screenshots/traces archived in handoff (no failures occurred to capture; configured only-on-failure).",
-    "Single-browser (Chromium) only."
+    "Single-browser (Chromium) only.",
+    "Claims-list Date filter documented as no-op (Phase-2 polish).",
+    "AI runs use Mock provider in E2E.",
+    "Audit-trace E2E asserts category labels, not specific row ids.",
+    "HybridClaimReadService still bridges sync→async via .GetAwaiter().GetResult() (inherited).",
+    "No screenshots/traces archived (no failures to capture)."
   ],
   "blockers": [],
   "github_handoff_paths": {
-    "latest_report": "InsuranceAIPlatform/latest-report.md",
-    "latest_summary": "InsuranceAIPlatform/latest-summary.json",
-    "gate_report": "InsuranceAIPlatform/post-manual-zero-to-end-ui-flow-rework-with-e2e-tests-v0.2/report.md",
-    "e2e_results": "InsuranceAIPlatform/post-manual-zero-to-end-ui-flow-rework-with-e2e-tests-v0.2/e2e-results.md"
+    "latest_report":     "InsuranceAIPlatform/latest-report.md",
+    "latest_summary":    "InsuranceAIPlatform/latest-summary.json",
+    "gate_report":       "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/report.md",
+    "route_inventory":   "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/route-inventory.md",
+    "action_inventory":  "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/action-inventory.md",
+    "scenario_matrix":   "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/scenario-matrix.md",
+    "e2e_results":       "InsuranceAIPlatform/total-ui-exploratory-e2e-matrix-and-action-inventory-v0.1/e2e-results.md"
   },
-  "next_safe_step": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V3",
-  "next_safe_step_estimate_minutes": "10-15",
+  "next_safe_step": "MANUAL_OPERATOR_BROWSER_CLICK_THROUGH_V4",
+  "next_safe_step_estimate_minutes": "20-30",
   "candidate_gates_after_manual_checkpoint": [
     "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH",
     "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1",
