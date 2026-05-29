@@ -1,96 +1,81 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1",
-  "gate_type": "final verification -> source commit -> push to origin/dev",
+  "gate": "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1",
+  "gate_type": "documentation durability audit + AIKB project-state refresh",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "PUSHED",
-  "supersedes": "Earlier REWORK_REQUIRED attempt (2026-05-28, stopped at Subphase 3 on e2e/06:54 flake); flake since investigated (transient) and hardened (89/89 stable x2)",
+  "verdict": "ACCEPT_SOURCE_DOCS_ALREADY_DURABLE_AIKB_UPDATED",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "commit/push of already-accepted+verified working tree; no new product behavior; Manual V5 acceptance still in force",
+  "ready_for_slava_manual_retest_reason": "docs/AIKB confirmation gate; no product behavior changed; Manual V5 acceptance still in force",
   "date_utc": "2026-05-29",
+  "scope_summary": "Audit the docs committed in dev 2e9443a for durability + portfolio safety; refresh stale AIKB project state to the pushed commit. No product code, no Azure.",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+    "head_before": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
     "head_after": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
-    "origin_dev_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
-    "origin_dev_after": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
-    "origin_main_before": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-    "origin_main_after": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-    "origin_main_unchanged": true
+    "head_unchanged": true,
+    "origin_dev": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
+    "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+    "origin_main_unchanged": true,
+    "working_tree_status": "clean except test-results/.last-run.json (untracked Playwright artifact; not gitignored)"
   },
-  "working_tree": {
-    "before_summary": "97 porcelain entries (45 tracked-modified incl package.json/lock + 82 untracked-unignored when expanded); 0 staged",
-    "staged_summary": "126 files staged (+12627/-363); test-results/.last-run.json excluded",
-    "after_summary": "clean except 1 untracked artifact",
-    "remaining_files": ["test-results/.last-run.json (Playwright local artifact; not gitignored; intentionally not committed)"]
+  "source_docs": {
+    "inventory": "40 docs/architecture/* + docs/design/* + ~25 docs/reports/* + 23 screenshots/walkthrough PNGs (all in commit 2e9443a)",
+    "decision": "ALREADY_DURABLE",
+    "source_docs_changed": false,
+    "source_docs_commit": null,
+    "safety_audit": "PASS",
+    "safety_detail": "secret-value scan over docs/ = no matches; false-claim scan returned only correctly-framed lines (no Azure resources created; real DeepSeek calls opt-in/never default; honest mock-fallback labels); no real PII; no false Azure-deployed or provider-active claim"
   },
-  "verification": {
-    "backend_build": "PASS (dotnet build; 0 warning / 0 error)",
-    "backend_tests": "PASS 137/137 (dotnet test --no-build)",
-    "frontend_build": "PASS (npm run build; vite 125 modules; exit 0)",
-    "playwright_full": "PASS 89/89 (npx playwright test; 4.1m; 0 flaky)",
-    "playwright_corroboration": "same tree: full suite 89/89 x2 + e2e/06 5/5 x2 in the immediately-preceding hardening gate",
-    "e2e_21_status": "PASS (both cases inside the 89/89)"
+  "aikb": {
+    "current_state_was_stale": true,
+    "stale_detail": "CURRENT_STATE.md said READY_FOR_COMMIT_GATE / 89/89 / persistence 'not accepted yet' / origin/dev=fed2bc4",
+    "files_updated": [
+      "01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md (status + dated CURRENT TRUTH supersede block + next-step)",
+      "01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md (4 new entries: investigation, hardening, commit-push PUSHED, this docs gate)",
+      "01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md (status code + source table + resolved blocker/boundary + next-step)"
+    ],
+    "durable_rules_changed": false,
+    "aikb_commit": "99e8bdf",
+    "aikb_push": "a3ddccc..99e8bdf (fast-forward, no force)",
+    "refresh_result": "UPDATED"
   },
-  "qa_gate": {
-    "pre_commit_hook": "qa-commit-gate.ps1 — BLOCKED first attempt (no QA-CLEARED in last 30min)",
-    "resolution": "ran /qa end -> independent /qa-inspector (Opus) subagent -> VERDICT CLEARED 6/6 -> logged QA-CLEARED to ~/.claude/qa-compliance.log -> hook unblocked",
-    "bypass_used": false,
-    "bypass_note": "[qa-bypass] deliberately NOT used on this high-stakes source push; satisfied the hook properly per gate 'do not bypass hooks' + QA-Department mandate",
-    "inspector_result": "6/6 items verified; source-push safety all green (no main target, fast-forward only, no secrets staged, test-results excluded, origin/main unchanged)"
+  "recorded_state_in_aikb": {
+    "source_branch": "dev",
+    "source_commit": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
+    "origin_dev_pushed": true,
+    "origin_main_unchanged": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+    "previous_gate": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1",
+    "previous_gate_verdict": "PUSHED",
+    "verification": "backend build PASS; xunit 137/137; frontend build PASS; Playwright 89/89 (0 flaky); e2e/21 PASS",
+    "blockers": "none",
+    "limitation": "test-results/.last-run.json remains local untracked artifact (future housekeeping)",
+    "next_gate": "AZURE_READINESS_PRE_FLIGHT_V0.1 (planning-only)",
+    "boundaries": "no Azure resources yet; no main; no real provider/API key (Mock default); synthetic data only"
   },
   "safety": {
-    "secret_scan_pre_stage": "PASS — only 2 matches, both pattern-name mentions in docs/architecture/*.md, not credentials",
-    "secret_scan_staged": "PASS — zero secret-value matches in staged diff",
-    "deepseek_key_touched": false,
-    "provider_in_runs": "Mock (default safe fallback) — confirmed in backend logs; no real call",
+    "secrets": "none (docs scan clean)",
+    "real_pii": "none",
     "azure_touched": false,
-    "main_touched": false,
+    "source_main_touched": false,
     "force_push_used": false,
-    "pr_or_merge_or_tag": false,
-    "artifacts_staged": "none (no node_modules/bin/obj/playwright-report/traces/videos/screenshots/.env)"
-  },
-  "commit": {
-    "sha": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
-    "parent": "0372524 (= head_before)",
-    "message_subject": "feat: add verified InsuranceAIPlatform local sandbox",
-    "files_changed": 126,
-    "insertions": 12627,
-    "deletions": 363,
-    "ai_identification_in_message": false
-  },
-  "push": {
-    "target": "origin dev",
-    "result": "0372524..2e9443a dev -> dev",
-    "fast_forward": true,
-    "behind_before": 0,
-    "ahead_before": 1,
-    "force": false,
-    "verified_remote": "origin/dev = 2e9443a; origin/main = 69e67312 (unchanged)"
-  },
-  "batch_contents": {
-    "backend": "21 modified service .cs + AiDecisionController/ClaimWriteController/CustomersController/HybridClaimReadService + persistence services + 2 EF migrations (Approval PayoutSimulations, Documents content) + 2 test files",
-    "frontend": "21 modified .ts/.tsx + 7 modals + auth feature + ui-feedback feature + Login/CustomersDirectory pages + csv util",
-    "tests": "playwright.config.ts + 21 e2e/*.spec.ts + auth helper",
-    "docs": "9 architecture docs + ~16 report files",
-    "root": "package.json + package-lock.json"
+    "product_code_changed": false
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/commit-and-push-dev-realistic-sandbox-batch-v0.1/report.md"
+    "InsuranceAIPlatform/docs-architecture-durable-commit-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "test-results/ is not in .gitignore; test-results/.last-run.json remains untracked — future housekeeping could add it",
-    "AIKB CURRENT_STATE.md is stale (89/89 / READY_FOR_COMMIT_GATE) — optional AIKB refresh, out of scope",
+    "test-results/ is not in .gitignore; test-results/.last-run.json remains untracked (future housekeeping)",
+    "CURRENT_STATE.md had substantial historical stale content; refreshed via dated supersede block + targeted anchor edits (status, source-branch-state, active-gate marker, next-step) rather than full rewrite",
     "single-browser (Chromium) E2E coverage by design"
   ],
   "next_safe_step": {
-    "name": "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1",
-    "note": "architecture docs + reports were ALREADY included in this commit, so this gate may target only new/updated docs or be a light confirmation",
-    "then": "AZURE_READINESS_PRE_FLIGHT_V0.1 (planning doc only)",
+    "name": "AZURE_READINESS_PRE_FLIGHT_V0.1",
+    "type": "planning doc only — no Azure resources",
+    "boundaries": "no Azure SDK adoption, no provider/API-key work, no main, synthetic data only",
     "operator_action_required": true
   }
 }
