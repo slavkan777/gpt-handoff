@@ -1,78 +1,96 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "E2E_06_AIDECISION_TIMEOUT_HARDENING_V0.1",
-  "gate_type": "test-infrastructure-only hardening + verification",
+  "gate": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1",
+  "gate_type": "final verification -> source commit -> push to origin/dev",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "PASS",
-  "verdict_detail": "Minimal test-only hardening applied and verified stable; recommend reopening the commit/push gate.",
+  "verdict": "PUSHED",
+  "supersedes": "Earlier REWORK_REQUIRED attempt (2026-05-28, stopped at Subphase 3 on e2e/06:54 flake); flake since investigated (transient) and hardened (89/89 stable x2)",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "test-infrastructure change only; no product behavior changed; prior Manual V5 acceptance still in force",
+  "ready_for_slava_manual_retest_reason": "commit/push of already-accepted+verified working tree; no new product behavior; Manual V5 acceptance still in force",
   "date_utc": "2026-05-29",
-  "scope_summary": "Apply the two test-only edits recommended by the AI-decision flake investigation: raise the e2e/06 ai-decision-recorded assertion timeout 15000->30000 and lift Playwright local retries 0->1. Verify e2e/06 alone, then the full suite twice. No product source, no commit/push.",
-  "source_repo_head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
-  "source_repo_head_after": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
-  "source_repo_head_unchanged": true,
-  "source_repo_origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-  "source_repo_origin_main_unchanged": true,
-  "working_tree_summary_before": "97 entries (porcelain), 0 staged",
-  "working_tree_summary_after": "97 entries (porcelain), 0 staged — both edited files were already untracked, so count unchanged",
-  "files_changed": [
-    {
-      "path": "e2e/06-claim-actions.spec.ts",
-      "change": "ai-decision-recorded visibility assertion timeout 15000 -> 30000 (+ 4-line explanatory comment); selector and semantic expectation unchanged",
-      "reason": "match the 30s AI-analysis wait; POST /ai-decision does more work (latest-run lookup + audit insert + outbox insert) so a tight 15s window flaked under local machine load",
-      "category": "test"
-    },
-    {
-      "path": "playwright.config.ts",
-      "change": "retries: process.env.CI ? 1 : 0  ->  retries: 1 (+ comment)",
-      "reason": "local 0->1 so a rare transient flake auto-recovers and trace:on-first-retry captures a step-replay; CI unchanged at 1; trace/screenshot/video behavior preserved",
-      "category": "test-config"
-    }
-  ],
-  "evidence_reconciliation": {
-    "latest_report_read": true,
-    "sources": [
-      "gpt-handoff InsuranceAIPlatform/ai-decision-recording-e2e-flake-investigation-v0.1/report.md (authored this session)",
-      "ai-kb 01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md",
-      "ai-kb 01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md"
-    ],
-    "recommendation_confirmed": true,
-    "conflicts": "CURRENT_STATE.md still stale (89/89 / READY_FOR_COMMIT_GATE); used latest evidence; AIKB not edited (out of scope)"
+  "source_repo": {
+    "path": "C:/Projects/InsuranceAIPlatform",
+    "branch": "dev",
+    "head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+    "head_after": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
+    "origin_dev_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+    "origin_dev_after": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
+    "origin_main_before": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+    "origin_main_after": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
+    "origin_main_unchanged": true
+  },
+  "working_tree": {
+    "before_summary": "97 porcelain entries (45 tracked-modified incl package.json/lock + 82 untracked-unignored when expanded); 0 staged",
+    "staged_summary": "126 files staged (+12627/-363); test-results/.last-run.json excluded",
+    "after_summary": "clean except 1 untracked artifact",
+    "remaining_files": ["test-results/.last-run.json (Playwright local artifact; not gitignored; intentionally not committed)"]
   },
   "verification": {
-    "e2e_06": {"command": "npx playwright test e2e/06-claim-actions.spec.ts --reporter=line", "result": "PASS", "counts": "5/5", "wall": "32.8s"},
-    "e2e_21": {"how": "confirmed inside full suite", "result": "PASS", "cases": ["e2e/21:32 created-claim binding", "e2e/21:156 CLM-1006 no-regression"], "weakened": false},
-    "full_suite_run_1": {"command": "npx playwright test --reporter=line", "result": "PASS", "counts": "89/89", "flaky": 0, "wall": "5.1m"},
-    "full_suite_run_2": {"command": "npx playwright test --reporter=line", "result": "PASS", "counts": "89/89", "flaky": 0, "wall": "4.1m"}
+    "backend_build": "PASS (dotnet build; 0 warning / 0 error)",
+    "backend_tests": "PASS 137/137 (dotnet test --no-build)",
+    "frontend_build": "PASS (npm run build; vite 125 modules; exit 0)",
+    "playwright_full": "PASS 89/89 (npx playwright test; 4.1m; 0 flaky)",
+    "playwright_corroboration": "same tree: full suite 89/89 x2 + e2e/06 5/5 x2 in the immediately-preceding hardening gate",
+    "e2e_21_status": "PASS (both cases inside the 89/89)"
+  },
+  "qa_gate": {
+    "pre_commit_hook": "qa-commit-gate.ps1 — BLOCKED first attempt (no QA-CLEARED in last 30min)",
+    "resolution": "ran /qa end -> independent /qa-inspector (Opus) subagent -> VERDICT CLEARED 6/6 -> logged QA-CLEARED to ~/.claude/qa-compliance.log -> hook unblocked",
+    "bypass_used": false,
+    "bypass_note": "[qa-bypass] deliberately NOT used on this high-stakes source push; satisfied the hook properly per gate 'do not bypass hooks' + QA-Department mandate",
+    "inspector_result": "6/6 items verified; source-push safety all green (no main target, fast-forward only, no secrets staged, test-results excluded, origin/main unchanged)"
   },
   "safety": {
-    "product_source_changed": false,
-    "note": "43 pre-existing tracked-modified server/src files from prior gates are untouched; both edited files are untracked test-infra; worktree count unchanged at 97",
-    "staged_files": 0,
-    "source_commit_attempted": false,
-    "source_push_attempted": false,
+    "secret_scan_pre_stage": "PASS — only 2 matches, both pattern-name mentions in docs/architecture/*.md, not credentials",
+    "secret_scan_staged": "PASS — zero secret-value matches in staged diff",
+    "deepseek_key_touched": false,
+    "provider_in_runs": "Mock (default safe fallback) — confirmed in backend logs; no real call",
     "azure_touched": false,
     "main_touched": false,
-    "deepseek_key_touched": false,
-    "secrets_scan": "clean (a timeout int + a retries int + comments; provider=Mock confirmed in logs)",
-    "e2e_21_weakened": false
+    "force_push_used": false,
+    "pr_or_merge_or_tag": false,
+    "artifacts_staged": "none (no node_modules/bin/obj/playwright-report/traces/videos/screenshots/.env)"
+  },
+  "commit": {
+    "sha": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
+    "parent": "0372524 (= head_before)",
+    "message_subject": "feat: add verified InsuranceAIPlatform local sandbox",
+    "files_changed": 126,
+    "insertions": 12627,
+    "deletions": 363,
+    "ai_identification_in_message": false
+  },
+  "push": {
+    "target": "origin dev",
+    "result": "0372524..2e9443a dev -> dev",
+    "fast_forward": true,
+    "behind_before": 0,
+    "ahead_before": 1,
+    "force": false,
+    "verified_remote": "origin/dev = 2e9443a; origin/main = 69e67312 (unchanged)"
+  },
+  "batch_contents": {
+    "backend": "21 modified service .cs + AiDecisionController/ClaimWriteController/CustomersController/HybridClaimReadService + persistence services + 2 EF migrations (Approval PayoutSimulations, Documents content) + 2 test files",
+    "frontend": "21 modified .ts/.tsx + 7 modals + auth feature + ui-feedback feature + Login/CustomersDirectory pages + csv util",
+    "tests": "playwright.config.ts + 21 e2e/*.spec.ts + auth helper",
+    "docs": "9 architecture docs + ~16 report files",
+    "root": "package.json + package-lock.json"
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/e2e-06-aidecision-timeout-hardening-v0.1/report.md"
+    "InsuranceAIPlatform/commit-and-push-dev-realistic-sandbox-batch-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "retries:1 means a future single transient flake is reported 'flaky' (still exit 0) rather than failed — surfaced honestly; does not mask a deterministic bug (a real bug fails both attempts)",
-    "single-browser (Chromium) coverage per the suite's design",
-    "AIKB CURRENT_STATE.md is stale (89/89 / READY_FOR_COMMIT_GATE) — optional AIKB refresh recommended, out of scope here"
+    "test-results/ is not in .gitignore; test-results/.last-run.json remains untracked — future housekeeping could add it",
+    "AIKB CURRENT_STATE.md is stale (89/89 / READY_FOR_COMMIT_GATE) — optional AIKB refresh, out of scope",
+    "single-browser (Chromium) E2E coverage by design"
   ],
   "next_safe_step": {
-    "name": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1",
-    "action": "REOPEN",
-    "why": "89/89 stable across two consecutive full-suite runs; the AI-decision flake is hardened; the 97-entry dev working tree (43 tracked product files from prior gates + untracked new files, now including these 2 hardened test files) is ready for the bounded commit/push gate",
+    "name": "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1",
+    "note": "architecture docs + reports were ALREADY included in this commit, so this gate may target only new/updated docs or be a light confirmation",
+    "then": "AZURE_READINESS_PRE_FLIGHT_V0.1 (planning doc only)",
     "operator_action_required": true
   }
 }
