@@ -1,79 +1,105 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "PORTFOLIO_AZURE_PROOF_PACK_V0.1",
-  "gate_type": "portfolio/interview evidence pack from the live Azure deployment (docs + screenshots; no Azure/source changes)",
+  "gate": "PRODUCT_I18N_EN_DEFAULT_UA_SWITCH_DEPLOY_AND_PUSH_MASTER_V0.1",
+  "gate_type": "product-wide i18n (English default + Ukrainian switch) + product-copy rewrite + existing-SWA redeploy + commit/push to dev",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "PROOF_PACK_READY",
+  "verdict": "PRODUCT_I18N_DEPLOYED_PARTIAL_PUSHED",
   "date_utc": "2026-05-30",
-  "scope_summary": "Created 5 portfolio docs + 5 verified screenshots under docs/portfolio/ (uncommitted) from the live Azure deployment. All live checks passed; Opus /qa-inspector CLEARED 7/7 with no overclaiming. Honest headline: golden path live end-to-end (summary + full CLM-1006 workspace + demo scenario + CORS), but list endpoints /api/claims & /api/customers return 500 (Azure SQL deferred) and the SPA gracefully falls back to seeded rows. No Azure change, no deploy, no source commit.",
-  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 7/7 (priority: overclaiming. Every LIVE claim re-verified true; every deferral disclosed; no secret/GUID leak; screenshots authenticated)",
+  "scope_summary": "Built product-wide i18n (typed catalog + Redux slice + useI18n hook, no new dependency) making English the default with a persisted EN/UA switcher near the profile avatar. Rewrote login into a product landing and removed ALL portfolio/walking-skeleton/architecture copy across the app, replacing it with insurance-claims-platform positioning. Rebuilt in backend mode, redeployed to the existing SWA (live API preserved). Independent Opus /qa-inspector CLEARED 9/9. Two commits pushed to origin/dev. PARTIAL: synthetic data-layer strings remain source-language (API-seed-fed on live; backend out of scope).",
+  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 9/9 (git state, tsc clean, EN-default+switcher wiring, key parity, forbidden-copy absent in LIVE bundle, secrets clean, live EN+UA+CORS, no server/infra/workflow changes, main untouched)",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head": "211d50f8d79cf3075b219f729c7cedcd72136f65",
-    "head_unchanged": true,
-    "origin_dev": "211d50f8d79cf3075b219f729c7cedcd72136f65",
+    "head_before": "211d50f8d79cf3075b219f729c7cedcd72136f65",
+    "head_after": "89e85166204a79eceed79a05cc8cb93a5fc0e6f0",
+    "origin_dev_after": "89e85166204a79eceed79a05cc8cb93a5fc0e6f0",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
     "origin_main_unchanged": true,
-    "working_tree_after": "untracked docs/portfolio/ (5 docs + screenshots/) + test-results/; no commit"
+    "push_result": "211d50f..89e8516 dev -> dev",
+    "working_tree_after": "clean except untracked test-results/ (dist/ git-ignored)"
   },
-  "live_proof": {
-    "frontend_url": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
-    "frontend_http": 200,
-    "api_url": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
+  "i18n": {
+    "mechanism": "typed message catalog src/i18n/messages/* (18 namespaces) + Redux i18n slice + useI18n hook; no new dependency",
+    "default_language": "English (first-time visitors; navigator/browser language NOT used to override)",
+    "languages": ["en", "uk"],
+    "switcher": "EN/UA in TopBar (top-right, next to profile avatar) + login top-right; role=group, aria-pressed, keyboard/click",
+    "persistence": "localStorage iap.i18n.locale.v1",
+    "key_parity": "type T = typeof en; const uk: T = {...} -> missing key is a compile error",
+    "coverage": "login, sidebar, topbar, dashboard, claims list, claim workspace + 7 sub-pages, customer directory, guided walkthrough, claim tabs, 6 modals, deferred-action button",
+    "files_changed": 51
+  },
+  "copy_rewrite": {
+    "old": "portfolio/demo 'walking skeleton' framing; 'Архітектура системи / Три шари' diagram; 'Portfolio message'; 'Azure-ready (next)'; 'Наступна фаза'",
+    "new": "AI-Assisted Insurance Claims Workbench hero + value bullets; Platform capabilities cards; honest Demo environment status note",
+    "forbidden_terms_in_live_bundle": "none (verified by grep on deployed index-C8i01ucW.js)"
+  },
+  "build": {
+    "command": "tsc -b && vite build (backend mode)",
+    "bundle": "dist/assets/index-C8i01ucW.js",
+    "stale_copy_scan_dist": "clean",
+    "secret_scan": "clean (src + dist)",
+    "both_locales_in_bundle": true
+  },
+  "swa_deploy": {
+    "target": "iap-demo-swa (Free)",
+    "url": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
+    "method": "@azure/static-web-apps-cli@2.0.9 deploy ./dist --env production",
+    "token_handling": "SWA_CLI_DEPLOYMENT_TOKEN env only; never printed/argv/committed",
+    "result": "deployed",
+    "azure_resources_changed": false
+  },
+  "live_smoke": {
+    "swa_http": 200,
+    "serves_new_bundle": true,
+    "spa_fallback_claims": 200,
     "api_health": "200 Healthy (Production)",
-    "cors_check": "GET from SWA origin -> 200 + access-control-allow-origin=<SWA>; no wildcard/credentials",
-    "live_endpoints": ["/api/claims/summary 200 {totalActive:47,pendingReview:12,highRisk:8,avgSlaRemainingHours:14.3,processedToday:6,aiAnalysisRunning:2}", "/api/claims/CLM-1006 + 7 sub-endpoints 200", "/api/demo/scenario 200"],
-    "500_endpoints": ["/api/claims (list)", "/api/customers (list)"],
-    "500_reason": "Azure SQL deferred (enableSql=false); SPA degrades gracefully to seeded rows",
-    "azure_resource_count": 9,
-    "no_aks_acr_sql": true,
-    "cost_guardrails": "minReplicas=0/max=2; SWA Free; idle ~$0"
+    "summary_cors": "GET /api/claims/summary (Origin=SWA) 200 + ACAO=<SWA>",
+    "english_default": "PASS",
+    "ukrainian_switch": "PASS",
+    "old_copy_absent": "PASS",
+    "headless_chromium_assertions": "12/12 true",
+    "screenshots": ["docs/portfolio/screenshots/i18n-01-login-en.png", "docs/portfolio/screenshots/i18n-02-login-ua.png", "docs/portfolio/screenshots/i18n-03-dashboard-en.png", "docs/portfolio/screenshots/i18n-04-demo-en.png"]
   },
-  "files_created": {
-    "proof_pack": "docs/portfolio/PORTFOLIO_AZURE_PROOF_PACK_V0.1.md",
-    "interview_story": "docs/portfolio/INTERVIEW_STORY_AZURE_DOTNET_AI_V0.1.md",
-    "technical_matrix": "docs/portfolio/TECHNICAL_PROOF_MATRIX_V0.1.md",
-    "live_demo_runbook": "docs/portfolio/LIVE_DEMO_RUNBOOK_V0.1.md",
-    "readme_draft": "docs/portfolio/README_PORTFOLIO_SECTION_DRAFT_V0.1.md",
-    "screenshots": ["01-login.png", "02-overview.png", "03-claim-workspace.png", "04-ai-evidence.png", "05-audit-cost.png"]
-  },
-  "evidence_summary": {
-    "azure_services": "Container Apps, Static Web Apps (Free), GHCR, Managed Identity, Key Vault (RBAC), Storage (shared-key off), App Insights, Log Analytics",
-    "dotnet_proof": ".NET 9 modular-monolith API live on ACA; /health 200; 137/137 tests; multi-stage non-root Docker",
-    "ai_readiness_proof": "IAiProvider Mock(default)+DeepSeek opt-in; workbench UI renders live golden-claim data; AI output Mock/seeded (PARTIAL)",
-    "cost_proof": "scale-to-zero, Free tiers, GHCR (no ACR), sampled/capped telemetry, $30/mo budget+alerts, idle ~$0",
-    "security_proof": "MI+Key Vault arch, storage shared-key disabled, non-root API, config-driven CORS (no wildcard/credentials), no repo secrets, synthetic data only",
-    "deferred_items": "Azure SQL (list endpoints 500), real AI provider (Mock), AKS/ACR (not used), production auth/SSO (demo client-side)"
+  "commits": [
+    { "sha": "ce03776", "message": "docs: add Azure portfolio proof pack", "files": 14 },
+    { "sha": "89e8516", "message": "feat: add English default and Ukrainian product copy", "files": 51 }
+  ],
+  "docs": {
+    "i18n": "docs/architecture/frontend/I18N_PRODUCT_COPY_V0.1.md",
+    "deploy": "docs/architecture/azure/AZURE_PRODUCT_I18N_EN_DEFAULT_UA_SWITCH_V0.1.md",
+    "readme_draft_updated": true
   },
   "safety": {
-    "secrets_scan": "CLEAN (no tokens/keys/subscription-tenant-client GUIDs in docs)",
-    "azure_resources_changed": false,
-    "deploy_attempted": false,
+    "secrets_scan": "CLEAN",
+    "azure_resources_created": false,
+    "azure_resources_deleted": false,
+    "backend_changed": false,
+    "api_redeployed": false,
     "image_pushed": false,
+    "sql_enabled": false,
+    "ai_enabled": false,
     "workflow_run": false,
-    "source_commit_attempted": false,
-    "source_push_attempted": false,
+    "workflow_note": "azure-deploy-demo.yml is workflow_dispatch-only; push to dev did not trigger it",
     "main_touched": false,
-    "resources_deleted": false,
-    "public_demo_creds_note": "demo@insurance.local / Demo123! are public client-side demo creds (shown on the login page), not secrets"
+    "force_push_used": false,
+    "commit_hook": "QA commit-gate satisfied by genuine Opus /qa-inspector CLEARED + QA-CLEARED log line (no bypass for source commits)",
+    "rg_resource_count": 9
   },
+  "limitations": [
+    "synthetic data-layer strings (src/data/mock/*: golden-claim content, dashboard fallback labels) remain source-language; live panels are API-seed-fed -> require backend seed changes (out of scope this gate)",
+    "claims-list filter <option> values are logic-coupled (display + filter key) -> need value->label map (deferred)",
+    "/api/claims + /api/customers still 500 (Azure SQL deferred; SPA seed fallback)",
+    "AI Mock-only; demo auth client-side"
+  ],
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/portfolio-azure-proof-pack-v0.1/report.md"
+    "InsuranceAIPlatform/product-i18n-en-default-ua-switch-deploy-and-push-v0.1/report.md"
   ],
   "blockers": [],
-  "limitations": [
-    "/api/claims + /api/customers return 500 (Azure SQL deferred); SPA seed fallback keeps the UI complete but list data is mock",
-    "AI is Mock-only (numbers seeded); no real LLM in production",
-    "demo auth is client-side only (no Entra/SSO)",
-    "CI workflow scaffolded (OIDC) but not run; live deploys were local az",
-    "screenshots + docs uncommitted (next commit gate)"
-  ],
   "next_recommended_gate": {
-    "options": ["PORTFOLIO_AZURE_PROOF_PACK_COMMIT_V0.1", "AZURE_SQL_OPTIONAL_GATE_V0.1"],
-    "note": "AZURE_SQL_OPTIONAL_GATE would make /api/claims & /api/customers live and remove the only visible gap",
+    "options": ["PRODUCT_I18N_QA_POLISH_V0.1", "AZURE_SQL_OPTIONAL_GATE_V0.1"],
+    "note": "PRODUCT_I18N_QA_POLISH = data-layer i18n + value->label maps + backend seed localization; AZURE_SQL_OPTIONAL makes list endpoints live",
     "operator_action_required": true
   }
 }
