@@ -1,114 +1,85 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_MINIMAL_DEPLOY_MASTER_V0.1",
-  "gate_type": "first real Azure minimal deploy (operator-checkpointed)",
+  "gate": "AZURE_MINIMAL_DEPLOY_COMMIT_V0.1",
+  "gate_type": "post-deploy source commit + push + handoff (no Azure changes)",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "DEPLOYED_MINIMAL",
-  "ready_for_slava_manual_retest": true,
-  "ready_for_slava_manual_retest_reason": "API is live on Azure: GET https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io/health returns 200 Healthy. Frontend SWA provisioned but no content yet.",
+  "verdict": "PUSHED",
   "date_utc": "2026-05-29",
-  "scope_summary": "First real Azure deploy on the personal subscription (corporate tenant explicitly switched away). Our GHCR image deployed to Azure Container Apps scale-to-zero; /health 200. 8 resources in rg-iap-demo/westeurope. SQL + AI deferred; no AKS/ACR. SWA (Free) provisioned, content deferred. Cost guardrails verified; idle ~$0. enableSql infra edit + 3 docs left uncommitted.",
-  "operator_approvals": {"login_approved": true, "deploy_approved": true, "decisions": "defer SQL + GHCR"},
-  "azure_account": {
-    "type": "personal (corporate @edgernd.com tenant switched away)",
-    "subscription_name": "Azure subscription 1",
-    "ids": "redacted (subscription/tenant/email not logged to external repo)",
-    "region": "westeurope",
-    "budget": "$30/mo + alerts $5/$10/$20/$30/$50 (operator-confirmed)"
-  },
+  "scope_summary": "Committed the uncommitted post-deploy artifacts (infra/main.bicep enableSql toggle + 3 Azure docs) to dev as ae4545c and pushed to origin/dev. No Azure resource created/changed/deleted; live API untouched (/health 200). origin/main untouched. Commit allowed by a genuine Opus /qa-inspector CLEARED (no bypass).",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
-    "head_unchanged": true,
+    "head_before": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
+    "head_after": "ae4545c8d7aeafba3cb168de3f2b843e1051b7ef",
+    "origin_dev_before": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
+    "origin_dev_after": "ae4545c8d7aeafba3cb168de3f2b843e1051b7ef",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-    "origin_main_unchanged": true,
-    "uncommitted_changes": [
+    "origin_main_unchanged": true
+  },
+  "commit": {
+    "sha": "ae4545c8d7aeafba3cb168de3f2b843e1051b7ef",
+    "message": "docs: record Azure minimal deploy",
+    "files_changed": 4,
+    "insertions": 115,
+    "deletions": 2,
+    "hook_result": "ALLOWED via genuine Opus /qa-inspector CLEARED (no bypass)",
+    "files": [
       "infra/main.bicep (enableSql param + if(enableSql) guard + conditional sqlServerFqdn output)",
       "docs/architecture/azure/AZURE_MINIMAL_DEPLOY_V0.1.md",
       "docs/architecture/azure/AZURE_DEPLOYED_RESOURCES_V0.1.md",
       "docs/architecture/azure/AZURE_COST_POST_DEPLOY_CHECK_V0.1.md"
     ]
   },
-  "image": {
-    "registry": "ghcr.io/slavkan777/insuranceai-api",
-    "tag": "ce1a1e5",
-    "digest": "sha256:3d320fa9b133aa494299ad361d22f42e623f89971574996d07fb5935713cb05e",
-    "visibility": "public",
-    "anonymous_pull_http": 200
+  "push": {
+    "attempted": true,
+    "target": "origin/dev",
+    "result": "ce1a1e5..ae4545c dev -> dev (fast-forward)",
+    "force_used": false,
+    "verified_remote": "origin/dev == ae4545c; origin/main == 69e67312"
   },
-  "deployment": {
-    "name": "iap-min-20260529223052",
-    "scope": "subscription",
-    "resource_group": "rg-iap-demo",
-    "region": "westeurope",
-    "provisioning_state": "Succeeded",
-    "resource_count": 8,
-    "enable_sql": false,
-    "enable_ai": false,
-    "aks": false,
-    "acr": false
-  },
-  "resources": [
-    "iap-demo-api (Microsoft.App/containerApps, minReplicas=0, image ghcr.io/slavkan777/insuranceai-api:ce1a1e5)",
-    "iap-demo-cae (Microsoft.App/managedEnvironments)",
-    "iap-demo-swa (Microsoft.Web/staticSites, Free)",
-    "iap-demo-api-mi (Microsoft.ManagedIdentity/userAssignedIdentities)",
-    "iapdemokv... (Microsoft.KeyVault/vaults, RBAC)",
-    "iapdemost... (Microsoft.Storage/storageAccounts, allowSharedKeyAccess=false)",
-    "iap-demo-law (Microsoft.OperationalInsights/workspaces, 30d + 1GB/day cap)",
-    "iap-demo-appi (Microsoft.Insights/components, 50% sampling)"
-  ],
-  "endpoints": {
-    "api": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
-    "api_health": "GET /health -> 200 {status:Healthy, service:InsuranceAIPlatform.Api, environment:Production}",
-    "swa": "https://kind-meadow-03cf73103.7.azurestaticapps.net (empty until frontend content deploy)"
-  },
-  "smoke_tests": {
-    "api_health": "PASS (HTTP 200, our API identity, cold start handled)",
-    "frontend": "DEFERRED (SWA resource live, no content)",
-    "auth": "n/a"
-  },
-  "cost_guardrails": {
-    "min_replicas": 0,
-    "swa_sku": "Free",
-    "aks_in_subscription": false,
-    "acr_in_subscription": false,
-    "storage_shared_key": false,
-    "log_analytics": "30d retention + 1GB/day cap",
-    "app_insights_sampling": "50%",
-    "sql_deployed": false,
-    "ai_deployed": false,
-    "estimated_idle": "~$0 (residual LAW/Storage < $1-2/mo)"
+  "validation": {
+    "bicep_build": "PASS (az bicep build --stdout -> exit 0, 0 warnings)",
+    "api_health_readonly": "200 Healthy (service=InsuranceAIPlatform.Api, env=Production)",
+    "docs_review": "PASS (URLs present; no secrets; no subscription/tenant/client GUIDs)",
+    "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 7/7 (independent verification)"
   },
   "safety": {
-    "personal_subscription": true,
-    "secrets_printed": false,
-    "tokens_in_chat": false,
-    "ai_provider_activated": false,
-    "aks_created": false,
+    "secret_scan_candidates": "CLEAN (no key values, no GUIDs)",
+    "azure_resources_changed": false,
+    "deploy_attempted": false,
+    "cleanup_attempted": false,
+    "image_pushed": false,
+    "workflow_run": false,
     "main_touched": false,
     "force_push_used": false,
-    "source_commit_attempted": false,
-    "aikb_updated": false
+    "aikb_updated": false,
+    "secrets_printed": false,
+    "tokens_in_chat": false
   },
-  "cleanup_plan": "az group delete -n rg-iap-demo --yes --no-wait",
+  "azure_live_state_unchanged": {
+    "resource_group": "rg-iap-demo",
+    "resource_count": 8,
+    "api_url": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
+    "api_health": "200",
+    "swa_url": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
+    "swa_state": "empty (content deploy deferred)",
+    "resources_deleted": "none"
+  },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/azure-minimal-deploy-v0.1/report.md"
+    "InsuranceAIPlatform/azure-minimal-deploy-commit-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "frontend content not deployed (SWA empty; follow-up: swa deploy ./dist + SPA->API wiring via linked backend)",
+    "frontend content not deployed (SWA empty; next: swa deploy ./dist + SPA->API wiring via linked backend)",
     "SQL deferred (later SQL gate: real Entra admin objectId + DbMigrator run)",
-    "AI stays Mock until explicit AI gate",
+    "AI stays Mock until an explicit AI gate",
     "first deploy used local az deployment (CI/OIDC path remains the guarded workflow)"
   ],
-  "next_safe_step": {
-    "name": "AZURE_MINIMAL_DEPLOY_COMMIT_V0.1",
-    "action": "commit the enableSql edit + 3 post-deploy docs to dev (QA-inspector path)",
-    "then": "AZURE_FRONTEND_DEPLOY_V0.1 (SWA content + API wiring)",
+  "next_recommended_gate": {
+    "name": "AZURE_FRONTEND_DEPLOY_MASTER_V0.1",
+    "action": "deploy SWA content (swa deploy ./dist) + wire SPA to live API (linked backend)",
     "operator_action_required": true
   }
 }
