@@ -1,88 +1,107 @@
 # InsuranceAIPlatform — Latest gate report
 
-**Gate:** AZURE_FRONTEND_DEPLOY_COMMIT_V0.1
-**Type:** docs-only commit + push + handoff (no Azure changes, no CORS fix)
+**Gate:** AZURE_FRONTEND_CORS_FIX_V0.1
+**Type:** config-driven CORS fix + API image redeploy + frontend backend-mode rewire
 **Date (UTC):** 2026-05-29
-**Verdict:** **PUSHED** ✅
+**Verdict:** **LIVE_API_WIRED** ✅
 **Executor model/version:** Opus 4.8 (1M context) — `claude-opus-4-8[1m]`
 
-**Source `dev` HEAD:** `ae4545c` → `14d5c81` *(pushed)* · **origin/main** `69e67312` *(untouched)*
+**Source `dev` HEAD:** `14d5c81` *(unchanged — no commit this gate)* · **origin/main** `69e67312` *(untouched)*
 
-**Full report:** [azure-frontend-deploy-commit-v0.1/report.md](azure-frontend-deploy-commit-v0.1/report.md)
+**Full report:** [azure-frontend-cors-fix-v0.1/report.md](azure-frontend-cors-fix-v0.1/report.md)
 
 ---
 
 ## Bottom line
 
-The frontend-deploy documentation is now committed and on `origin/dev`. One commit **`14d5c81`** — `docs: record Azure frontend deploy` — adds `docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md` (the mock-mode SWA deploy record: method, smoke results, CORS limitation, cost guardrails, next gates). `test-results/` untracked; `dist/` git-ignored; no source code touched.
+The live demo is now wired to the **live API** end-to-end. The SPA at `https://kind-meadow-03cf73103.7.azurestaticapps.net` (backend-mode bundle) fetches real data from `https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io`, and CORS is fixed.
 
-Validation: doc review PASS, secret scan **clean** (no values/GUIDs/token), read-only SWA 200 + API `/health` 200, and an independent **Opus `/qa-inspector` CLEARED 5/5** — commit passed the QA pre-commit hook via a **genuine CLEARED, no bypass**. Push was a clean fast-forward (no force, no main, no PR).
+- **CORS** is now **config-driven** (`Cors:AllowedOrigins`, fallback localhost, no wildcard, no credentials). Source: `Program.cs` + `appsettings.json` (tracked, **uncommitted** — next gate commits).
+- **API** rebuilt (`ghcr.io/slavkan777/insuranceai-api:14d5c81-cors`) + pushed to GHCR, Container App updated → revision `0000001` (100% traffic), **minReplicas=0 preserved**, `/health` 200, **137/137** tests.
+- **Frontend** rebuilt in backend mode (live API URL baked) + redeployed to the existing SWA.
+- **CORS smoke:** preflight + GET from the SWA origin both return `access-control-allow-origin: <SWA>`; localhost still works (no dev regression); browser-equivalent GET returns `200` JSON.
+- Independently verified: **Opus `/qa-inspector` CLEARED 8/8**. No new/deleted resources (count 9), SWA Free, no SQL/AI/AKS/ACR, idle ≈ $0. No source commit/push, main untouched, no secrets/token printed.
 
-**Azure untouched this gate** — no deploy/CORS-fix/resource change. Live demo unchanged (SWA + API both 200).
+**Next recommended gate:** `AZURE_FRONTEND_CORS_FIX_COMMIT_V0.1` — commit `Program.cs` + `appsettings.json` (+ the CORS-fix doc) to `dev`.
 
-**Next recommended gate:** `AZURE_FRONTEND_CORS_FIX_V0.1` — add the SWA origin to `Program.cs` CORS (ideally config-driven) + redeploy the API image, then build the SPA in backend mode and redeploy → live-data demo.
+**Rollback:** `az containerapp update -g rg-iap-demo -n iap-demo-api --image ghcr.io/slavkan777/insuranceai-api:ce1a1e5` + rebuild frontend without the backend env and redeploy.
 
 ---
 
 ## REPORT BACK FORMAT
 
 ```text
-VERDICT: PUSHED
-GATE: AZURE_FRONTEND_DEPLOY_COMMIT_V0.1
+VERDICT: LIVE_API_WIRED
+GATE: AZURE_FRONTEND_CORS_FIX_V0.1
 SOURCE_REPO:
   path: C:/Projects/InsuranceAIPlatform
   branch: dev
-  head_before: ae4545c8d7aeafba3cb168de3f2b843e1051b7ef
-  head_after: 14d5c8126a4ecd51122557520facb63224e7fe44
-  origin_dev_before: ae4545c
-  origin_dev_after: 14d5c81
-  origin_main_before: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5
-  origin_main_after: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5
-WORKING_TREE:
-  before_summary: untracked AZURE_FRONTEND_DEPLOY_V0.1.md + test-results/
-  staged_files: 1 (docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md)
-  after_summary: clean except untracked test-results/
-  remaining_files: test-results/
-FILES_COMMITTED:
-  docs: docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md
-VALIDATION:
-  doc_review: PASS
-  swa_readonly: 200
-  api_health_readonly: 200
-  other_checks: Opus /qa-inspector CLEARED 5/5
-SAFETY:
-  secret_scan_pre_stage: CLEAN
-  secret_scan_staged: CLEAN
-  azure_resources_changed: NO
-  deploy_attempted: NO
-  image_pushed: NO
-  workflow_run: NO
-  source_code_changed: NO
-  main_touched: NO
-  force_push_used: NO
-COMMIT:
-  attempted: YES
-  sha: 14d5c8126a4ecd51122557520facb63224e7fe44
-  message: docs: record Azure frontend deploy
-  hook_result: ALLOWED via genuine Opus /qa-inspector CLEARED (no bypass)
-PUSH:
-  attempted: YES
-  target: origin/dev
-  result: ae4545c..14d5c81 dev -> dev (fast-forward, exit 0)
-  verified_remote: origin/dev == 14d5c81; origin/main == 69e67312
-LIVE_STATE_UNCHANGED:
-  api_url: https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io (/health 200)
-  swa_url: https://kind-meadow-03cf73103.7.azurestaticapps.net (200)
+  head: 14d5c8126a4ecd51122557520facb63224e7fe44
+  origin_dev: 14d5c8126a4ecd51122557520facb63224e7fe44
+  origin_main: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5
+  working_tree_after: M Program.cs + M appsettings.json (tracked) + untracked AZURE_FRONTEND_CORS_FIX_V0.1.md + test-results/ (UNCOMMITTED)
+AZURE_LIVE_STATE:
+  subscription: personal "Azure subscription 1" (IDs redacted)
+  resource_group: rg-iap-demo (westeurope)
+  api_url: https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io
+  swa_url: https://kind-meadow-03cf73103.7.azurestaticapps.net
+  api_health_before: 200
+  api_health_after: 200
+CORS_FIX:
+  root_cause: hardcoded WithOrigins("http://localhost:5173"); SWA origin got no ACAO
+  files_changed: server/InsuranceAIPlatform.Api/{Program.cs, appsettings.json}
+  allowed_origins: http://localhost:5173, https://kind-meadow-03cf73103.7.azurestaticapps.net
+  config_driven: YES (env-overridable Cors__AllowedOrigins__N; fallback localhost; no wildcard, no AllowCredentials)
+  preflight_before: 204 with NO access-control-allow-origin
+  preflight_after: 204 + ACAO=<SWA> + access-control-allow-methods: GET
+BACKEND:
+  build: PASS (Release)
+  tests: 137/137 passed
+  docker_image: ghcr.io/slavkan777/insuranceai-api:14d5c81-cors (digest sha256:208f9cca…)
+  ghcr_push: PUSHED (public; manifest OK)
+  container_app_update: PASS (minReplicas=0/max=2 preserved; Succeeded)
+  revision: iap-demo-api--0000001 (Active, 100% traffic); old --mjdxllx deprovisioned
+FRONTEND:
+  build_mode: backend
+  api_base_url: https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io
+  build_result: PASS (bundle index-BJlHvw5H.js; live API URL baked; secret scan clean)
+  swa_redeploy: PASS (SWA CLI 2.0.9; token via env; production)
+SMOKE_TESTS:
+  api_health: 200
+  api_data_endpoint: 200 JSON {"totalActive":47,...}
+  cors_preflight: 204 + ACAO for SWA origin + allow-methods GET
+  swa_http: 200
+  assets_loaded: JS 200 text/javascript; CSS 200
+  spa_fallback: /claims 200
+  browser_api_integration: HTTP-level CONFIRMED — GET from SWA origin 200 + ACAO; bundle targets live API (no headless browser)
+COST_GUARDRAILS:
+  new_resources_created: NO (count unchanged = 9)
+  resource_count: 9
   sql_deployed: NO
   ai_deployed: NO
   aks_created: NO
   acr_created: NO
+  container_min_replicas: 0
+  swa_sku: Free
+  estimated_idle_risk: ~$0
+DOCS:
+  created_or_updated: docs/architecture/azure/AZURE_FRONTEND_CORS_FIX_V0.1.md
+  committed: NO
+SAFETY:
+  secrets_scan: CLEAN
+  tokens_printed: NO
+  source_commit_attempted: NO
+  source_push_attempted: NO
+  main_touched: NO
+  workflow_run: NO
+  resources_deleted: NO
+ROLLBACK_PLAN: az containerapp update -g rg-iap-demo -n iap-demo-api --image ghcr.io/slavkan777/insuranceai-api:ce1a1e5 ; rebuild frontend mock + redeploy
 GITHUB_HANDOFF:
   latest_report:  InsuranceAIPlatform/latest-report.md
   latest_summary: InsuranceAIPlatform/latest-summary.json
-  task_report:    InsuranceAIPlatform/azure-frontend-deploy-commit-v0.1/report.md
+  task_report:    InsuranceAIPlatform/azure-frontend-cors-fix-v0.1/report.md
 BLOCKERS: none
-LIMITATIONS: live-API wiring still deferred (API CORS hardcoded to localhost:5173)
-NEXT_RECOMMENDED_GATE: AZURE_FRONTEND_CORS_FIX_V0.1
-STOP_LINE_CONFIRMATION: stopping after report; no CORS fix, no deploy, no resource create/delete, no further source commit, no AIKB, no main, no PR
+LIMITATIONS: live-data verified at HTTP/CORS level (no headless browser); source uncommitted (next gate); SQL deferred (seeded in-memory data); AI Mock
+NEXT_RECOMMENDED_GATE: AZURE_FRONTEND_CORS_FIX_COMMIT_V0.1
+STOP_LINE_CONFIRMATION: stopping after report; no source commit/push, no AIKB, no PR, no main, no SQL/AI, no new/deleted resources, no next gate
 ```
