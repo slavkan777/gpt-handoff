@@ -1,71 +1,65 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_MINIMAL_DEPLOY_PREP_V0.1",
-  "gate_type": "deploy-prep: Docker/GHCR/OIDC/SWA/Bicep readiness + offline validation (no deploy)",
+  "gate": "AZURE_MINIMAL_DEPLOY_PREP_COMMIT_V0.1",
+  "gate_type": "final validation + source commit (dev) + push to origin/dev + gpt-handoff report",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "ACCEPT_DEPLOY_PREP_READY",
+  "verdict": "PUSHED",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "prep files only (uncommitted); nothing deployed; no product/runtime change. Hands-on retest applies after AZURE_MINIMAL_DEPLOY_V0.1.",
+  "ready_for_slava_manual_retest_reason": "deploy-prep assets now on origin/dev, but nothing deployed; no product/runtime change to retest. Hands-on retest applies after AZURE_MINIMAL_DEPLOY_V0.1.",
   "date_utc": "2026-05-29",
-  "scope_summary": "Authored a multi-stage net9 Dockerfile + .dockerignore, SWA staticwebapp.config.json, a guarded GHCR build->push->OIDC-deploy workflow blueprint (still disabled), and /health probes on the Container App. Validated with real builds (docker build EXIT 0, 137/137 tests, npm build, bicep 0/0). No az login, no resources, no deploy, no image push, no OIDC, no secrets, no source commit. All files uncommitted.",
+  "scope_summary": "Re-validated and committed the 6 accepted deploy-prep files to dev (ce1a1e5) and pushed to origin/dev. Independent Opus /qa-inspector 9/9 CLEARED (incl. workflow-cannot-auto-deploy + no-product-logic checks). No Azure login/resources/deploy/image-push/OIDC, no secrets, no force, main untouched.",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "head_unchanged": true,
-    "origin_dev": "a70071d8e676126c4129e8fed00c3424082001e4",
+    "head_before": "a70071d8e676126c4129e8fed00c3424082001e4",
+    "head_after": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
+    "origin_dev_before": "a70071d8e676126c4129e8fed00c3424082001e4",
+    "origin_dev_after": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
+    "origin_dev_advanced": true,
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
     "origin_main_unchanged": true,
-    "staged": 0,
-    "working_tree_after": "+4 new + 2 modified (uncommitted) + test-results/ (untracked)"
+    "local_synced_with_origin_dev": true,
+    "working_tree_after": "clean except test-results/.last-run.json (intentionally untracked)"
   },
-  "files": {
-    "new": [
-      "server/Dockerfile",
-      "server/.dockerignore",
-      "staticwebapp.config.json",
-      "docs/architecture/azure/AZURE_MINIMAL_DEPLOY_PREP_V0.1.md"
-    ],
+  "commit": {
+    "attempted": true,
+    "succeeded": true,
+    "sha": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
+    "message": "chore: prepare Azure minimal deploy assets",
+    "files_changed": 6,
+    "insertions": 212,
+    "deletions": 9,
+    "hook_result": "PASS — genuine QA-CLEARED via independent Opus /qa-inspector (no [qa-bypass] on source commit)"
+  },
+  "push": {
+    "attempted": true,
+    "target": "origin dev",
+    "force_used": false,
+    "result": "SUCCESS",
+    "ref_update": "a70071d..ce1a1e5  dev -> dev",
+    "exit_code": 0,
+    "origin_dev_after_push": "ce1a1e54721f7487d2b1124ab072806ec1b151fe"
+  },
+  "files_committed": {
+    "new": ["server/Dockerfile", "server/.dockerignore", "staticwebapp.config.json", "docs/architecture/azure/AZURE_MINIMAL_DEPLOY_PREP_V0.1.md"],
     "modified": [
-      ".github/workflows/azure-deploy-demo.yml (guarded GHCR build/push + OIDC deploy blueprint; workflow_dispatch-only; deploy steps commented; packages: write added)",
-      "infra/modules/container-apps.bicep (Liveness/Readiness/Startup probes -> GET /health on 8080)"
+      "infra/modules/container-apps.bicep (Liveness/Readiness/Startup probes -> /health:8080)",
+      ".github/workflows/azure-deploy-demo.yml (guarded GHCR+OIDC blueprint; workflow_dispatch-only; deploy steps commented; packages: write)"
     ],
     "excluded": ["test-results/.last-run.json"]
   },
-  "dockerfile": {
-    "base_build": "mcr.microsoft.com/dotnet/sdk:9.0",
-    "base_runtime": "mcr.microsoft.com/dotnet/aspnet:9.0",
-    "context": "server/",
-    "port": 8080,
-    "non_root": "USER $APP_UID",
-    "env": "ASPNETCORE_URLS=http://+:8080, ASPNETCORE_ENVIRONMENT=Production",
-    "secrets_baked": false,
-    "restore_caching": "csproj-first copy (Api + 7 referenced projects)"
-  },
   "validation": {
-    "docker_build": "EXIT 0 — image insurance-api:preptest sha256:d2dda6f2…; 8 projects restored, dotnet publish -c Release, exported; build context 503 KB",
-    "backend_tests": "137 passed / 0 failed / 0 skipped (6s, no DB)",
-    "frontend_build": "EXIT 0 — tsc -b && vite build -> dist/ (js 436KB/gzip 131KB)",
-    "bicep_build": "EXIT 0, 0 errors / 0 warnings, ARM 1322 lines (with probes)",
-    "secret_scan": "clean",
-    "toolchain": "dotnet 9.0.304, Docker 20.10.23, node v21.3.0",
-    "limitations": "image built locally only (not pushed to GHCR); offline bicep (no live quota/region/SKU/model check)"
+    "docker_build": "EXIT 0 — image insurance-api:preptest2 sha256:d2dda6f2… (identical hash to prep gate = reproducible); removed after validation",
+    "backend_tests": "137 passed / 0 failed / 0 skipped (3s)",
+    "frontend_build": "EXIT 0 — tsc -b && vite build -> dist/",
+    "bicep_build": "EXIT 0, 0 errors / 0 warnings, ARM 1322 lines (probes)",
+    "secret_scan": "clean (pre-stage + staged diff)"
   },
-  "readiness": {
-    "backend": "READY",
-    "frontend": "READY",
-    "docker": "READY",
-    "static_web_app": "READY",
-    "bicep": "READY",
-    "workflow": "READY (guarded, disabled)",
-    "ghcr": "PLAN (image not pushed)",
-    "oidc": "PLAN (operator creates app + federated credential)"
-  },
-  "known_gaps": {
-    "cors": "API allows only localhost:5173. Preferred fix: SWA linked backend (/api/* proxied same-origin, no code change). Alt: env-driven CORS = separate code gate.",
-    "sql_wiring": "INSURANCEAI_CONNECTION_STRING (Entra/MI passwordless) + one-time DbMigrator run; deferred to a SQL gate. Minimal deploy runs without DB (Mock AI + in-memory reads; /health has no DB dep; no startup migration).",
-    "ghcr_visibility": "make package public after first push (anonymous pull) or add pull credential",
-    "sql_admin_object_id": "real Entra oid supplied at deploy, never committed"
+  "qa_inspector": {
+    "model": "Opus 4.8 (independent read-only subagent)",
+    "verdict": "CLEARED",
+    "score": "9/9",
+    "key_checks": ["exactly 6 staged files", "test-results excluded", "no product business logic", "workflow CANNOT auto-deploy (dispatch-only + guarded + commented + secrets on commented lines)", "staged-diff secret/GUID scan clean", "az bicep build re-run EXIT 0 with staged probes", "Dockerfile non-root/no-secrets"]
   },
   "safety": {
     "azure_login_used": false,
@@ -74,29 +68,27 @@
     "image_pushed": false,
     "workflow_run": false,
     "oidc_created": false,
-    "source_commit_attempted": false,
-    "source_push_attempted": false,
     "main_touched": false,
-    "product_business_logic_changed": false,
-    "ai_provider_activated": false,
+    "force_push_used": false,
+    "product_code_changed": false,
     "secrets_present": false
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/azure-minimal-deploy-prep-v0.1/report.md"
+    "InsuranceAIPlatform/azure-minimal-deploy-prep-commit-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "prep files uncommitted (commit gate next)",
+    "assets committed but no Azure resources exist yet (nothing deployed)",
     "docker image built locally only (not pushed to GHCR)",
-    "CORS + SQL are deploy/post-deploy concerns",
-    "offline bicep (no live Azure quota/region/SKU/model availability check)"
+    "CORS (SWA linked-backend) + SQL wiring (DbMigrator + Entra/MI connection string) are deploy/post-deploy concerns",
+    "offline bicep (no live Azure quota/region/SKU/model check)"
   ],
   "next_safe_step": {
     "name": "AZURE_MINIMAL_DEPLOY_V0.1",
-    "preceded_by": "a commit gate for the uncommitted prep files (server/Dockerfile, .dockerignore, staticwebapp.config.json, workflow, container-apps.bicep probes, prep doc)",
-    "action": "az login (operator) + activate GHCR build/push + OIDC az deployment sub create of main.bicep (+ image tag + sqlAdminObjectId); verify /health; confirm ~$0 idle",
+    "alt": "AZURE_MINIMAL_DEPLOY_V0.1_MANUAL_PREREQ (operator does az login + Entra group + OIDC app + GitHub Actions secrets first)",
+    "action": "operator az login + activate GHCR build/push + OIDC az deployment sub create of main.bicep (+ image tag + sqlAdminObjectId); verify /health; confirm ~$0 idle",
     "creates_resources": true,
     "requires_az_login": true,
     "operator_action_required": true
