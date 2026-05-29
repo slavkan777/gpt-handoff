@@ -1,13 +1,13 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_READINESS_PRE_FLIGHT_V0.1",
-  "gate_type": "planning-only Azure readiness dossier + cost/governance architecture",
+  "gate": "AZURE_IAC_SKELETON_V0.1",
+  "gate_type": "Azure IaC (Bicep) skeleton + deployment docs + offline validation",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "ACCEPT_AZURE_PREFLIGHT_READY",
+  "verdict": "ACCEPT_IAC_SKELETON_READY",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "planning-only gate; no product/runtime change; next action is Slava manual Azure account + budget setup",
+  "ready_for_slava_manual_retest_reason": "infra skeleton + docs only; nothing deployed; no product/runtime change",
   "date_utc": "2026-05-29",
-  "scope_summary": "Produce a complete, interview-grade Azure deployment plan (service matrix, target architecture, cost model + guardrails, Slava manual checklist, 7-gate sequence, interview story) for a production-shaped deployment at ~$5-10/month. No Azure login, no resources, no deploy, no secrets, no source commit/push.",
+  "scope_summary": "Author a Bicep IaC skeleton (subscription-scope main + 8 RG-scoped modules + params + README), 4 deployment docs, and a disabled workflow_dispatch-only CI workflow; validate offline with az bicep build. No az login, no resources, no deploy, no secrets, no source commit/push. All files left uncommitted for the commit gate.",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
@@ -16,91 +16,100 @@
     "origin_dev": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
     "origin_main_unchanged": true,
-    "working_tree_status": "4 new untracked azure planning docs + test-results/.last-run.json; 0 staged; no commit/push"
+    "staged": 0,
+    "working_tree_after": "+17 new uncommitted files this gate + 4 uncommitted pre-flight docs (prior gate) + test-results/.last-run.json"
   },
-  "repo_readiness": {
-    "verdict": "GAPS_FOUND (expected — scaffolding is future-gate work)",
-    "frontend": "Vite SPA -> static dist/ => Static Web Apps (gap: staticwebapp.config.json)",
-    "backend": ".NET 9 single Api host referencing 6 service libs in-proc (microservice-shaped modular monolith) => 1 Container App scale-to-zero (gap: Dockerfile)",
-    "containers": "none present",
-    "config": "IConfiguration; conn-string + DEEPSEEK_API_KEY via env (never logged); appsettings.json clean => Key Vault + Managed Identity",
-    "ai_mode": "IAiProvider Mock default / DeepSeek opt-in disabled => Azure OpenAI provider behind same seam, manual (gate 6)",
-    "db_mode": "SQL Server LocalDB, 6 schemas, DbMigrator => Azure SQL Serverless auto-pause, connection-string swap only (gate 4)",
-    "ci_cd": "none => GitHub Actions + OIDC (gate 2)",
-    "iac": "none => Bicep (gate 2)"
-  },
-  "azure_architecture": {
-    "public_layer": "Static Web Apps CDN SPA — no backend/DB/AI on anonymous load",
-    "auth_layer": "SWA built-in auth / Entra External ID — compute+AI only after login",
-    "api_layer": "Container Apps insurance-api, minReplicas=0, cold-start on first authed call",
-    "microservices": "insurance-api (monolith now) + ai-worker (split later) + cleanup-job (ACA Job cron)",
-    "db": "Azure SQL Database Serverless, auto-pause 1h",
-    "storage": "Azure Blob (Hot/Cool) for artifacts",
-    "cleanup": "Blob lifecycle TTL + cleanup-job + SQL auto-pause",
-    "secrets_identity": "Key Vault + Managed Identity (passwordless)",
-    "observability": "App Insights/Monitor/Log Analytics, sampling + 30-day retention + daily cap (free <5GB)",
-    "ai_services": "Azure OpenAI/Foundry + Document Intelligence F0 + AI Search Free — manual-trigger, token/page caps, Mock default, advisory-only + audit",
-    "ci_cd": "GitHub Actions build/test/containerize/deploy via OIDC federated identity (no stored secret)",
-    "iac": "Bicep infra/*.bicep",
-    "aks": "DEFERRED — 24/7 node cost; ACA delivers scale-to-zero at $0 idle; AKS = real-scale/multi-team answer only"
-  },
-  "cost_model": {
-    "real_target": "$5-10/month (often $0-5 with GHCR + SWA Free)",
+  "azure_context": {
+    "budget_created_by_operator": true,
+    "monthly_budget_usd": 30,
+    "alerts_usd": [5, 10, 20, 30, 50],
+    "current_spend_usd": 0,
+    "real_target": "$5-10/month",
     "comfort_cap": "$30/month",
     "architecture_ceiling": "~$1000/month",
-    "alerts": "$5/$10/$20/$30/$50 — NOTIFY only, do not stop resources",
-    "top_risks": ["SQL not auto-pausing", "ACA minReplicas>0", "AI loops/background", "Document Intelligence large batches", "AI Search Basic SKU ~$75/mo", "log/telemetry volume", "blob growth", "ACR Basic ~$5/mo fixed"],
-    "mitigations": ["scale-to-zero", "SQL auto-pause", "manual AI + Mock default", "Document Intelligence F0 + AI Search Free tiers", "App Insights sampling + retention cap", "blob lifecycle TTL", "GHCR instead of ACR", "single resource group tear-down", "monthly cost review"]
+    "region_decision": "default westeurope (confirm at deploy)"
   },
-  "slava_setup": {
-    "required_manual_steps": ["create/sign-in Azure account ($200/30-day trial + always-free)", "select subscription (do not paste its id)", "create budget alerts $5-50 FIRST", "choose + record region (West/North Europe or East US)", "approve naming (rg-iap-prod, iap-prod-*)", "ensure GitHub repo reachable for OIDC"],
-    "do_not_do_yet": ["create any resource manually", "create AI deployments", "paste secrets/keys/subscription-id", "enable paid/background services", "az login outside an explicit deploy gate"]
+  "iac_decision": {
+    "approach": "Bicep-first (subscription-scope main.bicep creates RG + wires RG-scoped modules)",
+    "why": "Azure-native, no state backend, first-class type checking, azd-compatible, strongest Azure interview story",
+    "why_not_terraform": "no multi-cloud requirement; avoids running a state backend + provider auth for a single-cloud demo",
+    "why_not_azd_only": "azd uses Bicep underneath; a clean modular Bicep tree can be wrapped by azd later without rework"
   },
-  "gate_plan": [
-    "AZURE_ACCOUNT_AND_BUDGET_SETUP_MANUAL_V0.1 — manual account + budget alerts + region/naming; 0 resources",
-    "AZURE_IAC_SKELETON_V0.1 — Bicep + Dockerfile + CI + commit azure docs/IaC to dev; no apply",
-    "AZURE_MINIMAL_DEPLOY_V0.1 — SWA + 1 scale-to-zero Container App via GHCR+OIDC; first real spend ~$0",
-    "AZURE_SQL_SERVERLESS_INTEGRATION_V0.1 — auto-pause SQL + Key Vault + Managed Identity; connection-string swap",
-    "AZURE_BLOB_AND_CLEANUP_V0.1 — Blob + lifecycle TTL + cleanup-job",
-    "AZURE_AI_CONTROLLED_DEMO_V0.1 — governed real AI behind a button; Mock stays default",
-    "PORTFOLIO_INTERVIEW_POLISH_V0.1 — README/diagram/cost screenshot/Q&A"
-  ],
-  "local_docs": {
-    "created": true,
-    "committed": false,
-    "commit_in_gate": "AZURE_IAC_SKELETON_V0.1",
-    "paths": [
+  "files_created": {
+    "infra": [
+      "infra/main.bicep",
+      "infra/README.md",
+      "infra/parameters/demo.bicepparam",
+      "infra/modules/monitoring.bicep",
+      "infra/modules/identity.bicep",
+      "infra/modules/key-vault.bicep",
+      "infra/modules/storage.bicep",
+      "infra/modules/container-apps.bicep",
+      "infra/modules/sql-serverless.bicep",
+      "infra/modules/static-web-app.bicep",
+      "infra/modules/ai-optional.bicep",
+      "infra/modules/budgets-notes.md"
+    ],
+    "docs_new": [
+      "docs/architecture/azure/AZURE_IAC_SKELETON_V0.1.md",
+      "docs/architecture/azure/AZURE_DEPLOYMENT_RUNBOOK_V0.1.md",
+      "docs/architecture/azure/AZURE_RESOURCE_NAMING_V0.1.md",
+      "docs/architecture/azure/AZURE_INTERVIEW_STORY_V0.1.md"
+    ],
+    "docs_prior_gate_still_uncommitted": [
       "docs/architecture/azure/AZURE_READINESS_PRE_FLIGHT_V0.1.md",
       "docs/architecture/azure/AZURE_SERVICE_MATRIX_V0.1.md",
       "docs/architecture/azure/AZURE_COST_GOVERNANCE_V0.1.md",
       "docs/architecture/azure/AZURE_GATE_PLAN_V0.1.md"
-    ]
+    ],
+    "workflows": [".github/workflows/azure-deploy-demo.yml (workflow_dispatch only; deploy guarded; az steps commented; OIDC placeholders; no secrets)"]
+  },
+  "resource_model": {
+    "static_web_app": "SWA Free — public static; auth-gated protected routes",
+    "auth": "SWA built-in auth / Entra (documented)",
+    "container_apps": "env + insurance-api, minReplicas=0 scale-to-zero, HTTP scale rule, user-assigned MI",
+    "sql_serverless": "GP_S_Gen5_1, autoPauseDelay=60, azureADOnlyAuthentication=true (no password)",
+    "storage_cleanup": "Storage allowSharedKeyAccess=false + 4 containers + lifecycle TTL (delete after blobTtlDays)",
+    "key_vault_identity": "Key Vault RBAC + user-assigned MI + role assignments (KV Secrets User, Blob Data Contributor)",
+    "observability": "Log Analytics retention 30d + dailyQuotaGb 1; App Insights SamplingPercentage 50",
+    "ai_optional": "OpenAI S0 + Document Intelligence F0 + AI Search Free — only if enableAi=true (default false); disableLocalAuth=true",
+    "aks": "deferred (not modelled)"
+  },
+  "validation": {
+    "commands": ["az bicep install (Bicep CLI 0.43.8)", "az bicep build --file infra/main.bicep"],
+    "result": "EXIT 0, 0 errors, 0 warnings, ARM template emitted (1291 lines)",
+    "limitations": "offline only — no az login / no what-if / no deployment; does not verify live Azure quota/region/SKU availability"
   },
   "safety": {
-    "az_login": false,
+    "secrets_scan": "PASS — no secret values; only public Azure built-in role IDs + all-zeros placeholder; no real subscription/tenant ids; no keys/passwords/connection strings",
+    "passwordless_by_design": "allowSharedKeyAccess=false (storage) + azureADOnlyAuthentication=true (SQL) + Key Vault RBAC + Managed Identity",
+    "azure_login_used": false,
     "resources_created": false,
-    "secrets_read_or_pasted": false,
-    "deepseek_key_touched": false,
-    "product_code_changed": false,
-    "source_commit_or_push": false,
+    "deploy_run": false,
+    "source_commit_attempted": false,
+    "source_push_attempted": false,
     "main_touched": false,
-    "real_pii": false,
-    "real_ai_call": false
+    "product_code_changed": false,
+    "ai_provider_activated": false
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/azure-readiness-pre-flight-v0.1/report.md"
+    "InsuranceAIPlatform/azure-iac-skeleton-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "4 local azure docs are uncommitted (per gate); committed in AZURE_IAC_SKELETON_V0.1",
-    "cost figures are list-price estimates for a tiny workload; verify against the live budget after gate 3",
-    "test-results/ not gitignored (future housekeeping)"
+    "all files uncommitted (commit gate next)",
+    "bicep build is offline — does not verify live Azure quota / region SKU / model availability (surfaces at what-if/deploy)",
+    "deploy-time inputs deferred: insuranceApiImage (GHCR tag) + sqlAdminObjectId (Entra group oid) — supplied at deploy, never committed",
+    "Dockerfile + GHCR publish + OIDC federation are AZURE_MINIMAL_DEPLOY_V0.1 deliverables",
+    "test-results/.last-run.json still untracked (future housekeeping)"
   ],
   "next_safe_step": {
-    "name": "AZURE_ACCOUNT_AND_BUDGET_SETUP_MANUAL_V0.1",
-    "type": "Slava manual — account + subscription + budget alerts + region/naming; 0 resources created",
+    "name": "AZURE_IAC_SKELETON_COMMIT_V0.1",
+    "alt_name": "COMMIT_AND_PUSH_AZURE_IAC_SKELETON_V0.1",
+    "action": "commit infra/ + 8 docs/architecture/azure/* + disabled workflow to dev (commit gate runs QA-inspector path)",
+    "then": "AZURE_MINIMAL_DEPLOY_V0.1 (Dockerfile + GHCR + OIDC + first real deploy ~$0)",
     "operator_action_required": true
   }
 }
