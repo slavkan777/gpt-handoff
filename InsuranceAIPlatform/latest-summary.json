@@ -1,19 +1,20 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_IAC_SKELETON_COMMIT_V0.1",
-  "gate_type": "final validation + source commit (dev) + push to origin/dev + gpt-handoff report",
+  "gate": "AZURE_IAC_SKELETON_PUSH_RETRY_V0.1",
+  "gate_type": "push-only retry of existing local commit + verification + gpt-handoff report",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
   "verdict": "PUSH_BLOCKED",
+  "push_attempt_number": 2,
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "infra/docs/workflow committed locally only; push rejected by GitHub (PAT lacks workflow scope); nothing deployed; no product/runtime change",
+  "ready_for_slava_manual_retest_reason": "push still rejected; commit a70071d remains local only; nothing deployed; no product/runtime change",
   "date_utc": "2026-05-29",
-  "scope_summary": "Validate offline, safety-scan, QA-inspect, then commit the accepted Azure IaC skeleton + 8 Azure docs + 1 disabled workflow to dev and push to origin/dev. Commit succeeded (a70071d); push REJECTED because the PAT lacks the `workflow` scope and the commit adds a GitHub Actions workflow file. Atomic rejection — origin unchanged.",
+  "scope_summary": "Push-only retry of the existing, already-QA-cleared commit a70071d to origin/dev. No new commit, no edits, no force. Rejected again — the PAT lacks the `workflow` scope and the commit adds .github/workflows/azure-deploy-demo.yml. Origin unchanged.",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head_before": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
-    "head_after": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "head_after_pushed": false,
+    "local_head_before": "a70071d8e676126c4129e8fed00c3424082001e4",
+    "local_head_after": "a70071d8e676126c4129e8fed00c3424082001e4",
+    "local_head_changed": false,
     "origin_dev_before": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
     "origin_dev_after": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
     "origin_dev_changed": false,
@@ -21,15 +22,6 @@
     "origin_main_unchanged": true,
     "local_commit_ahead": 1,
     "working_tree_after": "clean except test-results/.last-run.json (intentionally untracked)"
-  },
-  "commit": {
-    "attempted": true,
-    "succeeded": true,
-    "sha": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "message": "chore: add Azure IaC skeleton and deployment plan",
-    "files_changed": 21,
-    "insertions": 1125,
-    "hook_result": "PASS — genuine QA-CLEARED via independent Opus /qa-inspector (no [qa-bypass] on source commit)"
   },
   "push": {
     "attempted": true,
@@ -40,73 +32,55 @@
     "atomic_reject": true,
     "origin_dev_after_push": "2e9443a6726f34f20bd26233e840ae8cc982d91a"
   },
-  "qa_inspector": {
-    "model": "Opus 4.8 (independent read-only subagent)",
-    "verdict": "CLEARED",
-    "score": "7/7",
-    "independently_verified": ["branch/baseline", "21-file scope", "test-results excluded", "no product code", "az bicep build exit 0 (re-run)", "staged-diff secret/GUID scan", "workflow dispatch-only + guarded"]
+  "no_change_guard": {
+    "file_edits": false,
+    "staged_files": 0,
+    "new_commit": false,
+    "amend_reset_rebase": false
   },
-  "files_committed_locally": {
-    "infra": [
-      "infra/main.bicep", "infra/README.md", "infra/parameters/demo.bicepparam",
-      "infra/modules/monitoring.bicep", "infra/modules/identity.bicep", "infra/modules/key-vault.bicep",
-      "infra/modules/storage.bicep", "infra/modules/container-apps.bicep", "infra/modules/sql-serverless.bicep",
-      "infra/modules/static-web-app.bicep", "infra/modules/ai-optional.bicep", "infra/modules/budgets-notes.md"
-    ],
-    "docs": [
-      "docs/architecture/azure/AZURE_READINESS_PRE_FLIGHT_V0.1.md",
-      "docs/architecture/azure/AZURE_SERVICE_MATRIX_V0.1.md",
-      "docs/architecture/azure/AZURE_COST_GOVERNANCE_V0.1.md",
-      "docs/architecture/azure/AZURE_GATE_PLAN_V0.1.md",
-      "docs/architecture/azure/AZURE_IAC_SKELETON_V0.1.md",
-      "docs/architecture/azure/AZURE_DEPLOYMENT_RUNBOOK_V0.1.md",
-      "docs/architecture/azure/AZURE_RESOURCE_NAMING_V0.1.md",
-      "docs/architecture/azure/AZURE_INTERVIEW_STORY_V0.1.md"
-    ],
-    "workflows": [".github/workflows/azure-deploy-demo.yml"],
-    "excluded": ["test-results/.last-run.json"]
-  },
-  "validation": {
-    "commands": ["az bicep build --file infra/main.bicep"],
-    "result": "EXIT 0, 0 errors, 0 warnings, ARM template 1291 lines",
-    "limitations": "offline only — no az login / no what-if / no deployment"
+  "diagnosis": {
+    "remote_url": "https://slavkan777@github.com/slavkan777/InsuranceAIPlatform.git",
+    "credential_helper": "manager-core (Git Credential Manager -> Windows Credential Manager)",
+    "gh_cli": "not installed / not logged in",
+    "implication": "git's PAT lives in Windows Credential Manager, NOT gh; `gh auth refresh -s workflow` is not applicable. Fix the stored PAT's scope.",
+    "required_token_scopes": ["repo", "workflow"]
   },
   "safety": {
-    "secrets_scan_pre_stage": "PASS",
-    "secrets_scan_staged": "PASS — no secret values; only all-zeros placeholder + 3 public Azure built-in role IDs; DEEPSEEK_API_KEY name-only in security notes",
     "azure_login_used": false,
     "resources_created": false,
     "deploy_run": false,
     "main_touched": false,
     "force_push_used": false,
     "product_code_changed": false,
-    "credential_or_token_scope_changed": false
+    "credential_or_token_scope_changed": false,
+    "secrets_printed": false
   },
   "blocker": {
     "type": "github_pat_missing_workflow_scope",
-    "detail": "The PAT used by git lacks the `workflow` OAuth scope. The commit contains .github/workflows/azure-deploy-demo.yml, so GitHub rejects the entire push. Not a content/secret problem.",
-    "executor_will_not": ["change token scope (operator-only)", "split/re-scope the commit without authorization", "force-push", "reset the local commit"]
+    "persisted_across_attempts": 2,
+    "detail": "The PAT in Windows Credential Manager lacks the `workflow` OAuth scope. The commit contains an Actions workflow file, so GitHub rejects the entire push. Not a content/secret problem.",
+    "operator_fix": {
+      "classic_pat": "GitHub > Developer settings > Tokens (classic) > the token > tick `workflow` > Update (same token, effective immediately)",
+      "new_or_finegrained": "grant Workflows R/W, then clear cached cred (`cmdkey /delete:git:https://github.com`) so Credential Manager re-prompts for the new token",
+      "executor_will_not": ["change token scope", "delete/modify cached credentials", "force-push", "reset/amend the commit", "remove the workflow file"]
+    }
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/azure-iac-skeleton-commit-v0.1/report.md"
+    "InsuranceAIPlatform/azure-iac-skeleton-push-retry-v0.1/report.md"
   ],
-  "remediation_options": {
-    "A_recommended": "Slava grants the PAT `workflow` scope (GitHub > Developer settings > PAT > enable workflow; or `gh auth refresh -s workflow -h github.com`), then a PUSH-ONLY retry of the same commit a70071d -> PUSHED. No re-commit.",
-    "B_alternative": "GPT authorizes deferring the workflow file: re-commit infra/ + 8 docs only (drop .github/workflows), push now, add the workflow in AZURE_MINIMAL_DEPLOY_V0.1."
-  },
   "next_safe_step": {
-    "name": "AZURE_IAC_SKELETON_PUSH_RETRY_V0.1",
-    "action": "after path A: pre-push checks + git push origin dev of a70071d; verify origin/dev==a70071d and origin/main unchanged",
-    "alt": "if path B: re-scoped commit gate dropping the workflow file",
+    "name": "AZURE_IAC_SKELETON_PUSH_RETRY_V0.1 (re-run)",
+    "action": "after token gains `workflow` scope: git push origin dev of the same commit a70071d; verify origin/dev==a70071d and origin/main unchanged",
+    "alt": "re-scoped commit gate dropping .github/workflows/azure-deploy-demo.yml, deferring it to AZURE_MINIMAL_DEPLOY_V0.1 (requires authorization)",
     "operator_action_required": true
   },
-  "blockers": ["github PAT missing `workflow` scope blocks the push of the committed workflow file"],
+  "blockers": ["github PAT (Windows Credential Manager) missing `workflow` scope blocks the push of the committed workflow file"],
   "limitations": [
     "local commit a70071d exists but is NOT on the remote",
-    "bicep build offline — does not verify live Azure quota/region/SKU/model availability",
-    "deploy-time inputs deferred: insuranceApiImage (GHCR tag) + sqlAdminObjectId (Entra group oid)",
+    "no rework needed once token scope is fixed",
+    "deploy-time inputs still deferred: insuranceApiImage (GHCR tag) + sqlAdminObjectId (Entra group oid)",
     "Dockerfile + GHCR publish + OIDC federation remain AZURE_MINIMAL_DEPLOY_V0.1 deliverables"
   ]
 }
