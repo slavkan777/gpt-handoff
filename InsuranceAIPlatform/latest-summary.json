@@ -1,81 +1,106 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "DOCS_ARCHITECTURE_DURABLE_COMMIT_V0.1",
-  "gate_type": "documentation durability audit + AIKB project-state refresh",
+  "gate": "AZURE_READINESS_PRE_FLIGHT_V0.1",
+  "gate_type": "planning-only Azure readiness dossier + cost/governance architecture",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "ACCEPT_SOURCE_DOCS_ALREADY_DURABLE_AIKB_UPDATED",
+  "verdict": "ACCEPT_AZURE_PREFLIGHT_READY",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "docs/AIKB confirmation gate; no product behavior changed; Manual V5 acceptance still in force",
+  "ready_for_slava_manual_retest_reason": "planning-only gate; no product/runtime change; next action is Slava manual Azure account + budget setup",
   "date_utc": "2026-05-29",
-  "scope_summary": "Audit the docs committed in dev 2e9443a for durability + portfolio safety; refresh stale AIKB project state to the pushed commit. No product code, no Azure.",
+  "scope_summary": "Produce a complete, interview-grade Azure deployment plan (service matrix, target architecture, cost model + guardrails, Slava manual checklist, 7-gate sequence, interview story) for a production-shaped deployment at ~$5-10/month. No Azure login, no resources, no deploy, no secrets, no source commit/push.",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head_before": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
-    "head_after": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
+    "head": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
     "head_unchanged": true,
     "origin_dev": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
     "origin_main_unchanged": true,
-    "working_tree_status": "clean except test-results/.last-run.json (untracked Playwright artifact; not gitignored)"
+    "working_tree_status": "4 new untracked azure planning docs + test-results/.last-run.json; 0 staged; no commit/push"
   },
-  "source_docs": {
-    "inventory": "40 docs/architecture/* + docs/design/* + ~25 docs/reports/* + 23 screenshots/walkthrough PNGs (all in commit 2e9443a)",
-    "decision": "ALREADY_DURABLE",
-    "source_docs_changed": false,
-    "source_docs_commit": null,
-    "safety_audit": "PASS",
-    "safety_detail": "secret-value scan over docs/ = no matches; false-claim scan returned only correctly-framed lines (no Azure resources created; real DeepSeek calls opt-in/never default; honest mock-fallback labels); no real PII; no false Azure-deployed or provider-active claim"
+  "repo_readiness": {
+    "verdict": "GAPS_FOUND (expected — scaffolding is future-gate work)",
+    "frontend": "Vite SPA -> static dist/ => Static Web Apps (gap: staticwebapp.config.json)",
+    "backend": ".NET 9 single Api host referencing 6 service libs in-proc (microservice-shaped modular monolith) => 1 Container App scale-to-zero (gap: Dockerfile)",
+    "containers": "none present",
+    "config": "IConfiguration; conn-string + DEEPSEEK_API_KEY via env (never logged); appsettings.json clean => Key Vault + Managed Identity",
+    "ai_mode": "IAiProvider Mock default / DeepSeek opt-in disabled => Azure OpenAI provider behind same seam, manual (gate 6)",
+    "db_mode": "SQL Server LocalDB, 6 schemas, DbMigrator => Azure SQL Serverless auto-pause, connection-string swap only (gate 4)",
+    "ci_cd": "none => GitHub Actions + OIDC (gate 2)",
+    "iac": "none => Bicep (gate 2)"
   },
-  "aikb": {
-    "current_state_was_stale": true,
-    "stale_detail": "CURRENT_STATE.md said READY_FOR_COMMIT_GATE / 89/89 / persistence 'not accepted yet' / origin/dev=fed2bc4",
-    "files_updated": [
-      "01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md (status + dated CURRENT TRUTH supersede block + next-step)",
-      "01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md (4 new entries: investigation, hardening, commit-push PUSHED, this docs gate)",
-      "01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md (status code + source table + resolved blocker/boundary + next-step)"
-    ],
-    "durable_rules_changed": false,
-    "aikb_commit": "99e8bdf",
-    "aikb_push": "a3ddccc..99e8bdf (fast-forward, no force)",
-    "refresh_result": "UPDATED"
+  "azure_architecture": {
+    "public_layer": "Static Web Apps CDN SPA — no backend/DB/AI on anonymous load",
+    "auth_layer": "SWA built-in auth / Entra External ID — compute+AI only after login",
+    "api_layer": "Container Apps insurance-api, minReplicas=0, cold-start on first authed call",
+    "microservices": "insurance-api (monolith now) + ai-worker (split later) + cleanup-job (ACA Job cron)",
+    "db": "Azure SQL Database Serverless, auto-pause 1h",
+    "storage": "Azure Blob (Hot/Cool) for artifacts",
+    "cleanup": "Blob lifecycle TTL + cleanup-job + SQL auto-pause",
+    "secrets_identity": "Key Vault + Managed Identity (passwordless)",
+    "observability": "App Insights/Monitor/Log Analytics, sampling + 30-day retention + daily cap (free <5GB)",
+    "ai_services": "Azure OpenAI/Foundry + Document Intelligence F0 + AI Search Free — manual-trigger, token/page caps, Mock default, advisory-only + audit",
+    "ci_cd": "GitHub Actions build/test/containerize/deploy via OIDC federated identity (no stored secret)",
+    "iac": "Bicep infra/*.bicep",
+    "aks": "DEFERRED — 24/7 node cost; ACA delivers scale-to-zero at $0 idle; AKS = real-scale/multi-team answer only"
   },
-  "recorded_state_in_aikb": {
-    "source_branch": "dev",
-    "source_commit": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
-    "origin_dev_pushed": true,
-    "origin_main_unchanged": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-    "previous_gate": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1",
-    "previous_gate_verdict": "PUSHED",
-    "verification": "backend build PASS; xunit 137/137; frontend build PASS; Playwright 89/89 (0 flaky); e2e/21 PASS",
-    "blockers": "none",
-    "limitation": "test-results/.last-run.json remains local untracked artifact (future housekeeping)",
-    "next_gate": "AZURE_READINESS_PRE_FLIGHT_V0.1 (planning-only)",
-    "boundaries": "no Azure resources yet; no main; no real provider/API key (Mock default); synthetic data only"
+  "cost_model": {
+    "real_target": "$5-10/month (often $0-5 with GHCR + SWA Free)",
+    "comfort_cap": "$30/month",
+    "architecture_ceiling": "~$1000/month",
+    "alerts": "$5/$10/$20/$30/$50 — NOTIFY only, do not stop resources",
+    "top_risks": ["SQL not auto-pausing", "ACA minReplicas>0", "AI loops/background", "Document Intelligence large batches", "AI Search Basic SKU ~$75/mo", "log/telemetry volume", "blob growth", "ACR Basic ~$5/mo fixed"],
+    "mitigations": ["scale-to-zero", "SQL auto-pause", "manual AI + Mock default", "Document Intelligence F0 + AI Search Free tiers", "App Insights sampling + retention cap", "blob lifecycle TTL", "GHCR instead of ACR", "single resource group tear-down", "monthly cost review"]
+  },
+  "slava_setup": {
+    "required_manual_steps": ["create/sign-in Azure account ($200/30-day trial + always-free)", "select subscription (do not paste its id)", "create budget alerts $5-50 FIRST", "choose + record region (West/North Europe or East US)", "approve naming (rg-iap-prod, iap-prod-*)", "ensure GitHub repo reachable for OIDC"],
+    "do_not_do_yet": ["create any resource manually", "create AI deployments", "paste secrets/keys/subscription-id", "enable paid/background services", "az login outside an explicit deploy gate"]
+  },
+  "gate_plan": [
+    "AZURE_ACCOUNT_AND_BUDGET_SETUP_MANUAL_V0.1 — manual account + budget alerts + region/naming; 0 resources",
+    "AZURE_IAC_SKELETON_V0.1 — Bicep + Dockerfile + CI + commit azure docs/IaC to dev; no apply",
+    "AZURE_MINIMAL_DEPLOY_V0.1 — SWA + 1 scale-to-zero Container App via GHCR+OIDC; first real spend ~$0",
+    "AZURE_SQL_SERVERLESS_INTEGRATION_V0.1 — auto-pause SQL + Key Vault + Managed Identity; connection-string swap",
+    "AZURE_BLOB_AND_CLEANUP_V0.1 — Blob + lifecycle TTL + cleanup-job",
+    "AZURE_AI_CONTROLLED_DEMO_V0.1 — governed real AI behind a button; Mock stays default",
+    "PORTFOLIO_INTERVIEW_POLISH_V0.1 — README/diagram/cost screenshot/Q&A"
+  ],
+  "local_docs": {
+    "created": true,
+    "committed": false,
+    "commit_in_gate": "AZURE_IAC_SKELETON_V0.1",
+    "paths": [
+      "docs/architecture/azure/AZURE_READINESS_PRE_FLIGHT_V0.1.md",
+      "docs/architecture/azure/AZURE_SERVICE_MATRIX_V0.1.md",
+      "docs/architecture/azure/AZURE_COST_GOVERNANCE_V0.1.md",
+      "docs/architecture/azure/AZURE_GATE_PLAN_V0.1.md"
+    ]
   },
   "safety": {
-    "secrets": "none (docs scan clean)",
-    "real_pii": "none",
-    "azure_touched": false,
-    "source_main_touched": false,
-    "force_push_used": false,
-    "product_code_changed": false
+    "az_login": false,
+    "resources_created": false,
+    "secrets_read_or_pasted": false,
+    "deepseek_key_touched": false,
+    "product_code_changed": false,
+    "source_commit_or_push": false,
+    "main_touched": false,
+    "real_pii": false,
+    "real_ai_call": false
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/docs-architecture-durable-commit-v0.1/report.md"
+    "InsuranceAIPlatform/azure-readiness-pre-flight-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "test-results/ is not in .gitignore; test-results/.last-run.json remains untracked (future housekeeping)",
-    "CURRENT_STATE.md had substantial historical stale content; refreshed via dated supersede block + targeted anchor edits (status, source-branch-state, active-gate marker, next-step) rather than full rewrite",
-    "single-browser (Chromium) E2E coverage by design"
+    "4 local azure docs are uncommitted (per gate); committed in AZURE_IAC_SKELETON_V0.1",
+    "cost figures are list-price estimates for a tiny workload; verify against the live budget after gate 3",
+    "test-results/ not gitignored (future housekeeping)"
   ],
   "next_safe_step": {
-    "name": "AZURE_READINESS_PRE_FLIGHT_V0.1",
-    "type": "planning doc only — no Azure resources",
-    "boundaries": "no Azure SDK adoption, no provider/API-key work, no main, synthetic data only",
+    "name": "AZURE_ACCOUNT_AND_BUDGET_SETUP_MANUAL_V0.1",
+    "type": "Slava manual — account + subscription + budget alerts + region/naming; 0 resources created",
     "operator_action_required": true
   }
 }
