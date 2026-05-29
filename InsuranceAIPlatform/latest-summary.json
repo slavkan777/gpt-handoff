@@ -1,109 +1,78 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AI_DECISION_RECORDING_E2E_FLAKE_INVESTIGATION_V0.1",
-  "gate_type": "read-mostly investigation + reproducibility + root-cause evidence",
+  "gate": "E2E_06_AIDECISION_TIMEOUT_HARDENING_V0.1",
+  "gate_type": "test-infrastructure-only hardening + verification",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "model_drift_guard": "honored — gate followed exactly as written regardless of model change; evidence and stop-lines override model assumptions",
-  "verdict": "DIAGNOSED_PASS_ACCUMULATED_STATE",
-  "verdict_refined": "TRANSIENT_TIMING_ENVIRONMENT_FLAKE — DB-row-volume empirically ruled out; 89/89 restored on the exact working tree; no source fix required",
+  "verdict": "PASS",
+  "verdict_detail": "Minimal test-only hardening applied and verified stable; recommend reopening the commit/push gate.",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "investigation gate; no product behavior changed; prior Manual V5 acceptance still in force",
+  "ready_for_slava_manual_retest_reason": "test-infrastructure change only; no product behavior changed; prior Manual V5 acceptance still in force",
   "date_utc": "2026-05-29",
-  "supersedes": "Unblocks COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1 (was REWORK_REQUIRED on 88/89) — that gate can be re-opened; 89/89 is restored",
-  "scope_summary": "Investigate the e2e/06-claim-actions.spec.ts:54 (AI decision recording) failure that blocked the commit/push gate. Reproduce on current DB, classify, no product fix. Result: failure does not reproduce; 3 green runs (isolated x2 + full suite 89/89); DB accumulation grew yet all passed, ruling out row-volume; cause is a transient timing flake against a tight 15s test timeout.",
+  "scope_summary": "Apply the two test-only edits recommended by the AI-decision flake investigation: raise the e2e/06 ai-decision-recorded assertion timeout 15000->30000 and lift Playwright local retries 0->1. Verify e2e/06 alone, then the full suite twice. No product source, no commit/push.",
   "source_repo_head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "source_repo_head_after": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "source_repo_head_unchanged": true,
   "source_repo_origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
   "source_repo_origin_main_unchanged": true,
-  "working_tree_summary": "97 working-tree entries (porcelain), 0 staged — preserved exactly",
-  "bootstrap": {
-    "aikb_read": [
-      "01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md",
-      "01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md"
+  "working_tree_summary_before": "97 entries (porcelain), 0 staged",
+  "working_tree_summary_after": "97 entries (porcelain), 0 staged — both edited files were already untracked, so count unchanged",
+  "files_changed": [
+    {
+      "path": "e2e/06-claim-actions.spec.ts",
+      "change": "ai-decision-recorded visibility assertion timeout 15000 -> 30000 (+ 4-line explanatory comment); selector and semantic expectation unchanged",
+      "reason": "match the 30s AI-analysis wait; POST /ai-decision does more work (latest-run lookup + audit insert + outbox insert) so a tight 15s window flaked under local machine load",
+      "category": "test"
+    },
+    {
+      "path": "playwright.config.ts",
+      "change": "retries: process.env.CI ? 1 : 0  ->  retries: 1 (+ comment)",
+      "reason": "local 0->1 so a rare transient flake auto-recovers and trace:on-first-retry captures a step-replay; CI unchanged at 1; trace/screenshot/video behavior preserved",
+      "category": "test-config"
+    }
+  ],
+  "evidence_reconciliation": {
+    "latest_report_read": true,
+    "sources": [
+      "gpt-handoff InsuranceAIPlatform/ai-decision-recording-e2e-flake-investigation-v0.1/report.md (authored this session)",
+      "ai-kb 01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md",
+      "ai-kb 01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md"
     ],
-    "gpt_handoff_read": [
-      "InsuranceAIPlatform/latest-report.md",
-      "InsuranceAIPlatform/latest-summary.json",
-      "InsuranceAIPlatform/commit-and-push-dev-realistic-sandbox-batch-v0.1/report.md"
-    ],
-    "conflicts": "CURRENT_STATE.md is STALE (says READY_FOR_COMMIT_GATE / 89/89) vs LATEST_CHAT_HANDOFF.md + commit-push report (BLOCKED / 88/89). Used latest execution evidence per reconciliation order. AIKB not edited (out of scope)."
+    "recommendation_confirmed": true,
+    "conflicts": "CURRENT_STATE.md still stale (89/89 / READY_FOR_COMMIT_GATE); used latest evidence; AIKB not edited (out of scope)"
+  },
+  "verification": {
+    "e2e_06": {"command": "npx playwright test e2e/06-claim-actions.spec.ts --reporter=line", "result": "PASS", "counts": "5/5", "wall": "32.8s"},
+    "e2e_21": {"how": "confirmed inside full suite", "result": "PASS", "cases": ["e2e/21:32 created-claim binding", "e2e/21:156 CLM-1006 no-regression"], "weakened": false},
+    "full_suite_run_1": {"command": "npx playwright test --reporter=line", "result": "PASS", "counts": "89/89", "flaky": 0, "wall": "5.1m"},
+    "full_suite_run_2": {"command": "npx playwright test --reporter=line", "result": "PASS", "counts": "89/89", "flaky": 0, "wall": "4.1m"}
   },
   "safety": {
-    "secret_scan": "clean — no sk-ant-/sk-proj-/sk-or-v1-/AWS/Password= patterns in working tree",
-    "deepseek_key_touched": false,
+    "product_source_changed": false,
+    "note": "43 pre-existing tracked-modified server/src files from prior gates are untouched; both edited files are untracked test-infra; worktree count unchanged at 97",
+    "staged_files": 0,
     "source_commit_attempted": false,
     "source_push_attempted": false,
     "azure_touched": false,
-    "devdept_db_touched": false,
-    "real_pii_or_external_send": false
+    "main_touched": false,
+    "deepseek_key_touched": false,
+    "secrets_scan": "clean (a timeout int + a retries int + comments; provider=Mock confirmed in logs)",
+    "e2e_21_weakened": false
   },
-  "db_reset": {
-    "decision": "SKIPPED_SAFE_REASON",
-    "db_target": "InsuranceAIPlatform on (localdb)\\MSSQLLocalDB (synthetic; never DevDept)",
-    "reason": "isolated e2e/06 PASSES on the accumulated DB, so DB-row-volume is empirically ruled out; a destructive drop has no diagnostic value and would needlessly destroy synthetic state",
-    "reset_path_available": "server/InsuranceAIPlatform.DbMigrator (migrate + 6 service seeders); no built-in drop; Program.cs does not migrate/seed on startup"
-  },
-  "e2e_repro": {
-    "runs": [
-      {"scope": "e2e/06 isolated", "db": "accumulated", "result": "PASS", "counts": "5/5", "wall": "54.4s"},
-      {"scope": "e2e/06 isolated (re-run)", "db": "accumulated", "result": "PASS", "counts": "5/5", "wall": "32.7s"},
-      {"scope": "full suite (89 tests)", "db": "accumulated", "result": "PASS", "counts": "89/89", "wall": "4.1m"}
-    ],
-    "target_failure": "e2e/06-claim-actions.spec.ts:54 (AI analysis runs + AI decision recorded with source=AI)",
-    "reproduced": false,
-    "artifacts": "none (screenshot/video only-on-failure; nothing failed)"
-  },
-  "db_accumulation_evidence": {
-    "ai_analysis.AiAnalysisRuns": {"before": 50, "after": 57, "clm_1006_after": 55},
-    "audit_cost.AuditEvents": {"before": 178, "after": 207},
-    "audit_cost.OutboxMessages": {"before": 174, "after": 203},
-    "interpretation": "accumulation grew across the 3 runs yet 100% pass — row-volume ruled out as the cause; also modest sizes where a sort/scan is sub-millisecond"
-  },
-  "diagnosis": {
-    "classification": "ACCUMULATED_DB_STATE_OR_TEST_BRITTLENESS -> refined TRANSIENT_TIMING_ENVIRONMENT_FLAKE",
-    "primary_root_cause": "The 2026-05-28 88/89 was a transient timing flake: POST /api/claims/CLM-1006/ai-decision round-trip occasionally exceeded the test's tight 15s actionTimeout under machine load during a long serial run, leaving the button in 'Збереження…'. Not a product defect; not DB-row-volume.",
-    "evidence_file_lines": [
-      "e2e/06-claim-actions.spec.ts:72-74 — ai-decision-recorded assertion {timeout:15000} vs analysis-completion {timeout:30000} at :61-64",
-      "PersistenceAuditCostService.cs:45-101 — IDbContextFactory + await using; no leak; outbox idempotency FirstOrDefaultAsync at :82-83 (negligible at 203 rows)",
-      "PersistenceAiAnalysisOrchestrator.cs:99,221 — IDbContextFactory + await using; GetLatestAsync:228 non-sargable OrderByDescending(CreatedAtUtc ?? DateTime.MinValue) (negligible at 57 rows)",
-      "HybridClaimReadService.cs:61-62 — CLM-1006 served from in-memory seed; the sync-over-async .GetAwaiter().GetResult() bridge is NOT on this failing path",
-      "Program.cs:31,61-63 — DbContexts lazy-connect; no startup migrate/seed"
-    ],
-    "network_observations": "backend logs show EF DbCommand 34-40ms; no errors; all flows completed",
-    "console_observations": "AI provider resolved to: Mock (default safe fallback) — no DeepSeek/real external call",
-    "structural_defect_found": false
-  },
-  "semantic_regression": {
-    "e2e_21_status": "PASS",
-    "cases": ["e2e/21:32 created-claim binding", "e2e/21:156 CLM-1006 no-regression"],
-    "weakened": false,
-    "notes": "ran inside the 89/89 full suite"
-  },
-  "product_source_changed": false,
-  "test_files_changed": false,
-  "ai_provider_changed": false,
-  "sacred_files_touched": false,
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/ai-decision-recording-e2e-flake-investigation-v0.1/report.md"
+    "InsuranceAIPlatform/e2e-06-aidecision-timeout-hardening-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "Single-machine, single-day timing evidence; a load-dependent flake's non-reproduction today does not prove it can never recur — hence the timeout-hardening recommendation",
-    "DB reset deliberately not performed (justified); fresh-DB behavior inferred from the accumulated-DB isolated pass, not directly executed",
-    "Single-browser (Chromium) coverage per the suite's design",
-    "CURRENT_STATE.md in AIKB is stale (89/89 / READY_FOR_COMMIT_GATE) — optional AIKB refresh recommended, out of scope here"
+    "retries:1 means a future single transient flake is reported 'flaky' (still exit 0) rather than failed — surfaced honestly; does not mask a deterministic bug (a real bug fails both attempts)",
+    "single-browser (Chromium) coverage per the suite's design",
+    "AIKB CURRENT_STATE.md is stale (89/89 / READY_FOR_COMMIT_GATE) — optional AIKB refresh recommended, out of scope here"
   ],
   "next_safe_step": {
-    "name": "E2E_06_AIDECISION_TIMEOUT_HARDENING_V0.1",
-    "recommended": true,
-    "test_only_no_product_source": true,
-    "description": "Tiny test-infrastructure hardening so the commit gate's verification run is reliable under load: (1) e2e/06-claim-actions.spec.ts:72-74 raise ai-decision-recorded timeout 15000 -> 30000 (match the analysis assertion); (2) playwright.config.ts:29 retries 0 -> 1 locally (enables trace:on-first-retry capture). Does NOT weaken any semantic/negative assertion; e2e/21 untouched.",
-    "done_state": "89/89 stable across 2 consecutive full-suite runs; e2e/21 untouched; no product source change",
-    "then": "re-open COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1 (89/89 already restored; commit gate unblocked)",
-    "alternative": "operator may re-open the commit/push gate directly now, accepting a small residual flake risk during verification",
+    "name": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1",
+    "action": "REOPEN",
+    "why": "89/89 stable across two consecutive full-suite runs; the AI-decision flake is hardened; the 97-entry dev working tree (43 tracked product files from prior gates + untracked new files, now including these 2 hardened test files) is ready for the bounded commit/push gate",
     "operator_action_required": true
   }
 }

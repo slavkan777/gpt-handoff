@@ -1,30 +1,30 @@
 # InsuranceAIPlatform — Latest gate report
 
-**Gate:** AI_DECISION_RECORDING_E2E_FLAKE_INVESTIGATION_V0.1
-**Type:** read-mostly investigation + reproducibility + root-cause evidence
+**Gate:** E2E_06_AIDECISION_TIMEOUT_HARDENING_V0.1
+**Type:** test-infrastructure-only hardening + verification
 **Date (UTC):** 2026-05-29
-**Verdict:** **DIAGNOSED_PASS_ACCUMULATED_STATE** (refined: transient timing/environment flake; DB-row-volume ruled out; **89/89 restored**)
-**Executor model/version:** Opus 4.8 (1M context) — `claude-opus-4-8[1m]` *(MODEL DRIFT GUARD honored: gate followed exactly as written regardless of model; evidence + stop-lines govern)*
+**Verdict:** **PASS** — hardening applied; e2e/06 5/5; full suite **89/89 ×2** (0 flaky); ready to reopen commit/push gate
+**Executor model/version:** Opus 4.8 (1M context) — `claude-opus-4-8[1m]`
 
 **Source `dev` HEAD before/after:** `03725241c8dfdbed7ce17db61fb51d9d7f211116` / `03725241…` *(unchanged)*
 **Source `origin/main`:** `69e67312a10cc9bcf28c4e387a126b48c91fb9c5` *(unchanged)*
 
-**Full report:** [ai-decision-recording-e2e-flake-investigation-v0.1/report.md](ai-decision-recording-e2e-flake-investigation-v0.1/report.md)
+**Full report:** [e2e-06-aidecision-timeout-hardening-v0.1/report.md](e2e-06-aidecision-timeout-hardening-v0.1/report.md)
 
 ---
 
 ## Bottom line
 
-The prior gate's `e2e/06-claim-actions.spec.ts:54` failure (88/89 on 2026-05-28) **does not reproduce** today on the same working tree. Three green runs: isolated `e2e/06` **5/5** (×2) and the **full suite 89/89** — including both `e2e/21` semantic-regression cases. DB accumulation *grew* across the runs (`AiAnalysisRuns` 50→57) yet everything passed, empirically ruling out row-volume. Cause = a **transient timing flake** (the AI-decision assertion's 15s timeout is tighter than the 30s used for analysis, and the POST does more work). No product fix required.
+Applied the two test-only edits recommended by the investigation gate: `e2e/06` AI-decision assertion timeout `15000→30000` and `playwright.config.ts` `retries 0→1` (local). Verified stable: `e2e/06` 5/5, then **full suite 89/89 twice** (0 flaky), with both `e2e/21` semantic-regression cases passing. No product source changed; source HEAD unchanged; nothing staged/committed/pushed. **Next: reopen the commit/push gate.**
 
 ---
 
 ## REPORT BACK FORMAT
 
 ```text
-VERDICT: DIAGNOSED_PASS_ACCUMULATED_STATE (refined: transient timing/environment flake; DB-row-volume ruled out; 89/89 restored)
-GATE: AI_DECISION_RECORDING_E2E_FLAKE_INVESTIGATION_V0.1
-MODEL_USED: Opus 4.8 (1M context) / claude-opus-4-8[1m] — MODEL DRIFT GUARD honored; gate followed exactly as written; evidence + stop-lines override model assumptions
+VERDICT: PASS — test-only hardening applied; e2e/06 5/5; full suite 89/89 x2 (0 flaky); recommend reopening commit/push gate
+GATE: E2E_06_AIDECISION_TIMEOUT_HARDENING_V0.1
+MODEL_USED: Opus 4.8 (1M context) / claude-opus-4-8[1m]
 SOURCE_REPO:
   path: C:/Projects/InsuranceAIPlatform
   branch: dev
@@ -32,50 +32,41 @@ SOURCE_REPO:
   head_after:  03725241c8dfdbed7ce17db61fb51d9d7f211116 (unchanged)
   origin_dev:  03725241c8dfdbed7ce17db61fb51d9d7f211116
   origin_main: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5 (unchanged)
-  working_tree_summary: 97 working-tree entries (porcelain), 0 staged — preserved exactly; no edits/commit/push
-BOOTSTRAP:
-  aikb_read: CURRENT_STATE.md, CONTEXT_PACK/LATEST_CHAT_HANDOFF.md (+ this-session knowledge of OPERATING_PROTOCOL / E2E_SEMANTIC_ASSERTION_RULE / AUTO_CONTEXT_SAVER_RULE)
-  gpt_handoff_read: latest-report.md, latest-summary.json, commit-and-push-dev-realistic-sandbox-batch-v0.1/report.md
-  conflicts: CURRENT_STATE.md STALE (READY_FOR_COMMIT_GATE / 89/89) vs LATEST_CHAT_HANDOFF + commit-push report (BLOCKED / 88/89). Used latest execution evidence; AIKB not edited (out of scope).
+  working_tree_summary_before: 97 entries (porcelain), 0 staged
+  working_tree_summary_after:  97 entries (porcelain), 0 staged — both edited files were already untracked, so count unchanged
+FILES_CHANGED:
+  - path: e2e/06-claim-actions.spec.ts
+    lines: ai-decision-recorded visibility assertion timeout 15000 -> 30000 (+ 4-line explanatory comment); selector + semantic expectation unchanged
+    reason: match the 30s AI-analysis wait; POST /ai-decision does more work (run lookup + audit + outbox insert) so a tight 15s window flaked under local load
+  - path: playwright.config.ts
+    lines: retries: process.env.CI ? 1 : 0  ->  retries: 1 (+ comment)
+    reason: local 0->1 so a rare flake auto-recovers and trace:on-first-retry captures a replay; CI unchanged at 1
+EVIDENCE_RECONCILIATION:
+  latest_report_read: yes (investigation report authored this session + CURRENT_STATE.md + LATEST_CHAT_HANDOFF.md)
+  recommendation_confirmed: yes — exactly the two test-only edits the investigation recommended
+  conflicts: CURRENT_STATE.md still stale (89/89 / READY_FOR_COMMIT_GATE) — noted, not edited (out of scope)
+VERIFICATION:
+  e2e_06_command: npx playwright test e2e/06-claim-actions.spec.ts --reporter=line
+  e2e_06_result: 5/5 PASS (32.8s)
+  e2e_21_command: confirmed inside full suite (npx playwright test --reporter=line)
+  e2e_21_result: PASS both cases (:32 created-claim binding, :156 CLM-1006 no-regression)
+  full_suite_command: npx playwright test --reporter=line
+  full_suite_result: 89/89 PASS (5.1m), 0 flaky
+  full_suite_repeat_result: 89/89 PASS (4.1m), 0 flaky
 SAFETY:
-  secret_scan: clean (no sk-ant-/sk-proj-/sk-or-v1-/AWS/Password= in working tree)
-  forbidden_scope: honored
+  product_source_changed: NO (43 pre-existing tracked-modified server/src files from prior gates untouched; both edited files are untracked test-infra)
+  staged_files: 0
   source_commit_attempted: NO
   source_push_attempted: NO
   azure_touched: NO
-DB_RESET:
-  decision: SKIPPED_SAFE_REASON
-  method: n/a (DbMigrator drop+reseed available but not needed)
-  db_target: InsuranceAIPlatform on (localdb)\MSSQLLocalDB (synthetic; never DevDept)
-  warnings: skipped — isolated e2e/06 PASSES on the accumulated DB, so row-volume is ruled out and a destructive drop has no diagnostic value
-E2E_REPRO:
-  command: npx playwright test e2e/06-claim-actions.spec.ts --reporter=line (x2); npx playwright test --reporter=line (full)
-  result: PASS (all 3 runs)
-  pass_count: 5/5 ; 5/5 ; 89/89
-  fail_count: 0 ; 0 ; 0
-  failing_test: none reproduced (target e2e/06-claim-actions.spec.ts:54)
-  failure_symptom: not reproduced today on this working tree
-  artifacts: none (screenshot/video are only-on-failure; nothing failed)
-DIAGNOSIS:
-  classification: ACCUMULATED_DB_STATE_OR_TEST_BRITTLENESS -> refined TRANSIENT_TIMING_ENVIRONMENT_FLAKE
-  primary_root_cause: 2026-05-28 88/89 was a transient timing flake — POST /ai-decision round-trip occasionally exceeded the test's tight 15s actionTimeout under machine load; not a product defect, not DB-row-volume
-  evidence_file_lines: e2e/06-claim-actions.spec.ts:72-74 (ai-decision timeout 15000 vs analysis 30000 at :61-64); PersistenceAuditCostService.cs:45-101 (factory + await using, no leak); PersistenceAiAnalysisOrchestrator.cs:99,221,228; HybridClaimReadService.cs:61-62 (CLM-1006 from in-memory — no sync-over-async on failing path)
-  network_observations: backend logs EF DbCommand 34-40ms; no errors; flows completed
-  console_observations: "AI provider resolved to: Mock (default safe fallback)" — no DeepSeek/real call
-  db_or_api_observations: AiAnalysisRuns 50->57 (CLM-1006 55), AuditEvents 178->207, OutboxMessages 174->203 across the 3 runs — grew yet 100% pass -> row-volume ruled out
-SEMANTIC_REGRESSION:
-  e2e_21_status: PASS (both cases — :32 created-claim binding, :156 CLM-1006 no-regression)
-  notes: not weakened; ran inside the 89/89 full suite
-NEXT_RECOMMENDED_GATE:
-  name: E2E_06_AIDECISION_TIMEOUT_HARDENING_V0.1 (recommended) -> then re-open COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1
-  why: 89/89 restored so commit gate is unblocked now; AI-decision assertion's 15s timeout is tighter than the 30s used for analysis and can flake under load — a tiny TEST-ONLY hardening makes the commit gate's verification run reliable
-  done_state: (test-only, no product source) e2e/06:72-74 timeout 15000->30000; playwright.config.ts:29 retries 0->1 locally (enables trace:on-first-retry); 89/89 stable across 2 consecutive full-suite runs; e2e/21 untouched
+  main_touched: NO
+  secrets_scan: clean (a timeout int + a retries int + comments; provider=Mock confirmed in logs)
 GITHUB_HANDOFF:
   latest_report:  InsuranceAIPlatform/latest-report.md
   latest_summary: InsuranceAIPlatform/latest-summary.json
-  task_report:    InsuranceAIPlatform/ai-decision-recording-e2e-flake-investigation-v0.1/report.md
-  artifacts: none
-BLOCKERS: none — original blocker (e2e/06:54) does not reproduce; 89/89 restored on the exact working tree
-LIMITATIONS: single-machine/single-day timing evidence; load-dependent flake non-reproduction today does not prove it can never recur (hence timeout-hardening recommendation); DB reset deliberately not performed (justified)
-STOP_LINE_CONFIRMATION: no product fix, no test edit, no stage, no source commit, no source push, no Azure, no main, no DEEPSEEK key read/log/paste, no AIKB rule change — investigation report only
+  task_report:    InsuranceAIPlatform/e2e-06-aidecision-timeout-hardening-v0.1/report.md
+BLOCKERS: none
+LIMITATIONS: retries:1 means a future single flake reports "flaky" (still exit 0) — surfaced honestly, does not mask a deterministic bug; Chromium-only; CURRENT_STATE.md stale (optional AIKB refresh)
+NEXT_RECOMMENDED_GATE: REOPEN COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1 (89/89 stable; 97-entry dev working tree, incl. these 2 hardened test files, ready to commit)
+STOP_LINE_CONFIRMATION: no commit/push/PR/Azure/main/AIKB/secret/product-source — hardening + verification + report only
 ```
