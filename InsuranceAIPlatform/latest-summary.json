@@ -1,99 +1,89 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_FRONTEND_CORS_FIX_V0.1",
-  "gate_type": "config-driven CORS fix + API image redeploy + frontend backend-mode rewire (existing resources only)",
+  "gate": "AZURE_FRONTEND_CORS_FIX_COMMIT_V0.1",
+  "gate_type": "source/config/doc commit + push + handoff (no Azure changes)",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "LIVE_API_WIRED",
-  "ready_for_slava_manual_retest": true,
-  "ready_for_slava_manual_retest_reason": "Live demo now uses the live API end-to-end. SWA SPA (backend bundle) fetches real data; CORS allows the SWA origin on preflight + GET. Open https://kind-meadow-03cf73103.7.azurestaticapps.net.",
-  "date_utc": "2026-05-29",
-  "scope_summary": "Made API CORS config-driven (Cors:AllowedOrigins, fallback localhost, no wildcard/credentials) allowing the SWA origin; rebuilt the API image (14d5c81-cors), pushed to GHCR, updated the existing Container App (revision 0000001, 100% traffic, minReplicas=0 preserved); rebuilt the SPA in backend mode against the live API URL and redeployed to the existing SWA. CORS preflight+GET from the SWA origin return ACAO; localhost preserved. No new/deleted resources, no SQL/AI/AKS/ACR, no source commit. Opus /qa-inspector CLEARED 8/8.",
-  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 8/8 (independent; re-ran CORS preflight+GET, dotnet test 137/137, resource guardrails)",
+  "verdict": "PUSHED",
+  "date_utc": "2026-05-30",
+  "scope_summary": "Committed the CORS-fix source/config/doc (Program.cs config-driven CORS + appsettings.json origins + AZURE_FRONTEND_CORS_FIX_V0.1.md) to dev as 211d50f and pushed to origin/dev. The live-API-wired demo is now reproducible from source. No Azure change/deploy/image/workflow. Commit allowed by a genuine Opus /qa-inspector CLEARED (no bypass).",
+  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 7/7 (independent; diff CORS-config-only, tests 137/137, secret scan clean, scope=3 files)",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head": "14d5c8126a4ecd51122557520facb63224e7fe44",
-    "head_unchanged": true,
-    "origin_dev": "14d5c8126a4ecd51122557520facb63224e7fe44",
+    "head_before": "14d5c8126a4ecd51122557520facb63224e7fe44",
+    "head_after": "211d50f8d79cf3075b219f729c7cedcd72136f65",
+    "origin_dev_before": "14d5c8126a4ecd51122557520facb63224e7fe44",
+    "origin_dev_after": "211d50f8d79cf3075b219f729c7cedcd72136f65",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-    "origin_main_unchanged": true,
-    "working_tree_after": "M server/InsuranceAIPlatform.Api/Program.cs + M server/InsuranceAIPlatform.Api/appsettings.json (tracked) + untracked docs/architecture/azure/AZURE_FRONTEND_CORS_FIX_V0.1.md + test-results/; ALL UNCOMMITTED"
+    "origin_main_unchanged": true
   },
-  "cors_fix": {
-    "root_cause": "hardcoded WithOrigins(http://localhost:5173); SWA origin got no Access-Control-Allow-Origin",
-    "files_changed": ["server/InsuranceAIPlatform.Api/Program.cs", "server/InsuranceAIPlatform.Api/appsettings.json"],
-    "allowed_origins": ["http://localhost:5173", "https://kind-meadow-03cf73103.7.azurestaticapps.net"],
-    "config_driven": true,
-    "env_overridable": "Cors__AllowedOrigins__N",
-    "wildcard": false,
-    "allow_credentials": false,
-    "preflight_before": "204 with NO ACAO",
-    "preflight_after": "204 + ACAO=<SWA> + access-control-allow-methods: GET",
-    "tests": "137/137 passed (Release)"
+  "commit": {
+    "sha": "211d50f8d79cf3075b219f729c7cedcd72136f65",
+    "message": "fix: allow Azure Static Web App CORS origin",
+    "files_changed": 3,
+    "insertions": 86,
+    "deletions": 2,
+    "hook_result": "ALLOWED via genuine Opus /qa-inspector CLEARED (no bypass)",
+    "files": [
+      "server/InsuranceAIPlatform.Api/Program.cs",
+      "server/InsuranceAIPlatform.Api/appsettings.json",
+      "docs/architecture/azure/AZURE_FRONTEND_CORS_FIX_V0.1.md"
+    ]
   },
-  "backend_redeploy": {
-    "docker_image": "ghcr.io/slavkan777/insuranceai-api:14d5c81-cors",
-    "digest": "sha256:208f9cca860ba1918dbff0f6f095baedcf934684752c7bf76ca715f2c6e6075e",
-    "ghcr_push": "PUSHED (public; manifest OK)",
-    "container_app": "iap-demo-api updated; revision iap-demo-api--0000001 Active 100% traffic; old --mjdxllx deprovisioned",
-    "min_replicas": 0,
-    "max_replicas": 2,
-    "health_after": "200"
+  "push": {
+    "attempted": true,
+    "target": "origin/dev",
+    "result": "14d5c81..211d50f dev -> dev (fast-forward)",
+    "force_used": false,
+    "verified_remote": "origin/dev == 211d50f; origin/main == 69e67312"
   },
-  "frontend": {
-    "build_mode": "backend",
-    "api_base_url": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
-    "bundle": "assets/index-BJlHvw5H.js (live API URL baked; localhost fallback eliminated)",
-    "swa_redeploy": "SWA CLI 2.0.9; token via env; production",
-    "secret_scan": "clean"
+  "validation": {
+    "backend_build": "PASS (Release)",
+    "backend_tests": "137/137 passed",
+    "cors_config_review": "PASS (config-driven; localhost:5173 kept; SWA origin added; no wildcard; no AllowCredentials)",
+    "secret_scan": "CLEAN (only pre-existing DEEPSEEK_API_KEY env-var name refs, not in diff)",
+    "api_health_readonly": "200",
+    "swa_readonly": "200",
+    "cors_readonly": "GET from SWA origin 200 + ACAO=<SWA>"
   },
-  "smoke_tests": {
+  "safety": {
+    "azure_resources_changed": false,
+    "deploy_attempted": false,
+    "image_pushed": false,
+    "workflow_run": false,
+    "source_code_changed": true,
+    "source_code_change_note": "CORS config only — the intended payload of this gate",
+    "main_touched": false,
+    "force_push_used": false,
+    "aikb_updated": false,
+    "secrets_printed": false
+  },
+  "live_state_unchanged": {
+    "api_url": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
     "api_health": "200",
-    "api_data_endpoint": "200 JSON {totalActive:47,...}",
-    "cors_preflight_swa_origin": "204 + ACAO=<SWA> + allow-methods GET",
-    "cors_get_swa_origin": "200 + ACAO=<SWA> + JSON",
-    "cors_get_localhost_origin": "200 + ACAO localhost (no regression)",
-    "swa_http": "200 (references index-BJlHvw5H.js)",
-    "spa_fallback": "/claims 200",
-    "browser_api_integration": "HTTP-level CONFIRMED (no headless browser run)"
-  },
-  "cost_guardrails": {
-    "new_resources_created": false,
-    "resource_count": 9,
-    "swa_sku": "Free",
-    "container_min_replicas": 0,
+    "swa_url": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
+    "swa_http": "200",
+    "cors": "GET from SWA origin 200 + ACAO",
     "sql_deployed": false,
     "ai_deployed": false,
     "aks_created": false,
     "acr_created": false,
-    "estimated_idle": "~$0"
+    "resource_count": 9,
+    "container_min_replicas": 0
   },
-  "safety": {
-    "secrets_scan": "CLEAN (changed source + dist; no values/token)",
-    "tokens_printed": false,
-    "source_commit_attempted": false,
-    "source_push_attempted": false,
-    "main_touched": false,
-    "workflow_run": false,
-    "resources_deleted": false,
-    "aikb_updated": false
-  },
-  "rollback_plan": "az containerapp update -g rg-iap-demo -n iap-demo-api --image ghcr.io/slavkan777/insuranceai-api:ce1a1e5 ; rebuild frontend without VITE_ backend env + redeploy ./dist",
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/azure-frontend-cors-fix-v0.1/report.md"
+    "InsuranceAIPlatform/azure-frontend-cors-fix-commit-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "live-data path verified at HTTP/CORS level (no headless-browser console check in this environment)",
-    "source changes (Program.cs, appsettings.json) uncommitted — next gate commits",
     "SQL still deferred (backend serves seeded in-memory data)",
-    "AI stays Mock until an explicit AI gate"
+    "AI stays Mock until an explicit AI gate",
+    "live-data path verified at HTTP/CORS level (no headless-browser console check)"
   ],
   "next_recommended_gate": {
-    "name": "AZURE_FRONTEND_CORS_FIX_COMMIT_V0.1",
-    "action": "commit Program.cs + appsettings.json + AZURE_FRONTEND_CORS_FIX_V0.1.md to dev (QA-inspector path)",
+    "options": ["PORTFOLIO_AZURE_PROOF_PACK_V0.1", "AZURE_SQL_OPTIONAL_GATE_V0.1"],
     "operator_action_required": true
   }
 }
