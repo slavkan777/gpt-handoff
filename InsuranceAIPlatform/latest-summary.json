@@ -1,96 +1,87 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_MINIMAL_DEPLOY_PREP_COMMIT_V0.1",
-  "gate_type": "final validation + source commit (dev) + push to origin/dev + gpt-handoff report",
+  "gate": "AZURE_MINIMAL_DEPLOY_MASTER_V0.1",
+  "gate_type": "first real Azure minimal deploy (operator-checkpointed)",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "PUSHED",
+  "verdict": "PREFLIGHT_ONLY_OPERATOR_ACTION_REQUIRED",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "deploy-prep assets now on origin/dev, but nothing deployed; no product/runtime change to retest. Hands-on retest applies after AZURE_MINIMAL_DEPLOY_V0.1.",
+  "ready_for_slava_manual_retest_reason": "stopped at the Phase-3 login checkpoint; nothing deployed",
   "date_utc": "2026-05-29",
-  "scope_summary": "Re-validated and committed the 6 accepted deploy-prep files to dev (ce1a1e5) and pushed to origin/dev. Independent Opus /qa-inspector 9/9 CLEARED (incl. workflow-cannot-auto-deploy + no-product-logic checks). No Azure login/resources/deploy/image-push/OIDC, no secrets, no force, main untouched.",
+  "scope_summary": "Ran safe local phases (repo truth + validation) then stopped at the mandatory login checkpoint. Operator did not type LOGIN_APPROVED. No az login, no subscription change, no resources, no deploy, no image push. A read-only `az account show` revealed the active az session is a CORPORATE-domain account (redacted) — likely the WRONG subscription for this personal portfolio project; must be confirmed/switched before deploy.",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head_before": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "head_after": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
-    "origin_dev_before": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "origin_dev_after": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
-    "origin_dev_advanced": true,
+    "head": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
+    "head_unchanged": true,
+    "origin_dev": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
     "origin_main_unchanged": true,
-    "local_synced_with_origin_dev": true,
-    "working_tree_after": "clean except test-results/.last-run.json (intentionally untracked)"
+    "staged": 0,
+    "working_tree": "clean except test-results/ (untracked); no edits this gate"
   },
-  "commit": {
-    "attempted": true,
-    "succeeded": true,
-    "sha": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
-    "message": "chore: prepare Azure minimal deploy assets",
-    "files_changed": 6,
-    "insertions": 212,
-    "deletions": 9,
-    "hook_result": "PASS — genuine QA-CLEARED via independent Opus /qa-inspector (no [qa-bypass] on source commit)"
+  "phases_completed": {
+    "phase_1_bootstrap": "PASS",
+    "phase_2_local_validation": "PASS (tests 137/137, frontend build, docker reproducible, bicep 0/0, secret scan clean, workflow guarded)",
+    "phase_3_login_checkpoint": "STOPPED — LOGIN_APPROVED not provided"
   },
-  "push": {
-    "attempted": true,
-    "target": "origin dev",
-    "force_used": false,
-    "result": "SUCCESS",
-    "ref_update": "a70071d..ce1a1e5  dev -> dev",
-    "exit_code": 0,
-    "origin_dev_after_push": "ce1a1e54721f7487d2b1124ab072806ec1b151fe"
+  "critical_finding": {
+    "issue": "active az session is a corporate-domain Entra account (email REDACTED), not confirmed as the personal portfolio subscription with the $30 budget",
+    "how_detected": "read-only `az account show` (NOT az login)",
+    "risk": "deploying into the corporate subscription would be the wrong tenant/account",
+    "required": "operator confirms/switches to the correct personal subscription before LOGIN_APPROVED/DEPLOY_APPROVED"
   },
-  "files_committed": {
-    "new": ["server/Dockerfile", "server/.dockerignore", "staticwebapp.config.json", "docs/architecture/azure/AZURE_MINIMAL_DEPLOY_PREP_V0.1.md"],
-    "modified": [
-      "infra/modules/container-apps.bicep (Liveness/Readiness/Startup probes -> /health:8080)",
-      ".github/workflows/azure-deploy-demo.yml (guarded GHCR+OIDC blueprint; workflow_dispatch-only; deploy steps commented; packages: write)"
-    ],
-    "excluded": ["test-results/.last-run.json"]
+  "operator_approvals": {
+    "login_approved": false,
+    "deploy_approved": false,
+    "resource_creation_approved": false
   },
-  "validation": {
-    "docker_build": "EXIT 0 — image insurance-api:preptest2 sha256:d2dda6f2… (identical hash to prep gate = reproducible); removed after validation",
-    "backend_tests": "137 passed / 0 failed / 0 skipped (3s)",
-    "frontend_build": "EXIT 0 — tsc -b && vite build -> dist/",
-    "bicep_build": "EXIT 0, 0 errors / 0 warnings, ARM 1322 lines (probes)",
-    "secret_scan": "clean (pre-stage + staged diff)"
-  },
-  "qa_inspector": {
-    "model": "Opus 4.8 (independent read-only subagent)",
-    "verdict": "CLEARED",
-    "score": "9/9",
-    "key_checks": ["exactly 6 staged files", "test-results excluded", "no product business logic", "workflow CANNOT auto-deploy (dispatch-only + guarded + commented + secrets on commented lines)", "staged-diff secret/GUID scan clean", "az bicep build re-run EXIT 0 with staged probes", "Dockerfile non-root/no-secrets"]
-  },
-  "safety": {
-    "azure_login_used": false,
+  "azure_actions_taken": {
+    "az_login": false,
+    "az_account_show_readonly": true,
+    "subscription_changed": false,
     "resources_created": false,
-    "deploy_run": false,
+    "deploy": false,
     "image_pushed": false,
     "workflow_run": false,
     "oidc_created": false,
+    "providers_registered": false
+  },
+  "deploy_plan_preview": {
+    "region": "westeurope (unconfirmed)",
+    "resource_group": "rg-iap-demo (subscription-scope main.bicep)",
+    "recommended_first_path": "operator az login to personal sub -> executor runs `az deployment sub create` locally (no OIDC/Actions needed for first manual deploy)",
+    "cost_shape": "Container Apps minReplicas=0, SWA Free, Storage+KeyVault+monitoring sampled/capped, SQL Serverless auto-pause (if deployed), enableAi=false, no AKS; idle ~$0, real ~$5-10/mo",
+    "open_items": {
+      "sql_admin": "main.bicep passes SQL module an all-zeros Entra-admin placeholder and does not surface it as a deploy param -> deploying as-is would FAIL at SQL creation. Minimal path: defer SQL (API runs without DB; /health has no DB dep; no startup migration) via a small enableSql toggle (proposed+approved before editing) OR operator supplies a real Entra-group objectId.",
+      "api_image": "first deploy can use public placeholder image (containerapps-helloworld, $0) to prove infra then swap, OR push our image to GHCR (needs write:packages token or Actions GITHUB_TOKEN)"
+    }
+  },
+  "safety": {
+    "secrets_printed": false,
+    "corporate_email_redacted_from_report": true,
     "main_touched": false,
     "force_push_used": false,
-    "product_code_changed": false,
-    "secrets_present": false
+    "source_commit_attempted": false,
+    "ai_provider_activated": false,
+    "aks_created": false
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/azure-minimal-deploy-prep-commit-v0.1/report.md"
+    "InsuranceAIPlatform/azure-minimal-deploy-v0.1/report.md"
   ],
-  "blockers": [],
+  "blockers": [
+    "operator has not typed LOGIN_APPROVED",
+    "active az session is a corporate account (redacted) — wrong subscription for this personal project; confirm/switch required"
+  ],
   "limitations": [
-    "assets committed but no Azure resources exist yet (nothing deployed)",
-    "docker image built locally only (not pushed to GHCR)",
-    "CORS (SWA linked-backend) + SQL wiring (DbMigrator + Entra/MI connection string) are deploy/post-deploy concerns",
-    "offline bicep (no live Azure quota/region/SKU/model check)"
+    "SQL deploy blocked by all-zeros Entra-admin placeholder in main.bicep (defer or supply oid)",
+    "API image path decision pending (placeholder vs GHCR)"
   ],
+  "cleanup_plan": "none needed — nothing created",
   "next_safe_step": {
-    "name": "AZURE_MINIMAL_DEPLOY_V0.1",
-    "alt": "AZURE_MINIMAL_DEPLOY_V0.1_MANUAL_PREREQ (operator does az login + Entra group + OIDC app + GitHub Actions secrets first)",
-    "action": "operator az login + activate GHCR build/push + OIDC az deployment sub create of main.bicep (+ image tag + sqlAdminObjectId); verify /health; confirm ~$0 idle",
-    "creates_resources": true,
-    "requires_az_login": true,
+    "name": "resume AZURE_MINIMAL_DEPLOY_MASTER_V0.1",
+    "action": "operator confirms correct personal subscription + types LOGIN_APPROVED -> read-only preflight + final plan -> DEPLOY_APPROVED -> deploy",
     "operator_action_required": true
   }
 }
