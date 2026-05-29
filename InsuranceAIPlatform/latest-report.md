@@ -1,87 +1,97 @@
 # InsuranceAIPlatform — Latest gate report
 
-**Gate:** AZURE_MINIMAL_DEPLOY_COMMIT_V0.1
-**Type:** post-deploy source commit + push + handoff (no Azure changes)
+**Gate:** AZURE_FRONTEND_DEPLOY_MASTER_V0.1
+**Type:** frontend content deploy to existing Azure Static Web App + smoke + docs (uncommitted)
 **Date (UTC):** 2026-05-29
-**Verdict:** **PUSHED** ✅
+**Verdict:** **FRONTEND_DEPLOYED_PARTIAL** ✅
 **Executor model/version:** Opus 4.8 (1M context) — `claude-opus-4-8[1m]`
 
-**Source `dev` HEAD:** `ce1a1e5` → `ae4545c` *(pushed)* · **origin/main** `69e67312` *(untouched)*
+**Source `dev` HEAD:** `ae4545c` *(unchanged — no commit this gate)* · **origin/main** `69e67312` *(untouched)*
 
-**Full report:** [azure-minimal-deploy-commit-v0.1/report.md](azure-minimal-deploy-commit-v0.1/report.md)
+**Full report:** [azure-frontend-deploy-v0.1/report.md](azure-frontend-deploy-v0.1/report.md)
 
 ---
 
 ## Bottom line
 
-The post-deploy artifacts from the first Azure deploy are now committed and on `origin/dev`. One commit **`ae4545c`** — `docs: record Azure minimal deploy` — carries the `infra/main.bicep` **`enableSql`** toggle (SQL-defer parameterization, no product logic) + 3 Azure docs (deploy record, resource inventory, cost-guardrail check). `test-results/` left untracked.
+The frontend is now **live** at **`https://kind-meadow-03cf73103.7.azurestaticapps.net`** — the React/Vite SPA deployed into the existing SWA (Free), serving a fully interactive demo on **mock data**. Deep links work (SPA fallback), assets load, and the API `/health` still returns 200.
 
-Validation: `az bicep build` 0/0, read-only `/health` **200**, secret scan **clean** (no key values, no GUIDs), and an independent **Opus `/qa-inspector` CLEARED 7/7** — commit passed the QA pre-commit hook via a **genuine CLEARED, no bypass**. Push was a clean fast-forward (no force, no main, no PR).
+**Live-API wiring is deferred (by design):** the API's CORS policy is **hardcoded** to `http://localhost:5173` (no env override), so a browser at the SWA origin is CORS-blocked. A server-side probe shows the backend *does* return real data without SQL (`{"totalActive":47,…}`) but with **no `Access-Control-Allow-Origin`** header — so a backend-wired build would be a broken demo. Mock mode gives a working portfolio URL now; the live-data path is one well-scoped gate away.
 
-**Azure is untouched this gate** — no create/change/delete/image/workflow. API still live (`/health` 200); SWA still empty (frontend content deploy is the next gate).
+Independently verified by an **Opus `/qa-inspector` END gate → CLEARED 9/9**. No new resources (RG count unchanged at 9), SWA **Free**, ACA **minReplicas=0**, no SQL/AI/AKS/ACR, idle ≈ $0. **No source commit/push, no main, no PR**, deployment token never printed.
 
-**Next recommended gate:** `AZURE_FRONTEND_DEPLOY_MASTER_V0.1`.
+**Next recommended gate:** `AZURE_FRONTEND_DEPLOY_COMMIT_V0.1` (commit the new doc) → then `AZURE_FRONTEND_CORS_FIX_V0.1` (add the SWA origin to `Program.cs` CORS + redeploy the API image, then backend-wire the SPA).
 
 ---
 
 ## REPORT BACK FORMAT
 
 ```text
-VERDICT: PUSHED
-GATE: AZURE_MINIMAL_DEPLOY_COMMIT_V0.1
+VERDICT: FRONTEND_DEPLOYED_PARTIAL
+GATE: AZURE_FRONTEND_DEPLOY_MASTER_V0.1
 SOURCE_REPO:
   path: C:/Projects/InsuranceAIPlatform
   branch: dev
-  head_before: ce1a1e54721f7487d2b1124ab072806ec1b151fe
-  head_after: ae4545c8d7aeafba3cb168de3f2b843e1051b7ef
-  origin_dev_before: ce1a1e5
-  origin_dev_after: ae4545c
-  origin_main_before: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5
-  origin_main_after: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5
-WORKING_TREE:
-  before_summary: M infra/main.bicep + 3 untracked azure docs + untracked test-results/
-  staged_files: 4 (infra/main.bicep + docs/architecture/azure/*.md x3)
-  after_summary: clean except untracked test-results/
-  remaining_files: test-results/ (expected local artifact)
-FILES_COMMITTED:
-  infra: infra/main.bicep (enableSql param + if(enableSql) guard + conditional sqlServerFqdn output)
-  docs: docs/architecture/azure/{AZURE_MINIMAL_DEPLOY_V0.1, AZURE_DEPLOYED_RESOURCES_V0.1, AZURE_COST_POST_DEPLOY_CHECK_V0.1}.md
-VALIDATION:
-  bicep_build: PASS (exit 0, 0 warnings)
-  api_health_readonly: 200 Healthy (service=InsuranceAIPlatform.Api)
-  docs_review: PASS (no secrets, no GUIDs)
-  other_checks: Opus /qa-inspector CLEARED 7/7
+  head: ae4545c8d7aeafba3cb168de3f2b843e1051b7ef
+  origin_dev: ae4545c8d7aeafba3cb168de3f2b843e1051b7ef
+  origin_main: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5
+  working_tree_before: clean except untracked test-results/
+  working_tree_after: untracked docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md + test-results/ (dist/ git-ignored); no source code modified
+AZURE_LIVE_STATE:
+  subscription: personal "Azure subscription 1" (IDs redacted)
+  resource_group: rg-iap-demo (westeurope)
+  api_url: https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io
+  swa_url: https://kind-meadow-03cf73103.7.azurestaticapps.net
+  api_health_before: 200 Healthy
+  api_health_after: 200 Healthy
+FRONTEND_DISCOVERY:
+  frontend_root: C:/Projects/InsuranceAIPlatform (root-level Vite SPA)
+  package_manager: npm
+  build_command: npm run build (tsc -b && vite build)
+  output_dir: dist
+  api_base_url_mechanism: VITE_INSURANCE_API_MODE (backend|mock; default mock) + VITE_INSURANCE_API_BASE_URL (default http://localhost:5284)
+CONFIG_CHANGES:
+  files_changed: docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md (new, uncommitted); staticwebapp.config.json copied into dist/ (build artifact, git-ignored); NO source code changed
+  api_url_wired: NO (mock mode; deferred)
+  cors_needed: YES for backend wiring (not for this mock deploy)
+  cors_changed: NO
+SWA_DEPLOY:
+  method: "@azure/static-web-apps-cli 2.0.9 (npx) deploy ./dist --env production; token via env, not argv"
+  target_swa: iap-demo-swa (rg-iap-demo), production
+  result: deployed OK; SWA picked up staticwebapp.config.json
+  token_printed: NO
+SMOKE_TESTS:
+  swa_http: 200 (our app, not placeholder)
+  assets_loaded: JS 200 text/javascript; CSS 200 text/css
+  spa_fallback: /claims -> 200 index.html
+  api_health: 200
+  browser_api_integration: N/A (mock mode); backend CORS lacks ACAO for SWA origin
+COST_GUARDRAILS:
+  new_resources_created: NO (RG count unchanged = 9)
+  sql_deployed: NO
+  ai_deployed: NO
+  aks_created: NO
+  acr_created: NO
+  container_min_replicas: 0
+  swa_sku: Free
+  estimated_idle_risk: ~$0 (SWA Free adds $0)
+DOCS:
+  created_or_updated: docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md
+  committed: NO
 SAFETY:
-  secret_scan_pre_stage: CLEAN
-  secret_scan_staged: CLEAN
-  azure_resources_changed: NO
-  deploy_attempted: NO
-  cleanup_attempted: NO
-  image_pushed: NO
-  workflow_run: NO
+  secrets_scan: CLEAN
+  deployment_token_printed: NO
+  source_commit_attempted: NO
+  source_push_attempted: NO
   main_touched: NO
-  force_push_used: NO
-COMMIT:
-  attempted: YES
-  sha: ae4545c8d7aeafba3cb168de3f2b843e1051b7ef
-  message: docs: record Azure minimal deploy
-  hook_result: ALLOWED via genuine Opus /qa-inspector CLEARED (no bypass)
-PUSH:
-  attempted: YES
-  target: origin/dev
-  result: ce1a1e5..ae4545c dev -> dev (fast-forward, exit 0)
-  verified_remote: origin/dev == ae4545c; origin/main == 69e67312
-AZURE_LIVE_STATE_UNCHANGED:
-  resource_group: rg-iap-demo (8 resources, unchanged)
-  api_url: https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io (/health 200)
-  swa_url: https://kind-meadow-03cf73103.7.azurestaticapps.net (empty)
-  resources_deleted: NONE
+  workflow_run: NO
+  resources_deleted: NO
 GITHUB_HANDOFF:
   latest_report:  InsuranceAIPlatform/latest-report.md
   latest_summary: InsuranceAIPlatform/latest-summary.json
-  task_report:    InsuranceAIPlatform/azure-minimal-deploy-commit-v0.1/report.md
+  task_report:    InsuranceAIPlatform/azure-frontend-deploy-v0.1/report.md
 BLOCKERS: none
-LIMITATIONS: frontend content not deployed (SWA empty); SQL + AI deferred; first deploy via local az (CI/OIDC path still the guarded workflow)
-NEXT_RECOMMENDED_GATE: AZURE_FRONTEND_DEPLOY_MASTER_V0.1
-STOP_LINE_CONFIRMATION: stopping after report; no frontend deploy, no Azure deployment, no resource create/delete, no image push, no workflow run, no AIKB, no PR, no main
+LIMITATIONS: live-API wiring deferred (API CORS hardcoded to localhost:5173); auth deferred; SQL deferred; AI Mock-only
+NEXT_RECOMMENDED_GATE: AZURE_FRONTEND_DEPLOY_COMMIT_V0.1 -> then AZURE_FRONTEND_CORS_FIX_V0.1
+STOP_LINE_CONFIRMATION: stopping after report; no source commit/push, no PR, no AIKB, no SQL, no AI, no new resources, no deletes, no next gate started
 ```
