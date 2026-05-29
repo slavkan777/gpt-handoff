@@ -1,89 +1,79 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_FRONTEND_CORS_FIX_COMMIT_V0.1",
-  "gate_type": "source/config/doc commit + push + handoff (no Azure changes)",
+  "gate": "PORTFOLIO_AZURE_PROOF_PACK_V0.1",
+  "gate_type": "portfolio/interview evidence pack from the live Azure deployment (docs + screenshots; no Azure/source changes)",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "PUSHED",
+  "verdict": "PROOF_PACK_READY",
   "date_utc": "2026-05-30",
-  "scope_summary": "Committed the CORS-fix source/config/doc (Program.cs config-driven CORS + appsettings.json origins + AZURE_FRONTEND_CORS_FIX_V0.1.md) to dev as 211d50f and pushed to origin/dev. The live-API-wired demo is now reproducible from source. No Azure change/deploy/image/workflow. Commit allowed by a genuine Opus /qa-inspector CLEARED (no bypass).",
-  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 7/7 (independent; diff CORS-config-only, tests 137/137, secret scan clean, scope=3 files)",
+  "scope_summary": "Created 5 portfolio docs + 5 verified screenshots under docs/portfolio/ (uncommitted) from the live Azure deployment. All live checks passed; Opus /qa-inspector CLEARED 7/7 with no overclaiming. Honest headline: golden path live end-to-end (summary + full CLM-1006 workspace + demo scenario + CORS), but list endpoints /api/claims & /api/customers return 500 (Azure SQL deferred) and the SPA gracefully falls back to seeded rows. No Azure change, no deploy, no source commit.",
+  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 7/7 (priority: overclaiming. Every LIVE claim re-verified true; every deferral disclosed; no secret/GUID leak; screenshots authenticated)",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head_before": "14d5c8126a4ecd51122557520facb63224e7fe44",
-    "head_after": "211d50f8d79cf3075b219f729c7cedcd72136f65",
-    "origin_dev_before": "14d5c8126a4ecd51122557520facb63224e7fe44",
-    "origin_dev_after": "211d50f8d79cf3075b219f729c7cedcd72136f65",
+    "head": "211d50f8d79cf3075b219f729c7cedcd72136f65",
+    "head_unchanged": true,
+    "origin_dev": "211d50f8d79cf3075b219f729c7cedcd72136f65",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-    "origin_main_unchanged": true
+    "origin_main_unchanged": true,
+    "working_tree_after": "untracked docs/portfolio/ (5 docs + screenshots/) + test-results/; no commit"
   },
-  "commit": {
-    "sha": "211d50f8d79cf3075b219f729c7cedcd72136f65",
-    "message": "fix: allow Azure Static Web App CORS origin",
-    "files_changed": 3,
-    "insertions": 86,
-    "deletions": 2,
-    "hook_result": "ALLOWED via genuine Opus /qa-inspector CLEARED (no bypass)",
-    "files": [
-      "server/InsuranceAIPlatform.Api/Program.cs",
-      "server/InsuranceAIPlatform.Api/appsettings.json",
-      "docs/architecture/azure/AZURE_FRONTEND_CORS_FIX_V0.1.md"
-    ]
+  "live_proof": {
+    "frontend_url": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
+    "frontend_http": 200,
+    "api_url": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
+    "api_health": "200 Healthy (Production)",
+    "cors_check": "GET from SWA origin -> 200 + access-control-allow-origin=<SWA>; no wildcard/credentials",
+    "live_endpoints": ["/api/claims/summary 200 {totalActive:47,pendingReview:12,highRisk:8,avgSlaRemainingHours:14.3,processedToday:6,aiAnalysisRunning:2}", "/api/claims/CLM-1006 + 7 sub-endpoints 200", "/api/demo/scenario 200"],
+    "500_endpoints": ["/api/claims (list)", "/api/customers (list)"],
+    "500_reason": "Azure SQL deferred (enableSql=false); SPA degrades gracefully to seeded rows",
+    "azure_resource_count": 9,
+    "no_aks_acr_sql": true,
+    "cost_guardrails": "minReplicas=0/max=2; SWA Free; idle ~$0"
   },
-  "push": {
-    "attempted": true,
-    "target": "origin/dev",
-    "result": "14d5c81..211d50f dev -> dev (fast-forward)",
-    "force_used": false,
-    "verified_remote": "origin/dev == 211d50f; origin/main == 69e67312"
+  "files_created": {
+    "proof_pack": "docs/portfolio/PORTFOLIO_AZURE_PROOF_PACK_V0.1.md",
+    "interview_story": "docs/portfolio/INTERVIEW_STORY_AZURE_DOTNET_AI_V0.1.md",
+    "technical_matrix": "docs/portfolio/TECHNICAL_PROOF_MATRIX_V0.1.md",
+    "live_demo_runbook": "docs/portfolio/LIVE_DEMO_RUNBOOK_V0.1.md",
+    "readme_draft": "docs/portfolio/README_PORTFOLIO_SECTION_DRAFT_V0.1.md",
+    "screenshots": ["01-login.png", "02-overview.png", "03-claim-workspace.png", "04-ai-evidence.png", "05-audit-cost.png"]
   },
-  "validation": {
-    "backend_build": "PASS (Release)",
-    "backend_tests": "137/137 passed",
-    "cors_config_review": "PASS (config-driven; localhost:5173 kept; SWA origin added; no wildcard; no AllowCredentials)",
-    "secret_scan": "CLEAN (only pre-existing DEEPSEEK_API_KEY env-var name refs, not in diff)",
-    "api_health_readonly": "200",
-    "swa_readonly": "200",
-    "cors_readonly": "GET from SWA origin 200 + ACAO=<SWA>"
+  "evidence_summary": {
+    "azure_services": "Container Apps, Static Web Apps (Free), GHCR, Managed Identity, Key Vault (RBAC), Storage (shared-key off), App Insights, Log Analytics",
+    "dotnet_proof": ".NET 9 modular-monolith API live on ACA; /health 200; 137/137 tests; multi-stage non-root Docker",
+    "ai_readiness_proof": "IAiProvider Mock(default)+DeepSeek opt-in; workbench UI renders live golden-claim data; AI output Mock/seeded (PARTIAL)",
+    "cost_proof": "scale-to-zero, Free tiers, GHCR (no ACR), sampled/capped telemetry, $30/mo budget+alerts, idle ~$0",
+    "security_proof": "MI+Key Vault arch, storage shared-key disabled, non-root API, config-driven CORS (no wildcard/credentials), no repo secrets, synthetic data only",
+    "deferred_items": "Azure SQL (list endpoints 500), real AI provider (Mock), AKS/ACR (not used), production auth/SSO (demo client-side)"
   },
   "safety": {
+    "secrets_scan": "CLEAN (no tokens/keys/subscription-tenant-client GUIDs in docs)",
     "azure_resources_changed": false,
     "deploy_attempted": false,
     "image_pushed": false,
     "workflow_run": false,
-    "source_code_changed": true,
-    "source_code_change_note": "CORS config only — the intended payload of this gate",
+    "source_commit_attempted": false,
+    "source_push_attempted": false,
     "main_touched": false,
-    "force_push_used": false,
-    "aikb_updated": false,
-    "secrets_printed": false
-  },
-  "live_state_unchanged": {
-    "api_url": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
-    "api_health": "200",
-    "swa_url": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
-    "swa_http": "200",
-    "cors": "GET from SWA origin 200 + ACAO",
-    "sql_deployed": false,
-    "ai_deployed": false,
-    "aks_created": false,
-    "acr_created": false,
-    "resource_count": 9,
-    "container_min_replicas": 0
+    "resources_deleted": false,
+    "public_demo_creds_note": "demo@insurance.local / Demo123! are public client-side demo creds (shown on the login page), not secrets"
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/azure-frontend-cors-fix-commit-v0.1/report.md"
+    "InsuranceAIPlatform/portfolio-azure-proof-pack-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "SQL still deferred (backend serves seeded in-memory data)",
-    "AI stays Mock until an explicit AI gate",
-    "live-data path verified at HTTP/CORS level (no headless-browser console check)"
+    "/api/claims + /api/customers return 500 (Azure SQL deferred); SPA seed fallback keeps the UI complete but list data is mock",
+    "AI is Mock-only (numbers seeded); no real LLM in production",
+    "demo auth is client-side only (no Entra/SSO)",
+    "CI workflow scaffolded (OIDC) but not run; live deploys were local az",
+    "screenshots + docs uncommitted (next commit gate)"
   ],
   "next_recommended_gate": {
-    "options": ["PORTFOLIO_AZURE_PROOF_PACK_V0.1", "AZURE_SQL_OPTIONAL_GATE_V0.1"],
+    "options": ["PORTFOLIO_AZURE_PROOF_PACK_COMMIT_V0.1", "AZURE_SQL_OPTIONAL_GATE_V0.1"],
+    "note": "AZURE_SQL_OPTIONAL_GATE would make /api/claims & /api/customers live and remove the only visible gap",
     "operator_action_required": true
   }
 }
