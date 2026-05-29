@@ -1,130 +1,109 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AIKB_AUTO_CONTEXT_SAVER_RULE_UPDATE_V0.1",
-  "gate_type": "durable AIKB / bootstrap / context-saver rule update",
-  "verdict": "ACCEPT",
+  "gate": "AI_DECISION_RECORDING_E2E_FLAKE_INVESTIGATION_V0.1",
+  "gate_type": "read-mostly investigation + reproducibility + root-cause evidence",
+  "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
+  "model_drift_guard": "honored — gate followed exactly as written regardless of model change; evidence and stop-lines override model assumptions",
+  "verdict": "DIAGNOSED_PASS_ACCUMULATED_STATE",
+  "verdict_refined": "TRANSIENT_TIMING_ENVIRONMENT_FLAKE — DB-row-volume empirically ruled out; 89/89 restored on the exact working tree; no source fix required",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "documentation/rule-only gate; no product behavior changed; previous Manual V5 acceptance still in force",
-  "date_utc": "2026-05-28",
-  "supersedes": "COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1 (REWORK_REQUIRED) — that gate remains open; this gate adds a durable infrastructure rule, does not unblock the commit/push gate",
-  "scope_summary": "Persist the Auto Context Saver Rule as a durable cross-project AIKB rule. GPT/Claude must proactively initiate Canvas-to-AIKB context saving at known lifecycle checkpoints (manual acceptance, ACCEPT of major gate, durable rule/decision change, before commit/push or Azure, new chat signal, long/unstable conversation, incident lesson, end of work session). Target convention: 01_PROJECTS/<PROJECT>/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md (overwritable) + HANDOFF_<YYYY-MM-DD>_<SHORT_REASON>.md (dated archive). claude-vault SKIPPED_PROTECTED. No product source touched. No source commit/push. No Azure.",
+  "ready_for_slava_manual_retest_reason": "investigation gate; no product behavior changed; prior Manual V5 acceptance still in force",
+  "date_utc": "2026-05-29",
+  "supersedes": "Unblocks COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1 (was REWORK_REQUIRED on 88/89) — that gate can be re-opened; 89/89 is restored",
+  "scope_summary": "Investigate the e2e/06-claim-actions.spec.ts:54 (AI decision recording) failure that blocked the commit/push gate. Reproduce on current DB, classify, no product fix. Result: failure does not reproduce; 3 green runs (isolated x2 + full suite 89/89); DB accumulation grew yet all passed, ruling out row-volume; cause is a transient timing flake against a tight 15s test timeout.",
   "source_repo_head_before": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
-  "source_repo_head_after":  "03725241c8dfdbed7ce17db61fb51d9d7f211116",
+  "source_repo_head_after": "03725241c8dfdbed7ce17db61fb51d9d7f211116",
   "source_repo_head_unchanged": true,
   "source_repo_origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
   "source_repo_origin_main_unchanged": true,
-  "aikb_repo_head_before": "3843259c…",
-  "aikb_files_read": [
-    "00_CONTROL_CENTER/AUTO_USE_RULE.md",
-    "00_CONTROL_CENTER/MANDATORY_NEW_CHAT_STARTUP_INSTRUCTION.md",
-    "00_CONTROL_CENTER/NEW_CHAT_BOOTSTRAP_PROMPT.md",
-    "00_CONTROL_CENTER/OPERATING_PROTOCOL.md",
-    "00_CONTROL_CENTER/CROSS_CHAT_CONTEXT_ROUTER_RULE.md",
-    "00_CONTROL_CENTER/ (full directory listing — 9 rule files discovered)",
-    "01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/ (directory listing)",
-    "02_TEMPLATES/ (directory listing)"
-  ],
-  "aikb_files_updated": {
-    "00_CONTROL_CENTER/AUTO_CONTEXT_SAVER_RULE.md": "NEW — canonical durable cross-project rule; 9 auto-trigger checkpoints; snapshot content schema (12 sections); target paths; safety boundaries; new-chat restore behavior; mandatory Claude prompt snippet; GPT auto-initiation script; cross-rule relationships; change log",
-    "00_CONTROL_CENTER/AUTO_USE_RULE.md": "added 'Auto Context Saver checkpoints (proactive writes)' subsection inside 'When GPT should update AIKB automatically' — short trigger list + cross-ref to canonical rule + 'GPT must NOT wait for Slava to remember'",
-    "00_CONTROL_CENTER/MANDATORY_NEW_CHAT_STARTUP_INSTRUCTION.md": "reading order extended: AUTO_CONTEXT_SAVER_RULE.md slotted at position 5; target project CONTEXT_PACK/LATEST_CHAT_HANDOFF.md slotted at position 10; new 'LATEST_CHAT_HANDOFF.md priority' subsection",
-    "00_CONTROL_CENTER/OPERATING_PROTOCOL.md": "'After any serious task' checklist extended with 2 new bullets for CONTEXT_PACK/LATEST_CHAT_HANDOFF.md and dated HANDOFF_<DATE>_*.md; new 'Auto Context Saver' section referencing canonical rule and template",
-    "02_TEMPLATES/TEMPLATE_CANVAS_TO_AIKB_CONTEXT_SAVER_GATE.md": "NEW — reusable Claude prompt template; GOAL / DONE STATE / INPUTS / TARGET AIKB PATHS / SNAPSHOT CONTENT SCHEMA / SAFETY BOUNDARIES / REPORT BACK FORMAT / STOP LINE",
-    "01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md": "NEW — first canonical project snapshot under the new convention; status code MANUAL_V5_ACCEPTED_CREATED_CLAIM_DETAIL_BINDING_FIXED_BLOCKED_ON_AI_DECISION_E2E_FLAKE; source repo state; last 6 accepted gates; currently active gate + open blocker; boundaries/forbidden; verified facts; durable rules; latest gpt-handoff paths; next-safe-step; stop lines; known limitations; new-chat restore instructions",
-    "01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md": "2 new entries: (1) COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1 REWORK_REQUIRED with AI-decision-flow failure detail and unchanged source HEAD; (2) this maintenance gate AIKB_AUTO_CONTEXT_SAVER_RULE_UPDATE_V0.1"
+  "working_tree_summary": "97 working-tree entries (porcelain), 0 staged — preserved exactly",
+  "bootstrap": {
+    "aikb_read": [
+      "01_PROJECTS/InsuranceAIPlatform/CURRENT_STATE.md",
+      "01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md"
+    ],
+    "gpt_handoff_read": [
+      "InsuranceAIPlatform/latest-report.md",
+      "InsuranceAIPlatform/latest-summary.json",
+      "InsuranceAIPlatform/commit-and-push-dev-realistic-sandbox-batch-v0.1/report.md"
+    ],
+    "conflicts": "CURRENT_STATE.md is STALE (says READY_FOR_COMMIT_GATE / 89/89) vs LATEST_CHAT_HANDOFF.md + commit-push report (BLOCKED / 88/89). Used latest execution evidence per reconciliation order. AIKB not edited (out of scope)."
   },
-  "claudeos_files_read": ["C:/Users/DEVELOPER/Claude/GitHub/claude-vault/ (directory listing; HEAD 903c344 with uncommitted vault state already present)"],
-  "claudeos_files_updated": [],
-  "protected_or_skipped_files": [
-    {"path": "C:/Users/DEVELOPER/CLAUDE.md (home-dir)", "reason": "SACRED per feedback_foundational_contract.md / how-to-work-with-slava.md"},
-    {"path": "C:/Users/DEVELOPER/Claude/CLAUDE.md (Vault-root)", "reason": "SACRED"},
-    {"path": "C:/Users/DEVELOPER/Claude/GitHub/claude-vault/ root operating files", "reason": "SACRED + uncommitted vault state already present; AIKB is the canonical durable-rules repo"},
-    {"path": "C:/Projects/InsuranceAIPlatform/ (product source)", "reason": "OUT OF SCOPE; not opened for write; HEAD unchanged at 03725241"}
-  ],
-  "rule_persisted": {
-    "name": "Auto Context Saver Rule",
-    "location": "00_CONTROL_CENTER/AUTO_CONTEXT_SAVER_RULE.md",
-    "core_requirement": "GPT/Claude must proactively initiate Canvas-to-AIKB context saving at known lifecycle checkpoints without waiting for Slava to ask. Save = writing 01_PROJECTS/<PROJECT>/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md (overwritable) + optionally HANDOFF_<YYYY-MM-DD>_<SHORT_REASON>.md (dated archive).",
-    "auto_triggers": [
-      "Slava phrases: создаю новый чат / новый чат / сохрани canvas / context saver / продолжим в новом чате / закрываю чат / закругляемся / на сегодня хватит",
-      "After Slava's Manual Acceptance of a gate",
-      "After ACCEPT of a major gate",
-      "After a durable rule/decision/template change",
-      "Before commit/push gate",
-      "Before Azure pre-flight / Azure resource gate",
-      "When conversation is long, noisy, or unstable (context window crossing 60% or many multi-step turns)",
-      "After a significant false-positive / incident lesson",
-      "Before ending a long work session"
-    ],
-    "snapshot_content_schema_sections": [
-      "Header (project, date, last accepted gate, current gate, status code, trigger)",
-      "Source repo state (HEAD, origin/dev, origin/main, working-tree note)",
-      "Last accepted gate (name, verdict, gpt-handoff path, key numbers)",
-      "Currently active gate (name, done-state cursor, boundaries)",
-      "Boundaries / forbidden (no Azure, no main push, no force, no DEEPSEEK key, no real PII, etc.)",
-      "Recent acceptance chain (last 5-8 gates, most recent first, one line each)",
-      "Verified facts (build/test/E2E numbers + gate path)",
-      "Durable rules touched (links into 00_CONTROL_CENTER/*_RULE.md)",
-      "Latest gpt-handoff paths",
-      "Next safe step",
-      "Stop lines",
-      "Known limitations"
-    ],
-    "safety_boundary": "documentation/context only; must NOT change product code, commit/push source, touch Azure, edit sacred CLAUDE.md files, or read/log secrets; if AIKB write access uncertain, prepare Claude prompt or report BLOCKED/NEEDS_APPROVAL; never claim save succeeded if write failed",
-    "new_chat_restore_reading_order": [
-      "MANDATORY_NEW_CHAT_STARTUP_INSTRUCTION.md (source bootstrap)",
-      "00_CONTROL_CENTER/START_HERE.md",
-      "00_CONTROL_CENTER/ACTIVE_PROJECTS.md",
-      "00_CONTROL_CENTER/OPERATING_PROTOCOL.md",
-      "00_CONTROL_CENTER/AUTO_USE_RULE.md",
-      "00_CONTROL_CENTER/AUTO_CONTEXT_SAVER_RULE.md",
-      "target project CONTEXT_PACK/LATEST_CHAT_HANDOFF.md",
-      "target project CURRENT_STATE.md",
-      "target project TASK_LEDGER.md",
-      "latest slavkan777/gpt-handoff/<project>/latest-report.md"
-    ],
-    "reconciliation_rule": "real code > runtime evidence > git state > gpt-handoff > AIKB > chat; if LATEST_CHAT_HANDOFF contradicts execution evidence, execution evidence wins, flag contradiction, propose AIKB_REFRESH_* gate",
-    "active_from": "2026-05-28",
-    "applies_to": "all future GPT/Claude sessions across all projects"
+  "safety": {
+    "secret_scan": "clean — no sk-ant-/sk-proj-/sk-or-v1-/AWS/Password= patterns in working tree",
+    "deepseek_key_touched": false,
+    "source_commit_attempted": false,
+    "source_push_attempted": false,
+    "azure_touched": false,
+    "devdept_db_touched": false,
+    "real_pii_or_external_send": false
   },
-  "prompt_template_snippet_added": true,
-  "prompt_template_path": "02_TEMPLATES/TEMPLATE_CANVAS_TO_AIKB_CONTEXT_SAVER_GATE.md",
+  "db_reset": {
+    "decision": "SKIPPED_SAFE_REASON",
+    "db_target": "InsuranceAIPlatform on (localdb)\\MSSQLLocalDB (synthetic; never DevDept)",
+    "reason": "isolated e2e/06 PASSES on the accumulated DB, so DB-row-volume is empirically ruled out; a destructive drop has no diagnostic value and would needlessly destroy synthetic state",
+    "reset_path_available": "server/InsuranceAIPlatform.DbMigrator (migrate + 6 service seeders); no built-in drop; Program.cs does not migrate/seed on startup"
+  },
+  "e2e_repro": {
+    "runs": [
+      {"scope": "e2e/06 isolated", "db": "accumulated", "result": "PASS", "counts": "5/5", "wall": "54.4s"},
+      {"scope": "e2e/06 isolated (re-run)", "db": "accumulated", "result": "PASS", "counts": "5/5", "wall": "32.7s"},
+      {"scope": "full suite (89 tests)", "db": "accumulated", "result": "PASS", "counts": "89/89", "wall": "4.1m"}
+    ],
+    "target_failure": "e2e/06-claim-actions.spec.ts:54 (AI analysis runs + AI decision recorded with source=AI)",
+    "reproduced": false,
+    "artifacts": "none (screenshot/video only-on-failure; nothing failed)"
+  },
+  "db_accumulation_evidence": {
+    "ai_analysis.AiAnalysisRuns": {"before": 50, "after": 57, "clm_1006_after": 55},
+    "audit_cost.AuditEvents": {"before": 178, "after": 207},
+    "audit_cost.OutboxMessages": {"before": 174, "after": 203},
+    "interpretation": "accumulation grew across the 3 runs yet 100% pass — row-volume ruled out as the cause; also modest sizes where a sort/scan is sub-millisecond"
+  },
+  "diagnosis": {
+    "classification": "ACCUMULATED_DB_STATE_OR_TEST_BRITTLENESS -> refined TRANSIENT_TIMING_ENVIRONMENT_FLAKE",
+    "primary_root_cause": "The 2026-05-28 88/89 was a transient timing flake: POST /api/claims/CLM-1006/ai-decision round-trip occasionally exceeded the test's tight 15s actionTimeout under machine load during a long serial run, leaving the button in 'Збереження…'. Not a product defect; not DB-row-volume.",
+    "evidence_file_lines": [
+      "e2e/06-claim-actions.spec.ts:72-74 — ai-decision-recorded assertion {timeout:15000} vs analysis-completion {timeout:30000} at :61-64",
+      "PersistenceAuditCostService.cs:45-101 — IDbContextFactory + await using; no leak; outbox idempotency FirstOrDefaultAsync at :82-83 (negligible at 203 rows)",
+      "PersistenceAiAnalysisOrchestrator.cs:99,221 — IDbContextFactory + await using; GetLatestAsync:228 non-sargable OrderByDescending(CreatedAtUtc ?? DateTime.MinValue) (negligible at 57 rows)",
+      "HybridClaimReadService.cs:61-62 — CLM-1006 served from in-memory seed; the sync-over-async .GetAwaiter().GetResult() bridge is NOT on this failing path",
+      "Program.cs:31,61-63 — DbContexts lazy-connect; no startup migrate/seed"
+    ],
+    "network_observations": "backend logs show EF DbCommand 34-40ms; no errors; all flows completed",
+    "console_observations": "AI provider resolved to: Mock (default safe fallback) — no DeepSeek/real external call",
+    "structural_defect_found": false
+  },
+  "semantic_regression": {
+    "e2e_21_status": "PASS",
+    "cases": ["e2e/21:32 created-claim binding", "e2e/21:156 CLM-1006 no-regression"],
+    "weakened": false,
+    "notes": "ran inside the 89/89 full suite"
+  },
   "product_source_changed": false,
-  "source_commit_attempted": false,
-  "source_push_attempted": false,
-  "azure_touched": false,
+  "test_files_changed": false,
   "ai_provider_changed": false,
-  "deepseek_key_touched": false,
   "sacred_files_touched": false,
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/aikb-auto-context-saver-rule-update-v0.1/report.md"
-  ],
-  "aikb_paths_updated": [
-    "00_CONTROL_CENTER/AUTO_CONTEXT_SAVER_RULE.md (NEW)",
-    "00_CONTROL_CENTER/AUTO_USE_RULE.md (cross-ref)",
-    "00_CONTROL_CENTER/MANDATORY_NEW_CHAT_STARTUP_INSTRUCTION.md (reading order)",
-    "00_CONTROL_CENTER/OPERATING_PROTOCOL.md (Auto Context Saver section)",
-    "02_TEMPLATES/TEMPLATE_CANVAS_TO_AIKB_CONTEXT_SAVER_GATE.md (NEW)",
-    "01_PROJECTS/InsuranceAIPlatform/CONTEXT_PACK/LATEST_CHAT_HANDOFF.md (NEW)",
-    "01_PROJECTS/InsuranceAIPlatform/TASK_LEDGER.md (2 new entries)"
+    "InsuranceAIPlatform/ai-decision-recording-e2e-flake-investigation-v0.1/report.md"
   ],
   "blockers": [],
-  "carried_over_open_issues": [
-    "e2e/06-claim-actions.spec.ts:54 (AI decision recording) reproducible failure from prior COMMIT_AND_PUSH gate; documented in TASK_LEDGER + LATEST_CHAT_HANDOFF; operator must open AI_DECISION_RECORDING_E2E_FLAKE_INVESTIGATION_V0.1"
-  ],
   "limitations": [
-    "ClaudeOS / claude-vault not mirrored — sacred-file constraint; AIKB is the canonical durable-rules repo",
-    "Prior CONTEXT-SAVER-MODE.txt / CONTEXT-SAVER-CANVAS-FIRST-MODE.txt files were not found in AIKB (likely ChatGPT Project Sources artifacts); AIKB is now the canonical durable home",
-    "Rule is process-only — GPT/Claude initiate the save; auto-tooling for trigger-phrase detection is out of scope",
-    "Only InsuranceAIPlatform got a LATEST_CHAT_HANDOFF.md in this gate; other AIKB projects will adopt the convention at their next lifecycle checkpoint",
-    "Pre-existing AI-decision-recording E2E flake is documented but not fixed — separate investigation gate"
+    "Single-machine, single-day timing evidence; a load-dependent flake's non-reproduction today does not prove it can never recur — hence the timeout-hardening recommendation",
+    "DB reset deliberately not performed (justified); fresh-DB behavior inferred from the accumulated-DB isolated pass, not directly executed",
+    "Single-browser (Chromium) coverage per the suite's design",
+    "CURRENT_STATE.md in AIKB is stale (89/89 / READY_FOR_COMMIT_GATE) — optional AIKB refresh recommended, out of scope here"
   ],
   "next_safe_step": {
-    "name": "AI_DECISION_RECORDING_E2E_FLAKE_INVESTIGATION_V0.1",
-    "description": "Bounded investigation gate: (1) reset LocalDB to seeded state and re-run e2e/06-claim-actions.spec.ts alone; (2) if still fails on fresh DB → diagnose AiDecisionController / recordAiDecision saga / EF Core insert path; (3) if passes on fresh DB → categorize as test brittleness to accumulated state; harden test or document as known limitation. No commit/push of fixes in the investigation gate. After fix gate accepted and 89/89 PASS restored on this exact working tree, re-open COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1.",
-    "operator_action_required": true,
-    "fix_gate_will_follow": true
+    "name": "E2E_06_AIDECISION_TIMEOUT_HARDENING_V0.1",
+    "recommended": true,
+    "test_only_no_product_source": true,
+    "description": "Tiny test-infrastructure hardening so the commit gate's verification run is reliable under load: (1) e2e/06-claim-actions.spec.ts:72-74 raise ai-decision-recorded timeout 15000 -> 30000 (match the analysis assertion); (2) playwright.config.ts:29 retries 0 -> 1 locally (enables trace:on-first-retry capture). Does NOT weaken any semantic/negative assertion; e2e/21 untouched.",
+    "done_state": "89/89 stable across 2 consecutive full-suite runs; e2e/21 untouched; no product source change",
+    "then": "re-open COMMIT_AND_PUSH_DEV_REALISTIC_SANDBOX_BATCH_V0.1 (89/89 already restored; commit gate unblocked)",
+    "alternative": "operator may re-open the commit/push gate directly now, accepting a small residual flake risk during verification",
+    "operator_action_required": true
   }
 }
