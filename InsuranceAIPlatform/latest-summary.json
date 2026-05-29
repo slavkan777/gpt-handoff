@@ -1,80 +1,104 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_IAC_SKELETON_PUSH_RETRY_V0.1",
-  "gate_type": "push-only retry of existing local commit + verification + gpt-handoff report",
+  "gate": "AZURE_MINIMAL_DEPLOY_PREP_V0.1",
+  "gate_type": "deploy-prep: Docker/GHCR/OIDC/SWA/Bicep readiness + offline validation (no deploy)",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "PUSHED",
-  "push_attempt_number": 3,
+  "verdict": "ACCEPT_DEPLOY_PREP_READY",
   "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "IaC skeleton + docs now on origin/dev, but nothing deployed; no product/runtime change to retest. Manual retest applies after AZURE_MINIMAL_DEPLOY_V0.1.",
+  "ready_for_slava_manual_retest_reason": "prep files only (uncommitted); nothing deployed; no product/runtime change. Hands-on retest applies after AZURE_MINIMAL_DEPLOY_V0.1.",
   "date_utc": "2026-05-29",
-  "scope_summary": "Push-only retry of the existing, already-QA-cleared commit a70071d to origin/dev. No new commit, no edits, no force. Succeeded on attempt #3 after the operator granted the PAT the `workflow` scope. origin/dev advanced 2e9443a -> a70071d; origin/main untouched.",
+  "scope_summary": "Authored a multi-stage net9 Dockerfile + .dockerignore, SWA staticwebapp.config.json, a guarded GHCR build->push->OIDC-deploy workflow blueprint (still disabled), and /health probes on the Container App. Validated with real builds (docker build EXIT 0, 137/137 tests, npm build, bicep 0/0). No az login, no resources, no deploy, no image push, no OIDC, no secrets, no source commit. All files uncommitted.",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "local_head_before": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "local_head_after": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "local_head_changed": false,
-    "origin_dev_before": "2e9443a6726f34f20bd26233e840ae8cc982d91a",
-    "origin_dev_after": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "origin_dev_advanced": true,
+    "head": "a70071d8e676126c4129e8fed00c3424082001e4",
+    "head_unchanged": true,
+    "origin_dev": "a70071d8e676126c4129e8fed00c3424082001e4",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
     "origin_main_unchanged": true,
-    "local_synced_with_origin_dev": true,
-    "working_tree_after": "clean except test-results/.last-run.json (intentionally untracked)"
+    "staged": 0,
+    "working_tree_after": "+4 new + 2 modified (uncommitted) + test-results/ (untracked)"
   },
-  "push": {
-    "attempted": true,
-    "target": "origin dev",
-    "force_used": false,
-    "result": "SUCCESS",
-    "ref_update": "2e9443a..a70071d  dev -> dev",
-    "exit_code": 0,
-    "origin_dev_after_push": "a70071d8e676126c4129e8fed00c3424082001e4"
+  "files": {
+    "new": [
+      "server/Dockerfile",
+      "server/.dockerignore",
+      "staticwebapp.config.json",
+      "docs/architecture/azure/AZURE_MINIMAL_DEPLOY_PREP_V0.1.md"
+    ],
+    "modified": [
+      ".github/workflows/azure-deploy-demo.yml (guarded GHCR build/push + OIDC deploy blueprint; workflow_dispatch-only; deploy steps commented; packages: write added)",
+      "infra/modules/container-apps.bicep (Liveness/Readiness/Startup probes -> GET /health on 8080)"
+    ],
+    "excluded": ["test-results/.last-run.json"]
   },
-  "no_change_guard": {
-    "file_edits": false,
-    "staged_files": 0,
-    "new_commit": false,
-    "amend_reset_rebase": false
+  "dockerfile": {
+    "base_build": "mcr.microsoft.com/dotnet/sdk:9.0",
+    "base_runtime": "mcr.microsoft.com/dotnet/aspnet:9.0",
+    "context": "server/",
+    "port": 8080,
+    "non_root": "USER $APP_UID",
+    "env": "ASPNETCORE_URLS=http://+:8080, ASPNETCORE_ENVIRONMENT=Production",
+    "secrets_baked": false,
+    "restore_caching": "csproj-first copy (Api + 7 referenced projects)"
   },
-  "retry_history": [
-    {"attempt": 1, "gate": "AZURE_IAC_SKELETON_COMMIT_V0.1", "verdict": "PUSH_BLOCKED", "cause": "PAT lacked `workflow` scope"},
-    {"attempt": 2, "gate": "AZURE_IAC_SKELETON_PUSH_RETRY_V0.1", "verdict": "PUSH_BLOCKED", "cause": "scope not yet effective; git uses PAT in Windows Credential Manager (manager-core), no gh"},
-    {"attempt": 3, "gate": "AZURE_IAC_SKELETON_PUSH_RETRY_V0.1", "verdict": "PUSHED", "cause": "operator granted `workflow` scope; same commit pushed clean"}
-  ],
-  "commit_now_on_origin_dev": {
-    "sha": "a70071d8e676126c4129e8fed00c3424082001e4",
-    "message": "chore: add Azure IaC skeleton and deployment plan",
-    "files": 21,
-    "insertions": 1125,
-    "qa": "Opus /qa-inspector 7/7 CLEARED (prior commit gate); az bicep build 0/0"
+  "validation": {
+    "docker_build": "EXIT 0 — image insurance-api:preptest sha256:d2dda6f2…; 8 projects restored, dotnet publish -c Release, exported; build context 503 KB",
+    "backend_tests": "137 passed / 0 failed / 0 skipped (6s, no DB)",
+    "frontend_build": "EXIT 0 — tsc -b && vite build -> dist/ (js 436KB/gzip 131KB)",
+    "bicep_build": "EXIT 0, 0 errors / 0 warnings, ARM 1322 lines (with probes)",
+    "secret_scan": "clean",
+    "toolchain": "dotnet 9.0.304, Docker 20.10.23, node v21.3.0",
+    "limitations": "image built locally only (not pushed to GHCR); offline bicep (no live quota/region/SKU/model check)"
+  },
+  "readiness": {
+    "backend": "READY",
+    "frontend": "READY",
+    "docker": "READY",
+    "static_web_app": "READY",
+    "bicep": "READY",
+    "workflow": "READY (guarded, disabled)",
+    "ghcr": "PLAN (image not pushed)",
+    "oidc": "PLAN (operator creates app + federated credential)"
+  },
+  "known_gaps": {
+    "cors": "API allows only localhost:5173. Preferred fix: SWA linked backend (/api/* proxied same-origin, no code change). Alt: env-driven CORS = separate code gate.",
+    "sql_wiring": "INSURANCEAI_CONNECTION_STRING (Entra/MI passwordless) + one-time DbMigrator run; deferred to a SQL gate. Minimal deploy runs without DB (Mock AI + in-memory reads; /health has no DB dep; no startup migration).",
+    "ghcr_visibility": "make package public after first push (anonymous pull) or add pull credential",
+    "sql_admin_object_id": "real Entra oid supplied at deploy, never committed"
   },
   "safety": {
     "azure_login_used": false,
     "resources_created": false,
     "deploy_run": false,
+    "image_pushed": false,
+    "workflow_run": false,
+    "oidc_created": false,
+    "source_commit_attempted": false,
+    "source_push_attempted": false,
     "main_touched": false,
-    "force_push_used": false,
-    "product_code_changed": false,
-    "credential_or_token_scope_changed_by_executor": false,
-    "secrets_printed": false
+    "product_business_logic_changed": false,
+    "ai_provider_activated": false,
+    "secrets_present": false
   },
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/azure-iac-skeleton-push-retry-v0.1/report.md"
+    "InsuranceAIPlatform/azure-minimal-deploy-prep-v0.1/report.md"
   ],
   "blockers": [],
   "limitations": [
-    "IaC skeleton committed + compiles offline, but NO Azure resources exist yet (nothing deployed)",
-    "bicep build offline — does not verify live Azure quota/region/SKU/model availability",
-    "Dockerfile + GHCR publish + OIDC federation are AZURE_MINIMAL_DEPLOY_V0.1 deliverables",
-    "deploy-time inputs deferred: insuranceApiImage (GHCR tag) + sqlAdminObjectId (Entra group oid)"
+    "prep files uncommitted (commit gate next)",
+    "docker image built locally only (not pushed to GHCR)",
+    "CORS + SQL are deploy/post-deploy concerns",
+    "offline bicep (no live Azure quota/region/SKU/model availability check)"
   ],
   "next_safe_step": {
     "name": "AZURE_MINIMAL_DEPLOY_V0.1",
-    "action": "Dockerfile for Api -> publish image to GHCR -> OIDC federated credentials -> first ~$0 deploy to Azure Container Apps (scale-to-zero)",
+    "preceded_by": "a commit gate for the uncommitted prep files (server/Dockerfile, .dockerignore, staticwebapp.config.json, workflow, container-apps.bicep probes, prep doc)",
+    "action": "az login (operator) + activate GHCR build/push + OIDC az deployment sub create of main.bicep (+ image tag + sqlAdminObjectId); verify /health; confirm ~$0 idle",
+    "creates_resources": true,
+    "requires_az_login": true,
     "operator_action_required": true
   }
 }

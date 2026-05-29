@@ -1,63 +1,78 @@
 # InsuranceAIPlatform — Latest gate report
 
-**Gate:** AZURE_IAC_SKELETON_PUSH_RETRY_V0.1
-**Type:** push-only retry of existing local commit `a70071d`
+**Gate:** AZURE_MINIMAL_DEPLOY_PREP_V0.1
+**Type:** deploy-prep (Docker/GHCR/OIDC/SWA/Bicep readiness + offline validation; no deploy)
 **Date (UTC):** 2026-05-29
-**Verdict:** **PUSHED** ✅ (3rd attempt — after PAT gained `workflow` scope)
+**Verdict:** **ACCEPT_DEPLOY_PREP_READY** ✅ (real builds pass; nothing deployed/committed)
 **Executor model/version:** Opus 4.8 (1M context) — `claude-opus-4-8[1m]`
 
-**Source `dev` HEAD:** `a70071d` · **origin/dev** `a70071d` *(advanced — push landed)* · **origin/main** `69e67312` *(untouched)*
+**Source `dev` HEAD:** `a70071d` *(unchanged)* · **origin/dev** `a70071d` · **origin/main** `69e67312` *(untouched)* · staged 0
 
-**Full report:** [azure-iac-skeleton-push-retry-v0.1/report.md](azure-iac-skeleton-push-retry-v0.1/report.md)
+**Full report:** [azure-minimal-deploy-prep-v0.1/report.md](azure-minimal-deploy-prep-v0.1/report.md)
 
 ---
 
 ## Bottom line
 
-The Azure IaC skeleton commit `a70071d` (21 files: 12 infra Bicep + 8 Azure docs + 1 disabled workflow) is **now on `origin/dev`**. Pushed the same already-Opus-cleared commit unchanged — no new commit, no edits, no force; `origin/main` untouched. It took 3 attempts: the first two were rejected because the GitHub PAT lacked the `workflow` scope (the commit adds an Actions workflow file); once the operator granted the scope, the identical commit pushed cleanly. Local and remote `dev` are fully synced.
-
-**Next:** `AZURE_MINIMAL_DEPLOY_V0.1` — Dockerfile → GHCR image → OIDC federation → first ≈$0 deploy to Container Apps (scale-to-zero).
+Authored the first-deploy prep — a **multi-stage `net9.0` Dockerfile** (non-root, :8080, no secrets) + `.dockerignore`, a SWA **`staticwebapp.config.json`** (SPA fallback), a **guarded GHCR build→push→OIDC-deploy blueprint** in the disabled workflow, and **`/health` probes** on the Container App. Validated with **real builds**: `docker build` **EXIT 0** (image exported), **137/137** backend tests, frontend `npm run build` OK, `az bicep build` 0/0 (1322-line ARM), secret scan clean. **No `az login`, no resources, no deploy, no image push, no OIDC, no secrets.** All files **uncommitted**. Documented gaps (CORS via SWA linked-backend; SQL wiring deferred; GHCR visibility; `sqlAdminObjectId` at deploy) + a full operator checklist.
 
 ---
 
 ## REPORT BACK FORMAT
 
 ```text
-VERDICT: PUSHED
-GATE: AZURE_IAC_SKELETON_PUSH_RETRY_V0.1
+VERDICT: ACCEPT_DEPLOY_PREP_READY
+GATE: AZURE_MINIMAL_DEPLOY_PREP_V0.1
 MODEL_USED: Opus 4.8 (1M context) / claude-opus-4-8[1m]
 SOURCE_REPO:
   path: C:/Projects/InsuranceAIPlatform
   branch: dev
-  local_head_before: a70071d8e676126c4129e8fed00c3424082001e4
-  local_head_after:  a70071d8e676126c4129e8fed00c3424082001e4   (unchanged — no commit/amend)
-  origin_dev_before: 2e9443a6726f34f20bd26233e840ae8cc982d91a
-  origin_dev_after:  a70071d8e676126c4129e8fed00c3424082001e4   (advanced — push landed)
-  origin_main_before: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5
-  origin_main_after:  69e67312a10cc9bcf28c4e387a126b48c91fb9c5   (untouched)
-WORKING_TREE:
-  before: clean except test-results/ (untracked); 1 commit ahead of origin/dev; 0 staged
-  after:  clean except test-results/ (untracked); fully synced with origin/dev (0 ahead); 0 staged
-PUSH:
-  attempted: YES
-  target: origin dev (no force)
-  result: SUCCESS — "2e9443a..a70071d  dev -> dev" (exit 0)
-  force_used: NO
-  verified_remote: origin/dev == a70071d (== local HEAD); origin/main == 69e67312 (untouched)
+  head: a70071d8e676126c4129e8fed00c3424082001e4
+  origin_dev: a70071d8e676126c4129e8fed00c3424082001e4
+  origin_main: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5 (untouched)
+  working_tree_before: clean except test-results/ (untracked)
+  working_tree_after: +4 new + 2 modified (UNCOMMITTED); 0 staged; test-results/ still untracked
+DEPLOY_READINESS:
+  backend: READY (docker image builds; 137/137 tests)
+  frontend: READY (npm run build -> dist/)
+  docker: READY (docker build EXIT 0, image insurance-api:preptest exported, context 503 KB)
+  static_web_app: READY (staticwebapp.config.json SPA fallback + security headers)
+  bicep: READY (az bicep build 0/0, ARM 1322 lines, /health probes added)
+  workflow: READY (guarded blueprint; workflow_dispatch-only; deploy steps commented)
+  ghcr: PLAN (image not pushed; build/push steps guarded+commented for deploy gate)
+  oidc: PLAN (operator creates app registration + federated credential in deploy gate)
+FILES_CREATED_OR_UPDATED:
+  docker: server/Dockerfile (new), server/.dockerignore (new)
+  swa: staticwebapp.config.json (new)
+  infra: infra/modules/container-apps.bicep (modified — Liveness/Readiness/Startup probes -> /health)
+  docs: docs/architecture/azure/AZURE_MINIMAL_DEPLOY_PREP_V0.1.md (new)
+  workflow: .github/workflows/azure-deploy-demo.yml (modified — guarded GHCR+OIDC blueprint, packages: write)
+VALIDATION:
+  backend_build: PASS (docker publish + dotnet test build -> Api.dll + 6 services + BuildingBlocks)
+  backend_tests: PASS (137 passed / 0 failed / 0 skipped, 6s, no DB)
+  frontend_build: PASS (tsc -b && vite build -> dist/, js 436KB/gzip 131KB)
+  bicep_build: PASS (EXIT 0, 0/0, ARM 1322 lines)
+  docker_build: PASS (EXIT 0, image sha256:d2dda6f2…, multi-stage non-root :8080)
+  limitations: image built locally only (not pushed to GHCR); offline bicep (no live quota/region/SKU)
 SAFETY:
-  file_edits: NONE
-  staged_files: 0
-  new_commit_attempted: NO (no amend/reset/rebase)
+  secrets_scan: PASS (no secrets; no GUIDs added; workflow secret refs are commented placeholders)
   azure_login_used: NO
   resources_created: NO
   deploy_attempted: NO
-  secrets_printed: NO (token never read/printed)
+  image_pushed: NO
+  workflow_run: NO
+  source_commit_attempted: NO
+  source_push_attempted: NO
+  main_touched: NO
+OPERATOR_CHECKLIST:
+  required_before_deploy: 1) az login (deploy gate); 2) confirm subscription; 3) confirm region westeurope; 4) confirm $30 budget/alerts; 5) Entra group -> sqlAdminObjectId; 6) OIDC app + federated credential (repo:slavkan777/InsuranceAIPlatform:environment:azure-demo) + Contributor + repo Actions secrets AZURE_CLIENT_ID/TENANT_ID/SUBSCRIPTION_ID (via UI); 7) approve first az deployment sub create; 8) set GHCR package visibility after first push
+  do_not_paste: GitHub PAT, any API key, DEEPSEEK_API_KEY, SQL passwords (none — Entra-only), client secrets; sub/tenant/client IDs go to GitHub Actions secrets via UI, not chat
+NEXT_RECOMMENDED_GATE: AZURE_MINIMAL_DEPLOY_V0.1 (needs az login + creates resources) — preceded by a commit gate for these uncommitted prep files
 GITHUB_HANDOFF:
   latest_report:  InsuranceAIPlatform/latest-report.md
   latest_summary: InsuranceAIPlatform/latest-summary.json
-  task_report:    InsuranceAIPlatform/azure-iac-skeleton-push-retry-v0.1/report.md
-BLOCKERS: none (prior `workflow`-scope blocker resolved by operator granting the scope)
-LIMITATIONS: skeleton committed + compiles offline, but no Azure resources exist yet; Dockerfile + GHCR + OIDC are AZURE_MINIMAL_DEPLOY_V0.1 deliverables; bicep build does not verify live quota/region/SKU
-NEXT_RECOMMENDED_GATE: AZURE_MINIMAL_DEPLOY_V0.1 (Dockerfile -> GHCR image -> OIDC federated credentials -> first ~$0 deploy to Container Apps scale-to-zero)
-STOP_LINE_CONFIRMATION: stopping after report; no next gate opened, no resources, no deploy, no AIKB update, no PR, no main, no code change, no credential change
+  task_report:    InsuranceAIPlatform/azure-minimal-deploy-prep-v0.1/report.md
+BLOCKERS: none
+LIMITATIONS: prep files uncommitted; docker image local only (not pushed); CORS + SQL are deploy/post-deploy concerns; offline bicep (no live quota/region/SKU check)
+STOP_LINE_CONFIRMATION: stopping after report; no deploy gate opened, no az login/resources/deploy/image push/workflow run/OIDC, no source commit/push, no AIKB update, no main/PR, no secrets
 ```
