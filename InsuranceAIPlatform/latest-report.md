@@ -3,10 +3,10 @@
 **Gate:** AZURE_MINIMAL_DEPLOY_MASTER_V0.1
 **Type:** first real Azure minimal deploy (operator-checkpointed)
 **Date (UTC):** 2026-05-29
-**Verdict:** **PREFLIGHT_ONLY_OPERATOR_ACTION_REQUIRED** ⏸️ (no `az login`, no resources, $0)
+**Verdict:** **DEPLOYED_MINIMAL** ✅ (API live + `/health` 200; idle ~$0)
 **Executor model/version:** Opus 4.8 (1M context) — `claude-opus-4-8[1m]`
 
-**Source `dev` HEAD:** `ce1a1e5` *(unchanged)* · **origin/main** `69e67312` *(untouched)*
+**Source `dev` HEAD:** `ce1a1e5` *(unchanged — no commit this gate)* · **origin/main** `69e67312` *(untouched)*
 
 **Full report:** [azure-minimal-deploy-v0.1/report.md](azure-minimal-deploy-v0.1/report.md)
 
@@ -14,76 +14,83 @@
 
 ## Bottom line
 
-Local pre-Azure phases passed (tests 137/137, frontend build, docker reproducible, bicep 0/0, secret scan clean, workflow cannot auto-deploy). Reached the **Phase-3 login checkpoint** — the operator did not type `LOGIN_APPROVED`, so **nothing Azure was done**. A read-only `az account show` (not `az login`) revealed the **active az session is a corporate-domain account** (email redacted) — **almost certainly the wrong subscription** for this personal portfolio project ($30 budget is on a personal sub). Operator must confirm/switch the subscription and approve before any deploy. Two open plan items documented (SQL all-zeros admin → defer SQL or supply Entra oid; API image via placeholder vs GHCR).
+First real Azure deploy is **live** on the **personal** subscription (switched off the corporate tenant first). Our API image (GHCR, public) runs on Azure Container Apps **scale-to-zero**; **`GET /health` → 200** `{"status":"Healthy","service":"InsuranceAIPlatform.Api","environment":"Production"}` after a cold start. 8 resources in `rg-iap-demo` (westeurope); **SQL + AI deferred, no AKS, no ACR**; SWA (Free) provisioned, content deploy deferred. Cost guardrails all verified — idle ≈ $0. The `enableSql` infra edit + 3 post-deploy docs are **uncommitted** (commit gate next).
+
+**Live:** API `https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io` · SWA `https://kind-meadow-03cf73103.7.azurestaticapps.net` (empty)
 
 ---
 
 ## REPORT BACK FORMAT
 
 ```text
-VERDICT: PREFLIGHT_ONLY_OPERATOR_ACTION_REQUIRED
+VERDICT: DEPLOYED_MINIMAL
 GATE: AZURE_MINIMAL_DEPLOY_MASTER_V0.1
 MODEL_USED: Opus 4.8 (1M context) / claude-opus-4-8[1m]
 SOURCE_REPO:
   path: C:/Projects/InsuranceAIPlatform
   branch: dev
-  head: ce1a1e54721f7487d2b1124ab072806ec1b151fe
-  origin_dev: ce1a1e54721f7487d2b1124ab072806ec1b151fe
+  head: ce1a1e54721f7487d2b1124ab072806ec1b151fe (unchanged — no source commit this gate)
+  origin_dev: ce1a1e5
   origin_main: 69e67312a10cc9bcf28c4e387a126b48c91fb9c5 (untouched)
-  working_tree_before: clean except test-results/ (untracked); 0 staged
-  working_tree_after: unchanged (no edits this gate); 0 staged
+  working_tree_before: clean except test-results/
+  working_tree_after: modified infra/main.bicep (enableSql) + 3 new docs/architecture/azure/*.md (ALL UNCOMMITTED); test-results/ untracked
 OPERATOR_APPROVALS:
-  login_approved: NO (operator re-sent the gate but did not type LOGIN_APPROVED)
-  deploy_approved: NO
-  resource_creation_approved: NO
+  login_approved: YES (after switching corporate -> personal account)
+  deploy_approved: YES (defer SQL + GHCR)
+  resource_creation_approved: YES
 AZURE_ACCOUNT:
-  login_used: NO (az login NOT run; only read-only `az account show`)
-  active_session_detected: YES — corporate-domain Entra account (email REDACTED) — NOT confirmed as the personal portfolio subscription; likely WRONG account
-  subscription_selected: none (not changed)
-  region: westeurope (planned, unconfirmed)
-  budget_verified: not checked (requires correct-account login)
+  login_used: personal account (corporate tenant explicitly switched away); IDs/email redacted
+  subscription_selected: "Azure subscription 1" (personal; confirmed has the $30 budget)
+  region: westeurope
+  budget_verified: operator-confirmed $30/mo + alerts $5/$10/$20/$30/$50
 LIVE_PREFLIGHT:
-  providers: not run (pre-login)
-  quotas: not run
-  names: not run
-  sku_region_availability: not run
-  blockers: awaiting LOGIN_APPROVED + correct subscription confirmation
+  providers: 7 registered (App, Web, Storage, KeyVault, OperationalInsights, Insights, ManagedIdentity)
+  quotas: ok (fresh sub; minimal footprint)
+  names: uniqueString-derived (storage/KV) — no collision
+  sku_region_availability: westeurope OK for all deployed types
+  blockers: none (post account-switch)
 IMAGE:
-  docker_build: PASS (local, reproducible; from prep/commit gates — not pushed)
-  registry: none (no push)
-  tag: planned ghcr.io/slavkan777/insuranceai-api:<sha>
-  push_result: NOT ATTEMPTED
+  docker_build: PASS (reproducible)
+  registry: GHCR (ghcr.io/slavkan777/insuranceai-api), package made PUBLIC
+  tag: ce1a1e5 (digest sha256:3d320fa9…)
+  push_result: PUSHED; anonymous pull HTTP 200
 DEPLOYMENT:
-  attempted: NO
-  resource_group: planned rg-iap-demo (not created)
-  deployment_name: n/a
-  result: NOT ATTEMPTED
-  resources_created: NONE
-  enable_ai: false (planned)
+  attempted: YES
+  resource_group: rg-iap-demo (westeurope)
+  deployment_name: iap-min-20260529223052
+  result: provisioningState Succeeded
+  resources_created: 8 (Container App + ACA env + SWA Free + Managed Identity + Key Vault + Storage + Log Analytics + App Insights)
+  enable_ai: false
   aks_created: NO
-POST_DEPLOY_CONFIG: n/a (nothing deployed)
-SMOKE_TESTS: n/a (nothing deployed)
+POST_DEPLOY_CONFIG:
+  container_apps: image ghcr.io/slavkan777/insuranceai-api:ce1a1e5, minReplicas=0, maxReplicas=2, provisioning Succeeded, running
+  sql: not deployed (enableSql=false; output sqlServerFqdn="")
+  storage: allowSharedKeyAccess=false; 4 containers; lifecycle TTL
+  key_vault: RBAC; no secrets stored
+  monitoring: Log Analytics (30d, 1GB/day cap) + App Insights (50% sampling)
+  ai_optional: not deployed
+SMOKE_TESTS:
+  api_health: PASS (HTTP 200, body service=InsuranceAIPlatform.Api, env=Production)
+  frontend: DEFERRED (SWA resource live but no content yet)
+  auth: n/a (no auth configured this gate)
+  notes: /health has no DB dependency; cold start from scale-to-zero handled
 COST_GUARDRAILS:
-  budget: not verified (needs correct-account login)
-  min_replicas: 0 (in template)
-  sql_auto_pause: configured in template (SQL deploy deferred pending decision)
-  blob_ttl: configured in template
-  log_retention: 30d + daily cap in template
-  estimated_idle_risk: $0 — nothing created
+  budget: $30/mo + alerts (operator)
+  min_replicas: 0 (scale-to-zero)
+  sql_auto_pause: n/a (SQL not deployed)
+  blob_ttl: configured
+  log_retention: 30d + 1GB/day cap; App Insights 50% sampling
+  estimated_idle_risk: ~$0 (residual LAW/Storage < $1-2/mo); no AKS/ACR/always-on
 DOCS:
-  created_or_updated: none (no resources created; per gate, docs only if deployed)
-  committed: NO
+  created_or_updated: docs/architecture/azure/{AZURE_MINIMAL_DEPLOY_V0.1, AZURE_DEPLOYED_RESOURCES_V0.1, AZURE_COST_POST_DEPLOY_CHECK_V0.1}.md + infra/main.bicep enableSql edit
+  committed: NO (uncommitted; separate commit gate)
 GITHUB_HANDOFF:
   latest_report:  InsuranceAIPlatform/latest-report.md
   latest_summary: InsuranceAIPlatform/latest-summary.json
   task_report:    InsuranceAIPlatform/azure-minimal-deploy-v0.1/report.md
-BLOCKERS:
-  - operator has not typed LOGIN_APPROVED
-  - active az session is a CORPORATE account (redacted) — wrong subscription for this personal project; must confirm/switch
-LIMITATIONS:
-  - SQL: main.bicep passes the SQL module an all-zeros Entra-admin placeholder and does not surface it as a deploy param -> deploying as-is would fail; minimal path = defer SQL (needs a small enableSql toggle, proposed+approved before editing) or supply a real Entra-group objectId
-  - API image: choose public-placeholder-first vs GHCR push (write:packages or Actions GITHUB_TOKEN)
-CLEANUP_PLAN: none needed — nothing created
-NEXT_RECOMMENDED_GATE: resume AZURE_MINIMAL_DEPLOY_MASTER_V0.1 after operator confirms the correct personal subscription + types LOGIN_APPROVED, then DEPLOY_APPROVED
-STOP_LINE_CONFIRMATION: stopped at Phase-3 checkpoint; no az login/subscription change/resources/deploy/image push/workflow/OIDC; no source commit/push; no main/PR; no AIKB; no secrets (corporate email redacted)
+BLOCKERS: none
+LIMITATIONS: frontend content not deployed (SWA empty; follow-up swa deploy + SPA->API wiring/linked-backend); SQL deferred; AI Mock-only; first deploy via local az (CI/OIDC path still the guarded workflow)
+CLEANUP_PLAN: az group delete -n rg-iap-demo --yes --no-wait
+NEXT_RECOMMENDED_GATE: AZURE_MINIMAL_DEPLOY_COMMIT_V0.1 (commit enableSql edit + 3 docs to dev) -> then AZURE_FRONTEND_DEPLOY_V0.1
+STOP_LINE_CONFIRMATION: stopping after report; no AI integration, no SQL prod migration, no extra resources, no source commit/push, no AIKB, no PR, no main, resources NOT deleted (await operator for cleanup)
 ```

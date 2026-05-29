@@ -3,85 +3,112 @@
   "gate": "AZURE_MINIMAL_DEPLOY_MASTER_V0.1",
   "gate_type": "first real Azure minimal deploy (operator-checkpointed)",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "PREFLIGHT_ONLY_OPERATOR_ACTION_REQUIRED",
-  "ready_for_slava_manual_retest": false,
-  "ready_for_slava_manual_retest_reason": "stopped at the Phase-3 login checkpoint; nothing deployed",
+  "verdict": "DEPLOYED_MINIMAL",
+  "ready_for_slava_manual_retest": true,
+  "ready_for_slava_manual_retest_reason": "API is live on Azure: GET https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io/health returns 200 Healthy. Frontend SWA provisioned but no content yet.",
   "date_utc": "2026-05-29",
-  "scope_summary": "Ran safe local phases (repo truth + validation) then stopped at the mandatory login checkpoint. Operator did not type LOGIN_APPROVED. No az login, no subscription change, no resources, no deploy, no image push. A read-only `az account show` revealed the active az session is a CORPORATE-domain account (redacted) — likely the WRONG subscription for this personal portfolio project; must be confirmed/switched before deploy.",
+  "scope_summary": "First real Azure deploy on the personal subscription (corporate tenant explicitly switched away). Our GHCR image deployed to Azure Container Apps scale-to-zero; /health 200. 8 resources in rg-iap-demo/westeurope. SQL + AI deferred; no AKS/ACR. SWA (Free) provisioned, content deferred. Cost guardrails verified; idle ~$0. enableSql infra edit + 3 docs left uncommitted.",
+  "operator_approvals": {"login_approved": true, "deploy_approved": true, "decisions": "defer SQL + GHCR"},
+  "azure_account": {
+    "type": "personal (corporate @edgernd.com tenant switched away)",
+    "subscription_name": "Azure subscription 1",
+    "ids": "redacted (subscription/tenant/email not logged to external repo)",
+    "region": "westeurope",
+    "budget": "$30/mo + alerts $5/$10/$20/$30/$50 (operator-confirmed)"
+  },
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
     "head": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
     "head_unchanged": true,
-    "origin_dev": "ce1a1e54721f7487d2b1124ab072806ec1b151fe",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
     "origin_main_unchanged": true,
-    "staged": 0,
-    "working_tree": "clean except test-results/ (untracked); no edits this gate"
+    "uncommitted_changes": [
+      "infra/main.bicep (enableSql param + if(enableSql) guard + conditional sqlServerFqdn output)",
+      "docs/architecture/azure/AZURE_MINIMAL_DEPLOY_V0.1.md",
+      "docs/architecture/azure/AZURE_DEPLOYED_RESOURCES_V0.1.md",
+      "docs/architecture/azure/AZURE_COST_POST_DEPLOY_CHECK_V0.1.md"
+    ]
   },
-  "phases_completed": {
-    "phase_1_bootstrap": "PASS",
-    "phase_2_local_validation": "PASS (tests 137/137, frontend build, docker reproducible, bicep 0/0, secret scan clean, workflow guarded)",
-    "phase_3_login_checkpoint": "STOPPED — LOGIN_APPROVED not provided"
+  "image": {
+    "registry": "ghcr.io/slavkan777/insuranceai-api",
+    "tag": "ce1a1e5",
+    "digest": "sha256:3d320fa9b133aa494299ad361d22f42e623f89971574996d07fb5935713cb05e",
+    "visibility": "public",
+    "anonymous_pull_http": 200
   },
-  "critical_finding": {
-    "issue": "active az session is a corporate-domain Entra account (email REDACTED), not confirmed as the personal portfolio subscription with the $30 budget",
-    "how_detected": "read-only `az account show` (NOT az login)",
-    "risk": "deploying into the corporate subscription would be the wrong tenant/account",
-    "required": "operator confirms/switches to the correct personal subscription before LOGIN_APPROVED/DEPLOY_APPROVED"
+  "deployment": {
+    "name": "iap-min-20260529223052",
+    "scope": "subscription",
+    "resource_group": "rg-iap-demo",
+    "region": "westeurope",
+    "provisioning_state": "Succeeded",
+    "resource_count": 8,
+    "enable_sql": false,
+    "enable_ai": false,
+    "aks": false,
+    "acr": false
   },
-  "operator_approvals": {
-    "login_approved": false,
-    "deploy_approved": false,
-    "resource_creation_approved": false
+  "resources": [
+    "iap-demo-api (Microsoft.App/containerApps, minReplicas=0, image ghcr.io/slavkan777/insuranceai-api:ce1a1e5)",
+    "iap-demo-cae (Microsoft.App/managedEnvironments)",
+    "iap-demo-swa (Microsoft.Web/staticSites, Free)",
+    "iap-demo-api-mi (Microsoft.ManagedIdentity/userAssignedIdentities)",
+    "iapdemokv... (Microsoft.KeyVault/vaults, RBAC)",
+    "iapdemost... (Microsoft.Storage/storageAccounts, allowSharedKeyAccess=false)",
+    "iap-demo-law (Microsoft.OperationalInsights/workspaces, 30d + 1GB/day cap)",
+    "iap-demo-appi (Microsoft.Insights/components, 50% sampling)"
+  ],
+  "endpoints": {
+    "api": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
+    "api_health": "GET /health -> 200 {status:Healthy, service:InsuranceAIPlatform.Api, environment:Production}",
+    "swa": "https://kind-meadow-03cf73103.7.azurestaticapps.net (empty until frontend content deploy)"
   },
-  "azure_actions_taken": {
-    "az_login": false,
-    "az_account_show_readonly": true,
-    "subscription_changed": false,
-    "resources_created": false,
-    "deploy": false,
-    "image_pushed": false,
-    "workflow_run": false,
-    "oidc_created": false,
-    "providers_registered": false
+  "smoke_tests": {
+    "api_health": "PASS (HTTP 200, our API identity, cold start handled)",
+    "frontend": "DEFERRED (SWA resource live, no content)",
+    "auth": "n/a"
   },
-  "deploy_plan_preview": {
-    "region": "westeurope (unconfirmed)",
-    "resource_group": "rg-iap-demo (subscription-scope main.bicep)",
-    "recommended_first_path": "operator az login to personal sub -> executor runs `az deployment sub create` locally (no OIDC/Actions needed for first manual deploy)",
-    "cost_shape": "Container Apps minReplicas=0, SWA Free, Storage+KeyVault+monitoring sampled/capped, SQL Serverless auto-pause (if deployed), enableAi=false, no AKS; idle ~$0, real ~$5-10/mo",
-    "open_items": {
-      "sql_admin": "main.bicep passes SQL module an all-zeros Entra-admin placeholder and does not surface it as a deploy param -> deploying as-is would FAIL at SQL creation. Minimal path: defer SQL (API runs without DB; /health has no DB dep; no startup migration) via a small enableSql toggle (proposed+approved before editing) OR operator supplies a real Entra-group objectId.",
-      "api_image": "first deploy can use public placeholder image (containerapps-helloworld, $0) to prove infra then swap, OR push our image to GHCR (needs write:packages token or Actions GITHUB_TOKEN)"
-    }
+  "cost_guardrails": {
+    "min_replicas": 0,
+    "swa_sku": "Free",
+    "aks_in_subscription": false,
+    "acr_in_subscription": false,
+    "storage_shared_key": false,
+    "log_analytics": "30d retention + 1GB/day cap",
+    "app_insights_sampling": "50%",
+    "sql_deployed": false,
+    "ai_deployed": false,
+    "estimated_idle": "~$0 (residual LAW/Storage < $1-2/mo)"
   },
   "safety": {
+    "personal_subscription": true,
     "secrets_printed": false,
-    "corporate_email_redacted_from_report": true,
+    "tokens_in_chat": false,
+    "ai_provider_activated": false,
+    "aks_created": false,
     "main_touched": false,
     "force_push_used": false,
     "source_commit_attempted": false,
-    "ai_provider_activated": false,
-    "aks_created": false
+    "aikb_updated": false
   },
+  "cleanup_plan": "az group delete -n rg-iap-demo --yes --no-wait",
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
     "InsuranceAIPlatform/azure-minimal-deploy-v0.1/report.md"
   ],
-  "blockers": [
-    "operator has not typed LOGIN_APPROVED",
-    "active az session is a corporate account (redacted) — wrong subscription for this personal project; confirm/switch required"
-  ],
+  "blockers": [],
   "limitations": [
-    "SQL deploy blocked by all-zeros Entra-admin placeholder in main.bicep (defer or supply oid)",
-    "API image path decision pending (placeholder vs GHCR)"
+    "frontend content not deployed (SWA empty; follow-up: swa deploy ./dist + SPA->API wiring via linked backend)",
+    "SQL deferred (later SQL gate: real Entra admin objectId + DbMigrator run)",
+    "AI stays Mock until explicit AI gate",
+    "first deploy used local az deployment (CI/OIDC path remains the guarded workflow)"
   ],
-  "cleanup_plan": "none needed — nothing created",
   "next_safe_step": {
-    "name": "resume AZURE_MINIMAL_DEPLOY_MASTER_V0.1",
-    "action": "operator confirms correct personal subscription + types LOGIN_APPROVED -> read-only preflight + final plan -> DEPLOY_APPROVED -> deploy",
+    "name": "AZURE_MINIMAL_DEPLOY_COMMIT_V0.1",
+    "action": "commit the enableSql edit + 3 post-deploy docs to dev (QA-inspector path)",
+    "then": "AZURE_FRONTEND_DEPLOY_V0.1 (SWA content + API wiring)",
     "operator_action_required": true
   }
 }
