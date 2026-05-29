@@ -1,83 +1,79 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "AZURE_FRONTEND_DEPLOY_MASTER_V0.1",
-  "gate_type": "frontend content deploy to existing Azure Static Web App + smoke + docs (uncommitted)",
+  "gate": "AZURE_FRONTEND_DEPLOY_COMMIT_V0.1",
+  "gate_type": "docs-only commit + push + handoff (no Azure changes, no CORS fix)",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "FRONTEND_DEPLOYED_PARTIAL",
-  "ready_for_slava_manual_retest": true,
-  "ready_for_slava_manual_retest_reason": "Frontend live at https://kind-meadow-03cf73103.7.azurestaticapps.net — fully interactive on mock data; deep links + assets work. Live-API wiring deferred (API CORS hardcoded to localhost).",
+  "verdict": "PUSHED",
   "date_utc": "2026-05-29",
-  "scope_summary": "Deployed the Vite SPA (mock mode) into the existing SWA (Free) production env via SWA CLI. SPA live + smoke PASS. Backend-wiring deferred: API CORS is hardcoded to localhost:5173 (no ACAO for the SWA origin) so a browser would be blocked, though the backend serves real data without SQL. No new resources, no SQL/AI/AKS/ACR, no source commit. Opus /qa-inspector CLEARED 9/9.",
-  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 9/9 (independent verification; CORS claim confirmed, secret/token safety confirmed)",
+  "scope_summary": "Committed the frontend-deploy doc (AZURE_FRONTEND_DEPLOY_V0.1.md) to dev as 14d5c81 and pushed to origin/dev. No Azure change, no deploy, no CORS fix, no source code change. Commit allowed by a genuine Opus /qa-inspector CLEARED (no bypass). Live API + SWA still 200.",
+  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 5/5 (independent verification; secret/token scan clean, scope=1 doc)",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head": "ae4545c8d7aeafba3cb168de3f2b843e1051b7ef",
-    "head_unchanged": true,
-    "origin_dev": "ae4545c8d7aeafba3cb168de3f2b843e1051b7ef",
+    "head_before": "ae4545c8d7aeafba3cb168de3f2b843e1051b7ef",
+    "head_after": "14d5c8126a4ecd51122557520facb63224e7fe44",
+    "origin_dev_before": "ae4545c8d7aeafba3cb168de3f2b843e1051b7ef",
+    "origin_dev_after": "14d5c8126a4ecd51122557520facb63224e7fe44",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
-    "origin_main_unchanged": true,
-    "working_tree_after": "untracked docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md + test-results/; dist/ git-ignored; no source code modified"
+    "origin_main_unchanged": true
   },
-  "frontend": {
-    "root": "C:/Projects/InsuranceAIPlatform (root-level Vite SPA)",
-    "package_manager": "npm",
-    "build_command": "npm run build (tsc -b && vite build)",
-    "output_dir": "dist",
-    "mode": "mock (default; VITE_INSURANCE_API_MODE unset)",
-    "api_base_url_mechanism": "VITE_INSURANCE_API_MODE + VITE_INSURANCE_API_BASE_URL (default http://localhost:5284)"
+  "commit": {
+    "sha": "14d5c8126a4ecd51122557520facb63224e7fe44",
+    "message": "docs: record Azure frontend deploy",
+    "files_changed": 1,
+    "insertions": 55,
+    "hook_result": "ALLOWED via genuine Opus /qa-inspector CLEARED (no bypass)",
+    "files": ["docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md"]
   },
-  "deploy": {
-    "method": "@azure/static-web-apps-cli 2.0.9 via npx, deploy ./dist --env production",
-    "token_handling": "az staticwebapp secrets list -> SWA_CLI_DEPLOYMENT_TOKEN env (inline); never printed/stored/committed",
-    "target_swa": "iap-demo-swa (rg-iap-demo) production",
-    "result": "deployed OK; staticwebapp.config.json picked up (SPA fallback)"
+  "push": {
+    "attempted": true,
+    "target": "origin/dev",
+    "result": "ae4545c..14d5c81 dev -> dev (fast-forward)",
+    "force_used": false,
+    "verified_remote": "origin/dev == 14d5c81; origin/main == 69e67312"
   },
-  "endpoints": {
-    "frontend": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
-    "frontend_state": "live, interactive on mock data; deep links + assets 200",
-    "api": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
-    "api_health": "200 Healthy (before + after)"
+  "validation": {
+    "doc_review": "PASS (SWA+API URLs, deploy method, mock-mode, CORS limitation, cost guardrails, CORS-fix next gate)",
+    "secret_scan": "CLEAN (no key values, no GUIDs, no SWA token, no base64 blobs)",
+    "swa_readonly": "200",
+    "api_health_readonly": "200"
   },
-  "smoke_tests": {
-    "swa_root": "200 (our app, not placeholder)",
-    "spa_deep_link": "200 index.html (/claims)",
-    "assets": "JS 200 text/javascript (~443KB); CSS 200 text/css",
+  "safety": {
+    "azure_resources_changed": false,
+    "deploy_attempted": false,
+    "image_pushed": false,
+    "workflow_run": false,
+    "source_code_changed": false,
+    "main_touched": false,
+    "force_push_used": false,
+    "aikb_updated": false,
+    "secrets_printed": false
+  },
+  "live_state_unchanged": {
+    "api_url": "https://iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io",
     "api_health": "200",
-    "browser_api_integration": "N/A (mock mode; no cross-origin calls). Backend probe: 200 data but no Access-Control-Allow-Origin for SWA origin"
-  },
-  "cost_guardrails": {
-    "new_resources_created": false,
-    "resource_count": 9,
-    "swa_sku": "Free",
-    "container_min_replicas": 0,
+    "swa_url": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
+    "swa_http": "200",
     "sql_deployed": false,
     "ai_deployed": false,
     "aks_created": false,
-    "acr_created": false,
-    "estimated_idle": "~$0 (SWA Free adds $0)"
+    "acr_created": false
   },
-  "safety": {
-    "secrets_scan": "CLEAN (dist + doc; dead localhost:5284 only)",
-    "deployment_token_printed": false,
-    "source_commit_attempted": false,
-    "source_push_attempted": false,
-    "main_touched": false,
-    "workflow_run": false,
-    "resources_deleted": false,
-    "aikb_updated": false
-  },
+  "github_handoff_paths": [
+    "InsuranceAIPlatform/latest-report.md",
+    "InsuranceAIPlatform/latest-summary.json",
+    "InsuranceAIPlatform/azure-frontend-deploy-commit-v0.1/report.md"
+  ],
   "blockers": [],
   "limitations": [
-    "live-API wiring deferred: API CORS hardcoded WithOrigins(localhost:5173), no env override -> needs source change + image redeploy",
-    "auth/protected flows not configured (deferred)",
-    "SQL deferred (later SQL gate)",
-    "AI Mock-only until an explicit AI gate"
+    "live-API wiring still deferred: API CORS hardcoded WithOrigins(localhost:5173), no env override -> needs source change + image redeploy",
+    "auth/protected flows deferred",
+    "SQL deferred",
+    "AI Mock-only"
   ],
   "next_recommended_gate": {
-    "name": "AZURE_FRONTEND_DEPLOY_COMMIT_V0.1",
-    "action": "commit the new docs/architecture/azure/AZURE_FRONTEND_DEPLOY_V0.1.md to dev (QA-inspector path)",
-    "then": "AZURE_FRONTEND_CORS_FIX_V0.1 (add SWA origin to Program.cs CORS + redeploy API image, then build SPA in backend mode and redeploy)",
+    "name": "AZURE_FRONTEND_CORS_FIX_V0.1",
+    "action": "add SWA origin to Program.cs CORS (ideally config-driven) + redeploy API image, then build SPA in backend mode (VITE_INSURANCE_API_MODE=backend + VITE_INSURANCE_API_BASE_URL) and redeploy to SWA",
     "operator_action_required": true
   }
 }
