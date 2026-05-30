@@ -52,6 +52,14 @@
     "sacred-rule narrowing -> quarantine, enforced in this gate"
   ],
   "reconciliation_summary": "16 themes reconciled. ACTIVE (already wired): activate-protocol, no-self-acceptance, external-call-triple, risk-profiles, commit/push/Azure/provider gates. ACCEPT_AS_P0 but PROPOSED: evidence-tuple-before-DONE, numeric verification, subagent build-verify. CONDITIONAL/PROPOSED: semantic-E2E, mock/real labels, stakeholder triangulation, prompt templates, report schemas, operator-bug-protocol. MODIFY->QUARANTINE: Opus/QA scope. GPT recs not blindly accepted (themes 8/10/11 modified); Claude objections not blindly accepted (themes 2/6 kept P0 on incident evidence).",
+  "files_read": [
+    "C:\\Users\\DEVELOPER\\Claude\\CLAUDE.md (full)",
+    "C:\\Users\\DEVELOPER\\CLAUDE.md (full)",
+    "00-Meta/governance/claude-session-protocol.md (frontmatter + prior full read)",
+    "00-Meta/self-improvement/{pending,anti-patterns,patterns,lessons-learned}.md",
+    "gpt-handoff retrospective report (bb99e4f)",
+    "git states (gpt-handoff, vault)"
+  ],
   "files_changed": [
     "InsuranceAIPlatform/ai-engineering-os-claude-future-projects-hardening-v0.2/report.md",
     "InsuranceAIPlatform/ai-engineering-os-claude-future-projects-hardening-v0.2/summary.json",
