@@ -1,43 +1,40 @@
 # InsuranceAIPlatform — Latest gate report
 
-**Gate:** PRODUCT_I18N_EN_DEFAULT_UA_SWITCH_DEPLOY_AND_PUSH_MASTER_V0.1
-**Type:** product-wide i18n (English default + Ukrainian switch) + product-copy rewrite + existing-SWA redeploy + commit/push to `dev`
+**Gate:** AZURE_SQL_FULL_PERSISTENCE_ALL_PAGES_DEPLOY_PUSH_V0.1
+**Type:** deploy Azure SQL + make the previously-broken list/create flows persistent, validate, commit/push (docs)
 **Date (UTC):** 2026-05-30
-**Verdict:** **PRODUCT_I18N_DEPLOYED_PARTIAL_PUSHED** ✅
+**Verdict:** **SQL_PERSISTENCE_DEPLOYED_PARTIAL_PUSHED** ✅
 **Executor model/version:** Opus 4.8 (1M context) — `claude-opus-4-8[1m]`
 
-**Source `dev`:** `211d50f` → **`89e8516`** (pushed) · **origin/main `69e67312` (untouched)**
+**Source `dev`:** `89e8516` → **`70af774`** (pushed) · **origin/main `69e67312` (untouched)**
 
-**Full report:** [product-i18n-en-default-ua-switch-deploy-and-push-v0.1/report.md](product-i18n-en-default-ua-switch-deploy-and-push-v0.1/report.md)
+**Full report:** [azure-sql-full-persistence-all-pages-v0.1/report.md](azure-sql-full-persistence-all-pages-v0.1/report.md)
 
 ---
 
 ## Bottom line
 
-The site now reads as a real B2B insurance claims platform — **English by default**, with a visible **EN / UA switcher** (top-right, next to the profile avatar; persisted in `localStorage`). **All UI chrome across the whole app** is bilingual: login (rebuilt as a product landing with hero + value bullets), navigation, dashboard, claims list, claim workspace + 7 sub-pages, customer directory, guided walkthrough, claim tabs, 6 modals. **Every piece of old "portfolio / walking-skeleton / architecture-diagram" copy is removed** and replaced with product positioning — verified absent in the live bundle.
+The site no longer falls back to mock for its broken surfaces — **customers, the claims list, and creating a synthetic customer are now live from Azure SQL and persist.** The exact bug the user hit (create customer → **"Failed to fetch"**) is **resolved**: `POST /api/customers` returns 200 with the SWA CORS header and the row survives a page refresh. The list endpoints that returned 500 now return 200 from SQL.
 
-Rebuilt in backend mode and **redeployed to the existing SWA** (live API integration preserved — no regression to mock). Independent **Opus `/qa-inspector` CLEARED 9/9**. Two commits pushed to **origin/dev**. **No** Azure resource / backend / SQL / AI / `main` change (RG still 9 resources, idle ≈ $0).
+**Key discovery:** the EF persistence layer was **already built and committed** (6 service DbContexts, 11 migrations, a `DbMigrator` that migrates + idempotently seeds, and a serverless-SQL bicep module). So this gate needed **no new EF code** — it was deploy + wire + migrate.
 
-**Why PARTIAL (honest):** a narrow, documented set of **synthetic data-layer strings** (golden-claim content, dashboard fallback labels, logic-coupled filter values in `src/data/mock/*`) stays in source language. On the live site those panels are fed by the **API seed**, so localizing them needs **backend seed changes** — out of scope for this frontend gate. UI chrome is 100% bilingual.
+**Deployed:** Azure SQL `InsuranceAIPlatform`, **GP_S_Gen5_1 serverless** (auto-pause 60 min, 2 GB), on `iap-sql-r2-6c7g465` in **germanywestcentral** (West + North Europe were capacity-blocked for new SQL servers; `AllowAllAzureServices` reaches it cross-region, ~10 ms). **SQL auth**; the connection string lives **only** as a Container App secret (`sql-connection`) — never in the repo. Migrated + seeded (201 customers/policies/vehicles, 15 claims, + documents/approval/audit/ai-analysis). Container App revision `0000002` picked it up; **no image rebuild, no frontend redeploy** needed.
 
-**Live demo:** https://kind-meadow-03cf73103.7.azurestaticapps.net — English on first load; click **UA** to switch.
+**Verified:** API `/health` 200 · `/api/customers` 200 (200 rows) · `/api/claims` 200 (15) · `POST /api/customers` 200 + persist · headless-Chromium UI **8/8** (EN default, lists load, create no-"Failed to fetch", persists across refresh). Independent **Opus `/qa-inspector` CLEARED 6/6**.
 
-**Proof:** 12/12 headless-Chromium assertions + 4 screenshots (`docs/portfolio/screenshots/i18n-0{1..4}-*.png`).
+**Cost:** only Azure SQL added — **no AKS/ACR/AI**; ACA minReplicas=0; SWA Free; serverless auto-pause → realistic **~$1–5/mo, well under $30**.
 
-## Commits
+## Why PARTIAL (honest)
 
+The curated **golden-claim CLM-1006 detail + sub-resources**, the **dashboard summary**, and the **demo scenario** remain **in-memory fixtures by design** (deterministic demo) — not SQL-backed. Write flows beyond customer-create (approval / payout-sim / document-upload) are **DB-backed in code** but not individually e2e-tested this gate. AI stays Mock; demo auth client-side; synthetic data only.
+
+## Commit
 | Commit | Message |
 |---|---|
-| `ce03776` | `docs: add Azure portfolio proof pack` (14 files) |
-| `89e8516` | `feat: add English default and Ukrainian product copy` (51 files) |
+| `70af774` | `docs: record Azure SQL persistence deployment` (11 files; no source/infra change — EF layer pre-existed) |
 
-## Limitations (unchanged + new)
-
-- New: synthetic data-layer strings + logic-coupled filter values remain source-language (documented; live panels are API-seed-fed → need backend seed work).
-- Prior: list endpoints `/api/claims` + `/api/customers` still **500** (Azure SQL deferred → SPA seed fallback); AI **Mock**-only; demo auth client-side.
-
-**Next recommended gate:** `PRODUCT_I18N_QA_POLISH_V0.1` (data-layer i18n + value→label maps + backend seed localization) — or `AZURE_SQL_OPTIONAL_GATE_V0.1`.
+**Next recommended gate:** e2e-verify the remaining write flows (approval / payout-sim / document-upload persistence) and optionally migrate the golden CLM-1006 views to SQL — or a real-AI-provider gate, or `PRODUCT_I18N_QA_POLISH_V0.1`.
 
 ---
 
-The full REPORT BACK FORMAT block is in the [full report](product-i18n-en-default-ua-switch-deploy-and-push-v0.1/report.md).
+The full REPORT BACK FORMAT block is in the [full report](azure-sql-full-persistence-all-pages-v0.1/report.md).

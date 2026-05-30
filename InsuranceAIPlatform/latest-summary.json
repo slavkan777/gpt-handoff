@@ -1,105 +1,121 @@
 {
   "project": "InsuranceAIPlatform",
-  "gate": "PRODUCT_I18N_EN_DEFAULT_UA_SWITCH_DEPLOY_AND_PUSH_MASTER_V0.1",
-  "gate_type": "product-wide i18n (English default + Ukrainian switch) + product-copy rewrite + existing-SWA redeploy + commit/push to dev",
+  "gate": "AZURE_SQL_FULL_PERSISTENCE_ALL_PAGES_DEPLOY_PUSH_V0.1",
+  "gate_type": "deploy Azure SQL + make previously-broken list/create flows persistent, validate, commit/push (docs)",
   "executor_model": "Opus 4.8 (1M context) / claude-opus-4-8[1m]",
-  "verdict": "PRODUCT_I18N_DEPLOYED_PARTIAL_PUSHED",
+  "verdict": "SQL_PERSISTENCE_DEPLOYED_PARTIAL_PUSHED",
   "date_utc": "2026-05-30",
-  "scope_summary": "Built product-wide i18n (typed catalog + Redux slice + useI18n hook, no new dependency) making English the default with a persisted EN/UA switcher near the profile avatar. Rewrote login into a product landing and removed ALL portfolio/walking-skeleton/architecture copy across the app, replacing it with insurance-claims-platform positioning. Rebuilt in backend mode, redeployed to the existing SWA (live API preserved). Independent Opus /qa-inspector CLEARED 9/9. Two commits pushed to origin/dev. PARTIAL: synthetic data-layer strings remain source-language (API-seed-fed on live; backend out of scope).",
-  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 9/9 (git state, tsc clean, EN-default+switcher wiring, key parity, forbidden-copy absent in LIVE bundle, secrets clean, live EN+UA+CORS, no server/infra/workflow changes, main untouched)",
+  "scope_summary": "Deployed Azure SQL (serverless GP_S_Gen5_1, auto-pause) and wired the live Container App to it. The previously-500 list endpoints and the broken create-customer flow ('Failed to fetch') are now live from SQL and persist. Discovery: the EF persistence layer (6 DbContexts, 11 migrations, DbMigrator, serverless-SQL bicep) was already built+committed, so NO new EF code was needed -- this was deploy + wire + migrate. PARTIAL: golden CLM-1006 detail/sub-resources + dashboard summary + demo scenario remain in-memory fixtures by design; write flows beyond customer-create are DB-backed in code but not e2e-tested this gate.",
+  "qa_inspector": "Opus /qa-inspector END gate -> CLEARED 6/6 (live SQL endpoints incl. its own POST persisted; SQL serverless confirmed; no AKS/ACR/AI; minReplicas=0; connection string only in Container App secret; docs honest; main untouched; EN+UA present)",
+  "root_cause": "list/create handlers query EF DbContexts over UseSqlServer; no reachable Azure SQL -> SqlException -> 500; browser showed 'Failed to fetch' because the 500 response lacked the CORS header. CORS/route/method were fine.",
   "source_repo": {
     "path": "C:/Projects/InsuranceAIPlatform",
     "branch": "dev",
-    "head_before": "211d50f8d79cf3075b219f729c7cedcd72136f65",
-    "head_after": "89e85166204a79eceed79a05cc8cb93a5fc0e6f0",
-    "origin_dev_after": "89e85166204a79eceed79a05cc8cb93a5fc0e6f0",
+    "head_before": "89e85166204a79eceed79a05cc8cb93a5fc0e6f0",
+    "head_after": "70af7748942fed4055aba7680aed9c9830791717",
+    "origin_dev_after": "70af7748942fed4055aba7680aed9c9830791717",
     "origin_main": "69e67312a10cc9bcf28c4e387a126b48c91fb9c5",
     "origin_main_unchanged": true,
-    "push_result": "211d50f..89e8516 dev -> dev",
-    "working_tree_after": "clean except untracked test-results/ (dist/ git-ignored)"
+    "push_result": "89e8516..70af774 dev -> dev",
+    "working_tree_after": "clean except untracked test-results/"
   },
-  "i18n": {
-    "mechanism": "typed message catalog src/i18n/messages/* (18 namespaces) + Redux i18n slice + useI18n hook; no new dependency",
-    "default_language": "English (first-time visitors; navigator/browser language NOT used to override)",
-    "languages": ["en", "uk"],
-    "switcher": "EN/UA in TopBar (top-right, next to profile avatar) + login top-right; role=group, aria-pressed, keyboard/click",
-    "persistence": "localStorage iap.i18n.locale.v1",
-    "key_parity": "type T = typeof en; const uk: T = {...} -> missing key is a compile error",
-    "coverage": "login, sidebar, topbar, dashboard, claims list, claim workspace + 7 sub-pages, customer directory, guided walkthrough, claim tabs, 6 modals, deferred-action button",
-    "files_changed": 51
+  "sql": {
+    "server": "iap-sql-r2-6c7g465.database.windows.net",
+    "resource_group": "rg-iap-demo",
+    "region": "germanywestcentral",
+    "region_note": "West Europe + North Europe returned RegionDoesNotAllowProvisioning for new SQL servers (capacity); germanywestcentral was nearest accepting region (~10ms from the WE Container App); AllowAllAzureServices firewall reaches it cross-region",
+    "database": "InsuranceAIPlatform",
+    "sku": "GP_S_Gen5_1",
+    "tier": "GeneralPurpose Serverless",
+    "auto_pause_minutes": 60,
+    "min_vcore": 0.5,
+    "max_size_gb": 2,
+    "backup": "LRS",
+    "auth": "SQL authentication; connection string stored ONLY as Container App secret 'sql-connection'; env ConnectionStrings__InsuranceAIPlatform=secretref:sql-connection; never in repo, never printed",
+    "entra_bicep_note": "infra/modules/sql-serverless.bicep (Entra-only/MI) exists as alternative IaC; not used this gate due to operational constraints; SQL-auth is gate-approved per section 7.1",
+    "migrations": "11 EF migrations (pre-existing) applied via DbMigrator across 6 service schemas",
+    "seed": "idempotent; customers/policies/vehicles 201 each, claims 15, documents 14, approval 1+4, audit_cost 6+4+1, ai_analysis 1+3+2+4",
+    "firewall": "AllowAllAzureServices (0.0.0.0) only; temporary local-migration client-IP rule removed after migration"
   },
-  "copy_rewrite": {
-    "old": "portfolio/demo 'walking skeleton' framing; 'Архітектура системи / Три шари' diagram; 'Portfolio message'; 'Azure-ready (next)'; 'Наступна фаза'",
-    "new": "AI-Assisted Insurance Claims Workbench hero + value bullets; Platform capabilities cards; honest Demo environment status note",
-    "forbidden_terms_in_live_bundle": "none (verified by grep on deployed index-C8i01ucW.js)"
+  "backend": {
+    "code_changed": false,
+    "reason": "EF persistence layer pre-existed in committed source (89e8516 tree)",
+    "build": "dotnet build Release PASS (0 warn / 0 err)",
+    "tests": "137/137 PASS",
+    "image_rebuilt": false,
+    "ghcr_push": false,
+    "container_app_revision": "iap-demo-api--0000002",
+    "api_health_after": 200
   },
-  "build": {
-    "command": "tsc -b && vite build (backend mode)",
-    "bundle": "dist/assets/index-C8i01ucW.js",
-    "stale_copy_scan_dist": "clean",
-    "secret_scan": "clean (src + dist)",
-    "both_locales_in_bundle": true
+  "frontend": {
+    "code_changed": false,
+    "swa_redeploy": false,
+    "note": "existing backend-mode bundle works now that the API is SQL-backed; EN default + UA switch intact"
   },
-  "swa_deploy": {
-    "target": "iap-demo-swa (Free)",
-    "url": "https://kind-meadow-03cf73103.7.azurestaticapps.net",
-    "method": "@azure/static-web-apps-cli@2.0.9 deploy ./dist --env production",
-    "token_handling": "SWA_CLI_DEPLOYMENT_TOKEN env only; never printed/argv/committed",
-    "result": "deployed",
-    "azure_resources_changed": false
+  "live_e2e": {
+    "customers_list": "200 (total 200 + test creates)",
+    "customer_create": "200 success (CUST-T0201 / CUST-T0203) + ACAO=<SWA>; no 'Failed to fetch'",
+    "created_customer_persists": true,
+    "claims_list": "200 (15 claims)",
+    "claim_detail": "golden CLM-1006 in-memory (200); DB-created claims from SQL",
+    "ui_smoke": "8/8 headless Chromium (EN default, customers load, create no-Failed-to-fetch, persist-after-refresh, claims load)",
+    "evidence_layers": "MECHANICAL + SEMANTIC + PERSISTENCE + NEGATIVE satisfied"
   },
-  "live_smoke": {
-    "swa_http": 200,
-    "serves_new_bundle": true,
-    "spa_fallback_claims": 200,
-    "api_health": "200 Healthy (Production)",
-    "summary_cors": "GET /api/claims/summary (Origin=SWA) 200 + ACAO=<SWA>",
-    "english_default": "PASS",
-    "ukrainian_switch": "PASS",
-    "old_copy_absent": "PASS",
-    "headless_chromium_assertions": "12/12 true",
-    "screenshots": ["docs/portfolio/screenshots/i18n-01-login-en.png", "docs/portfolio/screenshots/i18n-02-login-ua.png", "docs/portfolio/screenshots/i18n-03-dashboard-en.png", "docs/portfolio/screenshots/i18n-04-demo-en.png"]
+  "cost_guardrails": {
+    "only_sql_added": true,
+    "ai_created": false,
+    "aks_created": false,
+    "acr_created": false,
+    "container_min_replicas": 0,
+    "swa_sku": "Free",
+    "estimated_incremental_sql_cost": "~$1-5/mo (serverless auto-pause; near-$0 idle, storage-only ~$0.06-0.20/mo)",
+    "under_30_usd_stop_line": true,
+    "budget": "existing $30/mo budget + alerts"
   },
-  "commits": [
-    { "sha": "ce03776", "message": "docs: add Azure portfolio proof pack", "files": 14 },
-    { "sha": "89e8516", "message": "feat: add English default and Ukrainian product copy", "files": 51 }
+  "docs": [
+    "docs/architecture/azure/AZURE_SQL_PERSISTENCE_V0.1.md",
+    "docs/architecture/azure/AZURE_COST_POST_SQL_CHECK_V0.1.md",
+    "docs/architecture/backend/SQL_PERSISTENCE_MODEL_V0.1.md",
+    "docs/architecture/backend/DATA_SURFACE_PERSISTENCE_MATRIX_V0.1.md",
+    "docs/portfolio/LIVE_DEMO_RUNBOOK_V0.1.md (updated)",
+    "docs/portfolio/README_PORTFOLIO_SECTION_DRAFT_V0.1.md (updated)",
+    "docs/portfolio/screenshots/sql-01..05 (5 e2e screenshots)"
   ],
-  "docs": {
-    "i18n": "docs/architecture/frontend/I18N_PRODUCT_COPY_V0.1.md",
-    "deploy": "docs/architecture/azure/AZURE_PRODUCT_I18N_EN_DEFAULT_UA_SWITCH_V0.1.md",
-    "readme_draft_updated": true
-  },
+  "commits": [
+    { "sha": "70af774", "message": "docs: record Azure SQL persistence deployment", "files": 11, "note": "docs-only; no source/infra change (EF layer pre-existed)" }
+  ],
   "safety": {
-    "secrets_scan": "CLEAN",
-    "azure_resources_created": false,
-    "azure_resources_deleted": false,
-    "backend_changed": false,
-    "api_redeployed": false,
-    "image_pushed": false,
-    "sql_enabled": false,
+    "secrets_scan": "CLEAN (connection string only in Container App secret; no password/connstr/subscription/tenant/object-id in repo)",
+    "connection_string_printed": false,
+    "tokens_printed": false,
+    "real_pii_used": false,
+    "sql_enabled": true,
     "ai_enabled": false,
     "workflow_run": false,
     "workflow_note": "azure-deploy-demo.yml is workflow_dispatch-only; push to dev did not trigger it",
     "main_touched": false,
     "force_push_used": false,
-    "commit_hook": "QA commit-gate satisfied by genuine Opus /qa-inspector CLEARED + QA-CLEARED log line (no bypass for source commits)",
-    "rg_resource_count": 9
+    "commit_hook": "QA commit-gate satisfied by genuine Opus /qa-inspector CLEARED 6/6 + QA-CLEARED log line (no bypass)"
+  },
+  "rollback": {
+    "api": "az containerapp update -g rg-iap-demo -n iap-demo-api --remove-env-vars ConnectionStrings__InsuranceAIPlatform (or roll back to revision iap-demo-api--0000001)",
+    "sql_cleanup": "az sql server delete -g rg-iap-demo -n iap-sql-r2-6c7g465 --yes",
+    "frontend": "n/a (unchanged)"
   },
   "limitations": [
-    "synthetic data-layer strings (src/data/mock/*: golden-claim content, dashboard fallback labels) remain source-language; live panels are API-seed-fed -> require backend seed changes (out of scope this gate)",
-    "claims-list filter <option> values are logic-coupled (display + filter key) -> need value->label map (deferred)",
-    "/api/claims + /api/customers still 500 (Azure SQL deferred; SPA seed fallback)",
-    "AI Mock-only; demo auth client-side"
+    "golden CLM-1006 detail + sub-resources + dashboard summary + demo scenario are curated in-memory fixtures by design (not SQL)",
+    "write flows beyond customer-create (approval / payout-sim / document-upload) are DB-backed in code but not e2e-tested this gate",
+    "AI Mock-only; demo auth client-side; synthetic data only (no real PII)",
+    "SQL cross-region (germanywestcentral) due to West-Europe capacity; SQL-auth used instead of Entra-only/MI bicep"
   ],
   "github_handoff_paths": [
     "InsuranceAIPlatform/latest-report.md",
     "InsuranceAIPlatform/latest-summary.json",
-    "InsuranceAIPlatform/product-i18n-en-default-ua-switch-deploy-and-push-v0.1/report.md"
+    "InsuranceAIPlatform/azure-sql-full-persistence-all-pages-v0.1/report.md"
   ],
   "blockers": [],
   "next_recommended_gate": {
-    "options": ["PRODUCT_I18N_QA_POLISH_V0.1", "AZURE_SQL_OPTIONAL_GATE_V0.1"],
-    "note": "PRODUCT_I18N_QA_POLISH = data-layer i18n + value->label maps + backend seed localization; AZURE_SQL_OPTIONAL makes list endpoints live",
+    "options": ["E2E_VERIFY_REMAINING_WRITE_FLOWS (approval/payout-sim/doc-upload persistence)", "MIGRATE_GOLDEN_CLM1006_TO_SQL", "REAL_AI_PROVIDER_GATE", "PRODUCT_I18N_QA_POLISH_V0.1"],
     "operator_action_required": true
   }
 }
