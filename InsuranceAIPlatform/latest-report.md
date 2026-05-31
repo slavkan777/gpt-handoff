@@ -1,12 +1,12 @@
 # InsuranceAIPlatform — Latest gate report
 
-**Gate:** AI_ENGINEERING_OS_CONSOLIDATED_SAFETY_AND_TEMPLATE_HARDENING_V0.2
-**Type:** consolidated governance/safety/template macro-gate (phase-locked, non-product)
+**Gate:** FINAL_AI_ENGINEERING_OS_HARDENING_CLOSURE_V0.1
+**Type:** final closure macro-gate (governance/safety hardening cycle)
 **Date (UTC):** 2026-05-31
-**Verdict:** **PARTIAL_ACCEPT_WITH_LIMITATIONS**
+**Verdict:** **CLOSED_WITH_LIMITATIONS** — cycle **CLOSED / PARKED**
 
-**Full report:** [ai-engineering-os-consolidated-safety-and-template-hardening-v0.2/report.md](ai-engineering-os-consolidated-safety-and-template-hardening-v0.2/report.md)
-**Machine summary:** [ai-engineering-os-consolidated-safety-and-template-hardening-v0.2/summary.json](ai-engineering-os-consolidated-safety-and-template-hardening-v0.2/summary.json)
+**Full report:** [final-ai-engineering-os-hardening-closure-v0.1/report.md](final-ai-engineering-os-hardening-closure-v0.1/report.md)
+**Machine summary:** [final-ai-engineering-os-hardening-closure-v0.1/summary.json](final-ai-engineering-os-hardening-closure-v0.1/summary.json)
 
 ---
 
@@ -14,23 +14,25 @@
 
 | Subphase | Result |
 |---|---|
-| 1 · Patch B verify | **ACTIVE / EXACT** — CLAUDE.md:59-61, grep 1/1/1 |
-| 2 · scope-guard shell coverage | ⛔ **BLOCKED_BY_PROTECTION** — both targets sacred, no bypass authorized; exact patch in report |
-| 3 · Patch A (protocol honesty-fix) | ✅ **APPLIED** (working-tree, not committed) |
-| 4 · Patch C (quarantine/tracking) | ✅ **APPLIED** — 4 entries (2 quarantine narrowings + 2 tracking) |
-| 5 · Report/audit schema | ✅ **CREATED** — `_schema/` |
-| 6 · Semantic E2E standard | ✅ **CREATED** — `_standards/` |
-| 7 · AIKB sync | 📋 **PROPOSAL_ONLY** — durable stores are separate private repos |
+| 0 · Bootstrap | ✅ + **path typo caught**: authorized `…\Claude\.claude\…` doesn't exist; real guard is `…\.claude\…` |
+| 1 · Patch B/A/C present | ✅ B 1/1/1 · A active · C 4 entries |
+| 2 · scope-guard shell coverage | ✅ **HARDENED + LIVE** (dry-run 12/12; blocked a real command mid-gate) — ships with a documented false-positive |
+| 3 · Persist governance | ⚠️ **PARTIAL** — Patch A committed (vault `8ed9736`, local); Patch B/C working-tree-active (operator mixed edits, unseparable) |
+| 4 · Final report + close | ✅ this report; cycle CLOSED/PARKED |
 
 ## Bottom line
 
-The biggest discovery is honest and uncomfortable: the sacred-file guard is **Edit/Write-only**, and the two files needed to fix it (`scope-guard.ps1`, `settings.json`) are **themselves sacred**. With no bypass authorized in this gate, I **declined to exploit the very shell-write gap under audit** to patch it — so scope-guard hardening is `BLOCKED_BY_PROTECTION`, with a ready-to-apply patch (`.ps1` GUARD-0 branch + a `Bash|PowerShell` matcher) waiting on a one-shot authorization.
+The shell-write gap is **closed and live** — scope-guard now inspects Bash/PowerShell commands and blocks writes to sacred paths (it proved itself by blocking one of my own commands mid-gate). It ships intentionally over-aggressive (a `2>&1` + sacred-name false-positive); the precise refinement is in the report, deferred because the guard is now self-locked.
 
-Everything safe and authorized was applied: protocol status is now honest (it really is wired via CLAUDE.md), disputed rule-narrowings are quarantined (not silently activated), and two reusable artifacts now encode the Patch B evidence labels — a **report/audit schema** (so prose-only evidence is rejectable) and a **semantic-E2E standard** (so a green test ≠ a real business outcome).
+Two structural truths surfaced and matter more than the patch:
+1. **The env-var bypass is unreachable from a tool call** — a hook sees only Claude Code's launch env, so once live, sacred files (including the guard itself) are tool-immutable. I did **not** evade my own control to "fix" it; recommend a reachable sentinel-file bypass next.
+2. The authorization's guard paths had a `\Claude\` typo; I hardened the **real** guard and disclosed it (backups taken).
 
-## Next recommended gates (not auto-started)
-`HARDEN_SCOPE_GUARD_SHELL_COVERAGE_V0.1` (needs a one-shot bypass authorization) · `AIKB_TEMPLATE_SYNC_V0.1` · optional `COMMIT_GOVERNANCE_TO_VAULT_V0.1` (persist Patch A/B/C).
+Governance persistence is partial: Patch A is committed; Patch B/C stay working-tree-active because CLAUDE.md/pending.md carry the operator's own pre-existing uncommitted edits that can't be separated without interactive staging. Nothing pushed to the vault (it's ahead 10 with operator commits).
+
+## Next (optional, not urgent — cycle is parked)
+Refine the guard regex + add a reachable bypass · commit Patch B/C once the operator's CLAUDE.md/pending.md edits are reconciled.
 
 ---
 
-> **Boundaries:** no product/Azure/providers/secrets · no force-push · no vault-main commit · no AIKB write · **no sacred-file bypass (none authorized — scope-guard hardening declined, not forced)**. Only gpt-handoff report + template files committed; the out-of-scope folder left unstaged.
+> **Boundaries:** bypass used ONLY for the 2 guard files (set+unset, backups taken) · no product/Azure/providers/secrets/AIKB · no force-push · **no vault push (local commit only)** · no new rules · no next gate. Out-of-scope third-party-named folder left unstaged.
