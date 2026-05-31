@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:gpt-handoff:schema:gate-report:1.0",
+  "title": "Gate Report Summary",
+  "description": "Machine-readable summary an Executor publishes per molecular gate, and an Auditor verifies. Prose-only evidence is rejectable: every DONE/PASSED/CLEARED claim must carry an evidence tuple in evidence_labels.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "project",
+    "gate",
+    "type",
+    "verdict",
+    "verdict_detail",
+    "date_utc",
+    "source_priority_used",
+    "boundaries_honored",
+    "activation_status",
+    "files_changed",
+    "files_not_touched",
+    "evidence_labels",
+    "validation",
+    "limitations",
+    "next_gates",
+    "github_handoff_paths"
+  ],
+  "properties": {
+    "project": { "type": "string" },
+    "gate": { "type": "string", "description": "Exact gate name, e.g. APPLY_X_V0.2" },
+    "type": { "type": "string" },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "ACCEPT",
+        "ACCEPT_WITH_LIMITATIONS",
+        "PARTIAL_ACCEPT_WITH_LIMITATIONS",
+        "PROPOSED_ONLY",
+        "REWORK_REQUIRED",
+        "BLOCKED",
+        "BLOCKED_BY_PROTECTION"
+      ]
+    },
+    "verdict_detail": { "type": "string" },
+    "date_utc": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "source_priority_used": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Ordered sources relied on (live state > latest handoff > governance > prompt > assumptions)."
+    },
+    "boundaries_honored": {
+      "type": "object",
+      "description": "Map of boundary -> bool. Each forbidden action explicitly marked true/false.",
+      "additionalProperties": { "type": "boolean" }
+    },
+    "activation_status": {
+      "type": "object",
+      "description": "Per-change activation classification so a reader never mistakes a proposal for an applied change.",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["ACTIVE", "PROPOSED", "CONDITIONAL", "QUARANTINE", "BLOCKED_BY_PROTECTION"]
+      }
+    },
+    "files_changed": { "type": "array", "items": { "type": "string" } },
+    "files_not_touched": { "type": "array", "items": { "type": "string" } },
+    "evidence_labels": {
+      "type": "array",
+      "description": "Per DONE-STATE item: an evidence tuple. No prose-only acceptance.",
+      "items": {
+        "type": "object",
+        "required": ["item", "status", "evidence"],
+        "properties": {
+          "item": { "type": "string" },
+          "status": { "type": "string", "enum": ["VERIFIED", "PARTIAL", "MISSING", "IN_PROGRESS"] },
+          "evidence": {
+            "type": "string",
+            "description": "path:line | command + exit code | N/M passed | persisted-artifact id. Required; prose alone is invalid."
+          }
+        }
+      }
+    },
+    "semantic_pass_labels": {
+      "type": "object",
+      "description": "REQUIRED when the gate touches a UI create/open/update/delete flow. See _standards/semantic-e2e-standard.md.",
+      "additionalProperties": false,
+      "properties": {
+        "mechanical_pass": { "type": "string", "enum": ["PASS", "FAIL", "NOT_TESTED"] },
+        "semantic_pass": { "type": "string", "enum": ["PASS", "FAIL", "NOT_TESTED"] },
+        "persistence_pass": { "type": "string", "enum": ["PASS", "FAIL", "NOT_TESTED"] },
+        "negative_pass": { "type": "string", "enum": ["PASS", "FAIL", "NOT_TESTED"] }
+      }
+    },
+    "provider_realness_labels": {
+      "type": "object",
+      "description": "REQUIRED when the gate touches a provider/DB/cloud/external API. Key = surface name.",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["MOCK", "FALLBACK", "LOCAL_REAL", "LIVE_REAL", "NOT_TESTED"]
+      }
+    },
+    "bypass_used": { "type": "boolean", "description": "Set true only if the prompt explicitly authorized a guard bypass." },
+    "bypass_unset_confirmed": { "type": ["boolean", "string"] },
+    "secrets_scan": { "type": "string", "enum": ["CLEAN", "FINDINGS"] },
+    "validation": { "type": ["array", "object", "string"] },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "next_gates": { "type": "array", "items": { "type": "string" } },
+    "github_handoff_paths": { "type": "array", "items": { "type": "string" } }
+  }
+}
