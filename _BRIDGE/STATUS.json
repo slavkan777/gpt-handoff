@@ -1,0 +1,12 @@
+{
+  "bridge": "gpt-handoff/_BRIDGE",
+  "state": "IDLE",
+  "activeRequestId": null,
+  "activeRequestType": null,
+  "activeProject": null,
+  "targetReportPath": null,
+  "lastReportId": null,
+  "lastReportStatus": null,
+  "updated": "2026-06-03",
+  "updatedBy": "claude"
+}

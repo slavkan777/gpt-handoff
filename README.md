@@ -29,6 +29,7 @@ If anything sensitive sneaks in: **delete the file, force-push to scrub the publ
 gpt-handoff/
 ├── README.md                          ← you are here
 ├── .gitignore
+├── _BRIDGE/                           ← global GPT⇄Claude relay (see _BRIDGE/README.md)
 └── <ProjectName>/
     ├── latest-report.md               ← overwritten each delivery — GPT reads this first
     ├── latest-summary.json            ← machine-readable status
@@ -65,3 +66,5 @@ For each `<ProjectName>/`:
 ## Trigger phrases
 
 In chat with Claude, the user can say simply **`отчёт`** to instruct Claude to fetch and consume `<ProjectName>/latest-report.md` from this repository. When no project is named, the most recent active project is assumed (currently `AgentHub`).
+
+For the global GPT⇄Claude relay, three command words route by recipient: **`промт`** (Architect GPT writes `_BRIDGE/ACTIVE_REQUEST.md`), **`архитектор`** (Claude reads & executes it, then writes the report), **`отчёт`** (Architect GPT audits the resulting report). See [`_BRIDGE/README.md`](_BRIDGE/README.md).
