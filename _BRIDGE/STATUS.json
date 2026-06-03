@@ -1,12 +1,12 @@
 {
   "bridge": "gpt-handoff/_BRIDGE",
-  "state": "IDLE",
-  "activeRequestId": null,
-  "activeRequestType": null,
+  "state": "REPORT_READY",
+  "activeRequestId": "REQ-2026-06-03-BRIDGE-SETUP",
+  "activeRequestType": "document",
   "activeProject": null,
-  "targetReportPath": null,
-  "lastReportId": null,
-  "lastReportStatus": null,
+  "targetReportPath": "_BRIDGE/LATEST_REPORT.md",
+  "lastReportId": "REQ-2026-06-03-BRIDGE-SETUP",
+  "lastReportStatus": "READY_FOR_AUDIT",
   "updated": "2026-06-03",
   "updatedBy": "claude"
 }
