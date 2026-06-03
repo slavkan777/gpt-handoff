@@ -30,7 +30,7 @@ through the bridge — it routes the setup itself to GPT for verdict rather than
 
 ## Risks / open questions
 
-- ⚠️ `ai-kb` git auth currently **fails** from the local clone (`Invalid username or token`). Must be fixed before any project task with `AIKB_UPDATE_REQUIRED: yes` can write durable memory. `gpt-handoff` push works fine.
+- `ai-kb` read+write auth **verified working** (`ls-remote` / `fetch` / `push --dry-run` exit 0; clean URL + shared `manager-core` helper). The earlier "Invalid username or token" was a transient Git Credential Manager state, resolved once the github.com PAT was validated during the `gpt-handoff` push — no per-repo fix needed.
 - Architect GPT should read `_BRIDGE/README.md` once so it writes `ACTIVE_REQUEST.md` in the documented shape (correct routing header).
 
 ## Next safe step
