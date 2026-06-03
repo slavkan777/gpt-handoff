@@ -23,11 +23,16 @@ This folder is **communication**, not memory:
 
 | Command | In Architect GPT chat | In Claude chat |
 |---|---|---|
-| `промт` | write / update `ACTIVE_REQUEST.md` | (ambiguous — prefer `архитектор`) read & execute it |
-| `архитектор` | — | read `ACTIVE_REQUEST.md`, execute, write the report |
+| `промт` | write / update `ACTIVE_REQUEST.md` | read `ACTIVE_REQUEST.md` & execute → write the report |
+| `архитектор` | — | same as `промт` to Claude (optional disambiguator) |
 | `отчёт` | read `LATEST_REPORT.md`, audit, verdict | (if needed) write / push `LATEST_REPORT.md` |
 
 Disambiguation by recipient: `промт` → GPT · `архитектор` → Claude · `отчёт` → GPT-after-Claude.
+
+**Operating mode (confirmed 2026-06-03):** Slava is not a relay — he fires only triggers; Claude and
+Architect GPT exchange directly through these files. In practice Slava types **`промт`** to Claude
+(read `ACTIVE_REQUEST.md` → execute → write report) and **`отчёт`** to Architect GPT (audit the
+report). Architect GPT is the audit / control layer; Claude returns evidence and does not self-accept.
 
 ## Flow
 
