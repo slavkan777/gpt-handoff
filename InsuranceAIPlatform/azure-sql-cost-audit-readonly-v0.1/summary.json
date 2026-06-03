@@ -1,0 +1,83 @@
+{
+  "requestId": "REQ-2026-06-03-azure-sql-cost-audit-readonly",
+  "gate": "AZURE_SQL_COST_AUDIT_READONLY_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "completed": "2026-06-03",
+  "readOnly": true,
+  "azureChangesMade": false,
+  "secretsPrinted": false,
+  "account": {
+    "environment": "AzureCloud",
+    "subscriptionName": "Azure subscription 1",
+    "subscriptionIdMasked": "858c258c-…",
+    "tenantIdMasked": "eb75bfdb-…",
+    "state": "Enabled",
+    "azCliVersion": "2.77.0"
+  },
+  "resourceGroup": {
+    "name": "rg-iap-demo",
+    "location": "westeurope",
+    "managedBy": "bicep",
+    "resourceCount": 12,
+    "unexpectedExpensiveResources": false,
+    "billableServicesObserved": ["Microsoft.Sql", "Microsoft.Storage", "microsoft.operationalinsights"]
+  },
+  "sql": {
+    "server": "iap-sql-r2-6c7g465",
+    "serverLocation": "germanywestcentral",
+    "database": "InsuranceAIPlatform",
+    "computeTier": "Serverless",
+    "serviceObjective": "GP_S_Gen5_1",
+    "autoPauseDelayMin": 60,
+    "autoPauseIsMinimum": true,
+    "minCapacityVcore": 0.5,
+    "maxVcore": 1,
+    "maxSizeGb": 2,
+    "dataUsedMbApprox": 9,
+    "backupRedundancy": "Local",
+    "zoneRedundant": false,
+    "readScale": "Disabled",
+    "elasticPool": null,
+    "geoReplication": false,
+    "status": "Paused",
+    "pausedSinceUtc": "2026-06-03T01:07:42Z"
+  },
+  "activity": {
+    "constantWakeup": false,
+    "containerAppMinReplicas": 0,
+    "containerAppActiveReplicas": 0,
+    "connectionBurstsLast3d": [11, 7, 1],
+    "otherWindowsConnections": 0,
+    "wakeupSource": "manual dev/test bursts (INFER)"
+  },
+  "cost": {
+    "mtdApproxUsd": 1.03,
+    "mtdSource": "operator Azure Portal Cost Analysis screenshot",
+    "dominantService": "Microsoft.Sql",
+    "cliDollarFiguresAvailable": false,
+    "cliLimitation": "az costmanagement extension not installed; az consumption monetary fields null on this subscription"
+  },
+  "options": {
+    "A": {"action": "keep serverless+auto-pause (already optimal)", "mutation": false, "approvalGate": false},
+    "B": {"action": "stop app wakeups (already ~0)", "mutation": false, "approvalGate": false},
+    "C": {"action": "export bacpac then delete DB", "benefit": "~$0", "mutation": true, "destructive": true, "approvalGate": true},
+    "D": {"action": "keep SQL, accept ~$1/mo", "mutation": false, "approvalGate": false, "recommendedDefault": true},
+    "E": {"action": "mock/fallback between demos", "mutation": "app config (+maybe DB delete)", "approvalGate": "conditional"}
+  },
+  "recommendedNextSafeStep": "No change under this gate. Default = Option D. For literal $0, open a separate destructive gate for Option C.",
+  "verificationMatrix": {
+    "azureCliAccess": "PASS",
+    "rgInventory": "PASS",
+    "sqlServerIdentified": "PASS",
+    "sqlDatabaseIdentified": "PASS",
+    "computeTierIdentified": "PASS",
+    "autoPauseIdentified": "PASS",
+    "costSourceConfirmed": "LIMITED",
+    "noAzureChanges": "PASS",
+    "noSecretsPrinted": "PASS"
+  },
+  "aikbUpdated": false,
+  "aikbNote": "AIKB possibly stale (said no Azure resources). Discrepancy reported only; AIKB not updated per request."
+}

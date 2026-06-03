@@ -1,11 +1,12 @@
 {
   "bridge": "gpt-handoff/_BRIDGE",
   "state": "REPORT_READY",
-  "activeRequestId": "REQ-2026-06-03-gpu-diagnostics-readonly",
-  "activeRequestType": "general",
-  "activeProject": null,
+  "activeRequestId": "REQ-2026-06-03-azure-sql-cost-audit-readonly",
+  "activeRequestType": "audit",
+  "activeProject": "InsuranceAIPlatform",
   "targetReportPath": "_BRIDGE/LATEST_REPORT.md",
-  "lastReportId": "REQ-2026-06-03-gpu-diagnostics-readonly",
+  "projectReportPath": "InsuranceAIPlatform/azure-sql-cost-audit-readonly-v0.1/report.md",
+  "lastReportId": "REQ-2026-06-03-azure-sql-cost-audit-readonly",
   "lastReportStatus": "READY_FOR_AUDIT",
   "updated": "2026-06-03",
   "updatedBy": "claude"
