@@ -1,11 +1,11 @@
 {
   "bridge": "gpt-handoff/_BRIDGE",
   "state": "REPORT_READY",
-  "activeRequestId": "REQ-2026-06-03-BRIDGE-SETUP",
-  "activeRequestType": "document",
+  "activeRequestId": "REQ-2026-06-03-gpu-diagnostics-readonly",
+  "activeRequestType": "general",
   "activeProject": null,
   "targetReportPath": "_BRIDGE/LATEST_REPORT.md",
-  "lastReportId": "REQ-2026-06-03-BRIDGE-SETUP",
+  "lastReportId": "REQ-2026-06-03-gpu-diagnostics-readonly",
   "lastReportStatus": "READY_FOR_AUDIT",
   "updated": "2026-06-03",
   "updatedBy": "claude"
