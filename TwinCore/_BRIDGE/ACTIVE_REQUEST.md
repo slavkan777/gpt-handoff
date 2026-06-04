@@ -11,6 +11,22 @@ CREATED_BY: architect-gpt
 GATE: audit
 MODE: READ_ONLY_REVIEW
 
+# READ THIS FIRST — AIKB ROUTING RULE
+
+Before inspecting TwinCore-framework, first read the AIKB bridge routing rule:
+
+1. slavkan777/ai-kb/00_CONTROL_CENTER/START_HERE.md
+2. slavkan777/ai-kb/00_CONTROL_CENTER/PROJECT_BRIDGE_PROTOCOL.md
+
+You must follow the project-specific bridge rule from AIKB:
+
+- project-specific bridge is authoritative for project work;
+- global _BRIDGE is fallback/router only;
+- final report for this task must be written to the TwinCore project-specific paths;
+- REQUEST_ID / PROJECT / GATE must match exactly in the report.
+
+If AIKB routing and any older global request conflict, AIKB routing wins.
+
 # IMPORTANT ROUTING CORRECTION
 
 This replaces the older global bridge request for the TwinCore review.
@@ -60,9 +76,9 @@ Report answers:
 
 Audit only. Do not change TwinCore source. Do not commit. Do not push. Do not create branches. Do not update AIKB. Only write the sanitized audit report to gpt-handoff project-specific TwinCore paths.
 
-# READ FIRST
+# READ FIRST — TWINCORE REPOSITORY
 
-Inspect at least:
+After reading the AIKB routing rule, inspect at least:
 - repo root tree;
 - README.md;
 - CLAUDE.md;
@@ -119,6 +135,7 @@ COMPLETED_BY: claude
 
 ## Current State
 ## Boundaries Honored
+## AIKB Routing Rule Read
 ## What I Inspected
 ## Short Verdict
 ## Evidence Summary
