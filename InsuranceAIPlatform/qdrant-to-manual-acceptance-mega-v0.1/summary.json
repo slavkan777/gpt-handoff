@@ -1,0 +1,38 @@
+{
+  "requestId": "REQ-2026-06-05-insuranceai-qdrant-to-manual-acceptance-mega-v0-1",
+  "gate": "QDRANT_TO_MANUAL_ACCEPTANCE_MEGA_GATE_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "selfAccepted": false,
+  "branch": "rag/local-foundation-mega-v0.1",
+  "headBefore": "70af774",
+  "commit": "912e841",
+  "pushed": false,
+  "filesInCommit": 61,
+  "polish": ".gitignore += test-results/ (only change this gate)",
+  "verification": {
+    "backendBuild": "0 warnings / 0 errors",
+    "backendTests": "174 passed / 0 failed",
+    "frontendBuild": "ok (154 modules, no TS errors)",
+    "e2eSpec22": "12 passed / 12",
+    "secretScan": "clean"
+  },
+  "qdrantSemanticProof": {
+    "serving": "infra backend=qdrant, live_local, reachable=true; collection green points_count=13 (was absent)",
+    "askAllCLM1006": true,
+    "directSearchClaimFiltered": "only CLM-1006 payloads",
+    "stubFingerprintExcluded": "13 live points + backend=qdrant (NOT empty + in-memory-hash)"
+  },
+  "fallbackProof": {
+    "qdrantStoppedMidFlight": "status=skipped_not_available, backend=in-memory-hash, reachable=false, ask still 200",
+    "disabled": "status=disabled, backend=in-memory-hash, 0 qdrant calls in log"
+  },
+  "qaHook": "bypassed with logged reason; external auditor = Architect GPT (no-self-accept model); branch-only/reversible",
+  "boundariesHonored": [
+    "no push", "no main", "no Azure", "no deploy", "no paid provider", "no secrets", "no real PII",
+    "no new EF migration", "no Ollama", "no fake backend/live_local label", "no unrelated files in commit"
+  ],
+  "qdrantRuntimeLeftRunning": "iap-qdrant on :6333 (collection insurance_evidence, 13 points)",
+  "updated": "2026-06-05"
+}
