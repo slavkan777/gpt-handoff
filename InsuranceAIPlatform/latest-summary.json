@@ -1,24 +1,27 @@
 {
   "project": "InsuranceAIPlatform",
-  "reportId": "REQ-2026-06-05-insuranceai-local-runtime-live-check-v0-1",
-  "gate": "LOCAL_RUNTIME_LIVE_CHECK_QDRANT_OLLAMA_V0.1",
+  "reportId": "REQ-2026-06-05-insuranceai-local-live-runtime-setup-check-v0-1",
+  "gate": "LOCAL_LIVE_RUNTIME_SETUP_CHECK_QDRANT_OLLAMA_V0.1",
   "status": "PARTIAL",
-  "headline": "live_local NOT achievable without owner-approved download/install; honest skipped_not_available confirmed by real smoke",
-  "runtimeDiscovery": {
-    "ollama": "not installed; port 11434 closed; no image",
-    "docker": "installed + up; no qdrant container",
-    "qdrant": "port 6333 closed; no binary; no image"
+  "headline": "Qdrant runtime LIVE_LOCAL (pulled+started+probe-verified); Ollama BLOCKED on prerequisite; retrieval still in-process (no Qdrant adapter yet)",
+  "qdrant": {
+    "runtime": "live_local",
+    "evidence": "container iap-qdrant Up on :6333; root returns qdrant 1.18.2; API probe reachable=true",
+    "retrievalBackend": "in-memory-hash (no Qdrant retrieval adapter yet; backend=qdrant label = enabled+reachable, not serving)"
+  },
+  "ollama": {
+    "runtime": "skipped_not_available / blocked",
+    "prerequisite": "not installed; winget unavailable -> manual installer + multi-GB model pull required (not performed)"
   },
   "smokeCLM1006": {
-    "vector": "skipped_not_available (reachable=false, backend=in-memory-hash)",
+    "vector": "live_local (reachable=true, backend=qdrant)",
     "localReasoning": "skipped_not_available (reachable=false)",
-    "sql": "healthy",
-    "index": "healthy",
-    "coldLatencyMs": 4186
+    "sql": "healthy", "index": "healthy"
   },
-  "filesChanged": "none (verification-only)",
+  "containerLeftRunning": "iap-qdrant (:6333) — stop: docker stop iap-qdrant",
+  "filesChanged": "none (verification/setup only)",
   "sourceCommitted": false,
   "selfAccepted": false,
-  "nextSafeStep": "owner-approved gate to pull qdrant image / install ollama+model for live_local, OR commit-only gate for uncommitted RAG code",
+  "nextSafeStep": "BUILD gate: real Qdrant retrieval adapter; OR owner-approved Ollama install+model; OR commit-gate for uncommitted RAG code",
   "updated": "2026-06-05"
 }
