@@ -1,0 +1,70 @@
+{
+  "requestId": "REQ-2026-06-04-rag-completion-mega-v0-1",
+  "project": "InsuranceAIPlatform",
+  "gate": "RAG_COMPLETION_MEGA_V0.1",
+  "mode": "IMPLEMENTATION_CONTINUATION_WITH_FULL_VERIFICATION / NO COMMIT / NO PUSH / NO AZURE_DEPLOY",
+  "status": "READY_FOR_AUDIT",
+  "completed": "2026-06-04",
+  "completedBy": "claude",
+  "providerLabel": "MOCK",
+  "productRepoState": {
+    "branch": "rag/local-foundation-mega-v0.1",
+    "committed": false,
+    "pushed": false
+  },
+  "verification": {
+    "dotnetTest": "158/158 passed (exit 0)",
+    "frontendBuild": "npm run build exit 0",
+    "localDbReseed": { "PolicyClause": 8, "EvidenceChunk": 50, "RagEvaluationQuestion": 21, "RagAuditTrace": 2 },
+    "httpSmoke": {
+      "ask": "POST CLM-1006 200, 4 citations, ProviderMode=Mock, AdvisoryOnly=true",
+      "similar": "CLM-1006 -> CLM-1010(0.66)/CLM-1011(0.53)/CLM-1009(0.53), no evidence-text fields",
+      "leakGuard": "CLM-1009 evidence-search: 0 cross-claim chunks",
+      "eval": "CLM-1006: 4 evaluation questions"
+    },
+    "localLlamaSeam": "disabled by default; Ollama SKIPPED_NOT_AVAILABLE; falls back to MOCK"
+  },
+  "corpus": {
+    "claims": 6,
+    "policyClauses": 8,
+    "evidenceChunks": 50,
+    "evaluationQuestions": 21,
+    "chunkDistribution": { "CLM-1006": 13, "CLM-1007": 6, "CLM-1008": 6, "CLM-1009": 7, "CLM-1010": 10, "CLM-1011": 8 },
+    "seeder": "additive / idempotent (no deletes)"
+  },
+  "e2e": {
+    "spec": "e2e/22-rag-evidence.spec.ts",
+    "config": "playwright.mock.config.ts",
+    "command": "npx playwright test 22-rag-evidence --config playwright.mock.config.ts --reporter=list",
+    "exitCode": 0,
+    "passed": 7,
+    "skipped": 1,
+    "skipReason": "PERSISTENCE_PASS — no frontend audit-history view; backend DB persistence verified separately",
+    "apiMode": "MOCK",
+    "screenshots": [
+      "test-results/rag-01-mechanical-panel-render.png",
+      "test-results/rag-02-semantic-coverage-answer.png",
+      "test-results/rag-03-semantic-missing-docs.png",
+      "test-results/rag-04-semantic-risk-answer.png",
+      "test-results/rag-05-negative-no-fraud-word.png",
+      "test-results/rag-06-negative-similar-no-evidence.png",
+      "test-results/rag-07-cross-claim-clm1009-isolation.png"
+    ]
+  },
+  "uiLabels": {
+    "MECHANICAL_PASS": true,
+    "SEMANTIC_PASS": true,
+    "NEGATIVE_PASS": true,
+    "PERSISTENCE_PASS": "SKIPPED (frontend audit-history not implemented; backend persistence verified)"
+  },
+  "boundariesHonored": [
+    "no commit", "no push", "no azure deploy", "no azure resource",
+    "no paid AI", "no real deepseek by default", "no running ollama required for ci",
+    "no secrets", "no real PII", "no destructive ops", "origin/main untouched", "AIKB untouched"
+  ],
+  "knownLimitations": [
+    "PERSISTENCE_PASS skipped at UI layer (backend persistence verified)",
+    "answer generator is MOCK advisory-only",
+    "retrieval is deterministic feature-hashing, not a semantic embedding model"
+  ]
+}
