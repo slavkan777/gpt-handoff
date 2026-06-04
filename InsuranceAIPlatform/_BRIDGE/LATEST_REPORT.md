@@ -1,99 +1,107 @@
-REQUEST_ID: REQ-2026-06-04-insuranceai-local-rag-infra-ui-v0-1
+REQUEST_ID: REQ-2026-06-04-insuranceai-local-qdrant-ollama-runtime-completion-v0-1
 STATUS: READY_FOR_AUDIT
 TASK_TYPE: project-implementation
 PROJECT: InsuranceAIPlatform
-GATE: LOCAL_RAG_INFRASTRUCTURE_UI_DEMO_V0.1
-COMPLETED: 2026-06-04
+GATE: LOCAL_QDRANT_OLLAMA_RUNTIME_COMPLETION_AND_PRE_FINAL_AUTOMATION_V0.1
 COMPLETED_BY: claude
+COMPLETED: 2026-06-05
 
 ## Current State
+Repo `C:\Projects\InsuranceAIPlatform`, branch `rag/local-foundation-mega-v0.1`, HEAD `70af774`.
+All work is UNCOMMITTED on the feature branch (per request OUT OF SCOPE: no source commit/push).
+The RAG infrastructure-status path now reports Qdrant (vector) and Ollama (local reasoning) runtime
+state from a MECHANICAL HTTP probe instead of guessing from a config flag. Both local runtimes are
+absent on this machine, so the honest status is `skipped_not_available` with the in-process
+deterministic index as the safe vector fallback. Existing RAG behaviour (SQL source of truth,
+hash-embedding index, mock generation, audit, citations, similar-claims) is preserved and green.
 
-The AI Evidence page now has an **Evidence Intelligence Stack** panel that shows how the local
-RAG pieces fit together as one insurance workflow: **SQL source of truth → evidence memory index
-→ retrieval → local reasoning runtime (disabled/mock) → audit history → human review**. The panel
-reports live status + counts for each of the three infrastructure layers and exposes two **safe,
-local** actions (Check = refresh status, Reindex = deterministically rebuild this claim's embedding
-cache). Everything runs **100% locally** — SQL is the source of truth, the embedding index is a
-rebuildable cache, and the reasoning runtime is **disabled by default** (mock inference only; no
-live or paid model). New backend endpoints were added (read + safe reindex); **no schema change,
-no migration**. Product-repo code remains **uncommitted** on branch `rag/local-foundation-mega-v0.1`.
+## Runtime Discovery (mechanically checked, not guessed)
+- Qdrant `http://localhost:6333` -> no response (curl HTTP `000`). NOT running.
+- Ollama `http://localhost:11434` -> no response. NOT running.
+- `docker ps` -> no qdrant/ollama container (docker not active).
+- Conclusion: both runtimes UNAVAILABLE locally -> labels `VECTOR_RUNTIME_SKIPPED_NOT_AVAILABLE`
+  and `LLAMA_RUNTIME_SKIPPED_NOT_AVAILABLE`. No model was downloaded (per request constraint).
 
-## DONE criteria vs evidence
+## DONE Criteria vs Evidence
+1. Project bridge honored — this report echoes the exact REQUEST_ID + GATE; written to the three
+   project-specific paths. Does NOT claim the stale `LOCAL_RAG_INFRASTRUCTURE_UI_DEMO_V0.1` as current. OK
+2. Runtime availability MECHANICALLY checked — new `IRagRuntimeProbe` / `HttpRagRuntimeProbe` issues a
+   short-timeout (1500 ms default; 800 ms in smoke) GET; connection-refused/timeout => not reachable.
+   Verified live (see Verification) that the real probe vs DOWN runtimes returns `skipped_not_available`. OK
+3. Existing RAG infrastructure preserved — Evidence Intelligence Stack still renders; SQL source of
+   truth healthy; in-process hash embedding cache intact as fallback; 165 backend tests + 12 RAG e2e
+   green. OK
+4. Local runtime integration added disabled/fallback-safe — `RagOptions.QdrantEnabled` and
+   `LocalLlamaEnabled` default FALSE; when enabled-but-unreachable the status is honest and the
+   in-process index serves vectors (`backend = in-memory-hash`). No paid provider, no Azure, no key,
+   no secret, no PII. OK
+5. UI/API honest — status labels distinguish `disabled` / `live_local` / `skipped_not_available`;
+   vector backend shows `in-memory-hash` vs `qdrant`; a `reachable` boolean is surfaced per runtime;
+   no fake "live" label when a runtime is not reachable (e2e NEGATIVE_PASS enforces this). OK
+6. Verification executed and reported — see below. OK
+7. Fresh sanitized report published to all three project paths. OK
 
-| Criterion (from request) | Status | Evidence |
-|---|---|---|
-| Evidence Intelligence Stack panel | ✅ | `src/components/claim/RagInfrastructureStackPanel.tsx` (testid `rag-infra-stack`), rendered on `AiEvidencePage` |
-| SQL Source of Truth status | ✅ | `rag-infra-sql` row; live GET → `healthy`, 8 clauses / 50 chunks / 21 eval / 4 audit |
-| Evidence Memory Index status | ✅ | `rag-infra-index` row; live GET → `healthy`, CLM-1006 13/13 embedded, model `local-hash-embed-v0.1`, dim 256 |
-| Local Reasoning Runtime status | ✅ | `rag-infra-runtime` row; live GET → `disabled`, enabled=false (mock only) |
-| Safe local health/check/reindex actions | ✅ | `rag-infra-check-btn` (refresh) + `rag-infra-reindex-btn`; `POST /rag/infrastructure/reindex` re-embeds deterministically (idempotent) |
-| Preserve RAG / similar / audit / citations / tests | ✅ | existing 8 e2e + 158 unit tests still green |
-| Build, tests, targeted E2E, local smoke | ✅ | see Verification |
-| Publish to project report paths | ✅ | this report → the 3 paths below |
+## Files Changed (writable scope only; all uncommitted on feature branch)
+Backend (server/InsuranceAIPlatform.*):
+- `Services.AiAnalysis/Rag/RagOptions.cs` — +QdrantEnabled (false), +QdrantEndpoint, +QdrantCollection, +RuntimeProbeTimeoutMs.
+- `Services.AiAnalysis/Rag/Runtime/IRagRuntimeProbe.cs` — NEW interface (mockable reachability probe).
+- `Api/Rag/HttpRagRuntimeProbe.cs` — NEW HTTP impl (any response => up; refused/timeout => down; never throws).
+- `Services.AiAnalysis/Rag/Contracts/RagContracts.cs` — RagRuntimeStatus +Reachable; NEW RagVectorRuntimeStatus; aggregate +VectorRuntime.
+- `Services.AiAnalysis/Rag/RagService.cs` — ctor +optional IRagRuntimeProbe; GetInfrastructureStatusAsync now probes Ollama+Qdrant and computes honest statuses.
+- `Api/Contracts/Rag/RagDtos.cs` — RagRuntimeStatusDto +Reachable; NEW RagVectorRuntimeStatusDto; aggregate +VectorRuntime.
+- `Api/Controllers/RagController.cs` — MapInfrastructureStatus maps VectorRuntime + Reachable.
+- `Api/Program.cs` — AddHttpClient("rag-runtime-probe") + register IRagRuntimeProbe -> HttpRagRuntimeProbe.
+- `Tests/RagInfrastructureTests.cs` — test1 +vector/reachable asserts; +StubRuntimeProbe; +5 probe-status tests.
+Frontend (src/, e2e/):
+- `api/insuranceApi.types.ts` — RagInfrastructureStatus +vectorRuntime +reachable.
+- `api/mockInsuranceApi.ts` — ragInfrastructure + ragReindex return honest vectorRuntime (disabled / in-memory-hash) + reachable=false.
+- `i18n/messages/rag.ts` — +infraLayerVector/infraFieldBackend/infraFieldReachable/infraVectorDisabledNote (EN + UK).
+- `components/claim/RagInfrastructureStackPanel.tsx` — statusColor +live_local/+skipped_not_available; +reachable field; NEW Vector Runtime layer card (testid rag-infra-vector).
+- `e2e/22-rag-evidence.spec.ts` — assert rag-infra-vector row visible.
 
-## What Changed
+## Commands Run
+- Runtime discovery: `curl localhost:6333` -> `000`; `curl localhost:11434` -> no response; `docker ps` -> none.
+- `dotnet build server/InsuranceAIPlatform.sln` -> Build succeeded, 0 Warning(s), 0 Error(s).
+- `dotnet test ...Tests.csproj` -> Passed! Failed: 0, Passed: 165, Skipped: 0.
+- `npm run build` (tsc -b && vite build) -> built, 154 modules, 0 type errors.
+- `npx playwright test 22-rag-evidence --config playwright.mock.config.ts` -> 12 passed.
+- Live HTTP smoke (real API, seams ENABLED, probe timeout 800 ms): see Verification.
+- `git diff` secret/leak scan; `git status` forbidden-scope check.
 
-**Backend (`server/**`, no schema change, no migration):**
-| File | Change |
-|---|---|
-| `…/Api/Contracts/Rag/RagDtos.cs` | `RagInfrastructureStatusDto` + `RagSqlStatusDto` / `RagIndexStatusDto` / `RagRuntimeStatusDto` |
-| `…/Api/Controllers/RagController.cs` | `GET /api/claims/{claimId}/rag/infrastructure` + `POST …/reindex` (reuse `ClaimsControllerBase` validation + 404) |
-| `…/Services.AiAnalysis/Rag/IRagService.cs` + `RagService.cs` | `GetInfrastructureStatusAsync` (counts via `IDbContextFactory`; reads `RagOptions`) + `ReindexClaimAsync` (re-embed claim chunks → SaveChanges → refreshed status) |
-| `…/Services.AiAnalysis/Rag/Contracts/RagContracts.cs` | domain records for the status |
-| `…/Tests/RagInfrastructureTests.cs` | **NEW** — 2 tests (healthy counts + runtime disabled; reindex idempotent + index stays healthy) |
+## Verification Evidence
+- Backend unit: 165 passed / 0 failed. New tests prove: enabled+reachable->`live_local`; enabled+unreachable->`skipped_not_available`; disabled->`disabled` (probe not called even if it would succeed); Qdrant fallback backend `in-memory-hash`.
+- Frontend build: `tsc -b` clean (EN/UK i18n key parity holds via `type T = typeof en`); `vite build` ok.
+- E2E spec 22: 12/12 passed incl. MECHANICAL (4 layer rows incl. vector), SEMANTIC (runtime=disabled in mock), NEGATIVE (runtime row never claims live), cross-claim isolation.
+- LIVE HTTP smoke (the path unit tests stub — now real): started the real API with `Rag__LocalLlamaEnabled=true Rag__QdrantEnabled=true Rag__RuntimeProbeTimeoutMs=800` while Qdrant:6333 and Ollama:11434 were DOWN. `GET /api/claims/CLM-1006/rag/infrastructure` (fresh correlationId, real DB: sql=healthy, index=healthy) returned:
+  - `vectorRuntime: status=skipped_not_available, enabled=true, reachable=false, backend=in-memory-hash`
+  - `localReasoningRuntime: status=skipped_not_available, enabled=true, reachable=false`
+  The real `HttpRagRuntimeProbe` handled connection-refused gracefully (no hang) and produced honest status.
+- Secret/leak scan over the diff + new files: no API keys / secrets / connection-string values / Azure URLs (only the pre-existing `connectionString` variable reference). No raw runtime endpoint is exposed in the API response (only `endpointConfigured` boolean + `backend` label).
 
-**Frontend (`src/**`, `e2e/**`):**
-| File | Change |
-|---|---|
-| `src/components/claim/RagInfrastructureStackPanel.tsx` | **NEW** — 3 layer rows + status badges + workflow strip + Check/Reindex buttons; `useEffect` fetch on mount; runtime row always shows the disabled/mock note |
-| `src/features/rag/{ragSlice,ragSaga,ragSelectors}.ts` | `infrastructure` state + fetch/reindex actions + saga workers + selectors |
-| `src/api/{insuranceApi.types,mockInsuranceApi,backendInsuranceApi}.ts` | `RagInfrastructureStatus` type; `ragInfrastructure`/`ragReindex` (real GET/POST + deterministic mock) |
-| `src/pages/AiEvidencePage.tsx` | renders `<RagInfrastructureStackPanel/>` |
-| `src/i18n/messages/rag.ts` | stack labels (en + uk) |
-| `e2e/22-rag-evidence.spec.ts` | **4 new tests** (mechanical / semantic / reindex action / negative-no-live-model) |
-
-## Verification (personally re-run — not delegated)
-
-| Check | Command | Result |
-|---|---|---|
-| Backend tests | `dotnet test …InsuranceAIPlatform.Tests` | **160/160** passed, 0 skipped, exit 0 (158 + 2 new) |
-| Frontend build | `npm run build` | exit 0 |
-| UI E2E | `npx playwright test 22-rag-evidence --config playwright.mock.config.ts` | **12 passed, 0 skipped**, exit 0 (8 existing + 4 new infra) |
-| **Live smoke (LOCAL_REAL)** | `GET /api/claims/CLM-1006/rag/infrastructure` | **200** — sql `healthy` 8/50/21/4 · index `healthy` 13/13 `local-hash-embed-v0.1`/256 · runtime `disabled` enabled=false |
-| **Live reindex (LOCAL_REAL)** | `POST …/rag/infrastructure/reindex` | **200** — idempotent, index stays `healthy` |
-| Negative — missing claim | `GET …/CLM-9999/rag/infrastructure` | **404** |
-| Negative — no secret leak | grep GET body for endpoint URL | **no endpoint URL** (only `endpointConfigured:true` + model name) |
-
-Provider label for the reasoning runtime: **disabled / mock** (not LIVE_REAL). The infrastructure
-status + reindex are **LOCAL_REAL** (real LocalDB, real endpoint, real re-embed).
+## Runtime Status Labels (final, honest)
+- Vector runtime (Qdrant): default `disabled`; enabled+unreachable `skipped_not_available`; enabled+reachable `live_local`. Backend serving vectors: `in-memory-hash` (fallback) or `qdrant` (only when live).
+- Local reasoning runtime (Ollama): default `disabled`; enabled+unreachable `skipped_not_available`; enabled+reachable `live_local`. Generator remains the deterministic mock until a real local call lands.
 
 ## Boundaries Honored
-
-- **No commit / push / deploy** — changes uncommitted on `rag/local-foundation-mega-v0.1`.
-- **No schema change / no EF migration** — reindex only updates existing `EmbeddingJson` rows.
-- **No Azure, no paid AI, no live model** — reasoning runtime disabled by default; CI/build/tests need no running model.
-- **No secret / endpoint-URL** placed in any DTO, log, or this report.
-- **No other project touched.** Report published only to InsuranceAIPlatform project paths via an isolated git worktree (own index) — global `_BRIDGE` and TwinCore untouched.
+- No source commit / push (all changes uncommitted on feature branch).
+- No Azure, no cloud resource, no paid provider, no API key, no secret, no real PII.
+- No new EF migration (changes are options/records/DTO/UI/tests only — no schema change).
+- Did not touch other projects, TwinCore, AgentHub, global `_BRIDGE`, or `main`. No force-push.
+- Did not download any model.
 
 ## Known Limitations
-
-- **Mock vs live counts differ (cosmetic).** The MOCK api returns illustrative fixed values
-  (index 50/50 global, audit 2) so offline e2e is deterministic; the **live** endpoint returns real
-  **claim-scoped** counts (CLM-1006: index 13/13, audit 4). Both report `healthy`. The Playwright
-  suite asserts the mock shape; the live smoke above confirms the real endpoint. A future polish
-  pass can align the mock to claim-scoped numbers.
-- **Reasoning runtime is disabled by design.** "available/unavailable" is only reachable if a local
-  model is later enabled; this gate ships it `disabled`.
-- Reindex is claim-scoped (re-embeds the current claim's chunks), not a global rebuild.
-
-## Next Safe Step
-
-Pre-manual acceptance: open CLM-1006 → AI Evidence → **Evidence Intelligence Stack** → read the 3
-layer statuses → click **Reindex** (stays healthy) → confirm runtime shows **disabled / mock**.
-On accept, the full RAG code (backend + frontend, uncommitted) is ready for a separate
-**commit-only** gate.
+- Qdrant and Ollama are not installed/running on this machine, so a real `live_local` path could not be
+  exercised end-to-end; it is covered by a unit test using a stub probe (enabled+reachable->live_local).
+  Bringing them up (container / model pull) is a separate, owner-approved step (software install /
+  download) and was intentionally NOT performed.
+- No full Qdrant vector-store retrieval adapter was built: while Qdrant is absent it cannot be verified,
+  so this gate delivers honest status + a disabled/fallback-safe seam (mirroring the existing
+  LocalLlama seam), not an unverifiable live retrieval path.
 
 ## Not Touched
+- Source repo commits/pushes; `main`; other projects; global bridge; Azure; secrets; EF schema/migrations.
 
-Global `_BRIDGE`; TwinCore; other projects; product-repo git history (no commit/push); EF
-migrations / DB schema; Azure; AIKB; secrets.
+## Next Safe Step
+- Architect GPT audit of this report (`отчёт`). If accepted: optional follow-up gate to actually run a
+  local Qdrant container + Ollama model (owner-approved install/download) to exercise `live_local`, or a
+  commit-only gate for the now-verified uncommitted RAG changes.

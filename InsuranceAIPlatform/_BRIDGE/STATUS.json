@@ -1,7 +1,7 @@
 {
   "bridge": "gpt-handoff/InsuranceAIPlatform/_BRIDGE",
   "scope": "project-specific (does NOT touch global gpt-handoff/_BRIDGE or TwinCore)",
-  "state": "REQUEST_READY",
+  "state": "REPORT_READY",
   "activeRequestId": "REQ-2026-06-04-insuranceai-local-qdrant-ollama-runtime-completion-v0-1",
   "activeRequestType": "project-implementation",
   "activeProject": "InsuranceAIPlatform",
@@ -9,8 +9,9 @@
   "targetReportPath": "InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md",
   "projectReportPath": "InsuranceAIPlatform/local-qdrant-ollama-runtime-completion-v0.1/report.md",
   "latestReportPath": "InsuranceAIPlatform/latest-report.md",
-  "previousStaleRequestId": "REQ-2026-06-04-insuranceai-local-rag-infra-ui-v0-1",
-  "publishState": "AWAITING_CLAUDE_REPORT",
-  "updated": "2026-06-04",
-  "updatedBy": "architect-gpt"
+  "lastReportId": "REQ-2026-06-04-insuranceai-local-qdrant-ollama-runtime-completion-v0-1",
+  "lastReportStatus": "READY_FOR_AUDIT",
+  "publishState": "REPORT_PUBLISHED",
+  "updated": "2026-06-05",
+  "updatedBy": "claude"
 }
