@@ -1,0 +1,44 @@
+{
+  "requestId": "REQ-2026-06-05-insuranceai-qdrant-retrieval-adapter-v0-1",
+  "gate": "QDRANT_RETRIEVAL_ADAPTER_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "selfAccepted": false,
+  "sourceCommitOrPush": false,
+  "branch": "rag/local-foundation-mega-v0.1",
+  "headUnchanged": "70af774",
+  "build": "0 warnings / 0 errors",
+  "tests": "174 passed / 0 failed (was 165; +9 net, 1 corrected)",
+  "filesNew": [
+    "server/InsuranceAIPlatform.Services.AiAnalysis/Rag/Retrieval/IQdrantVectorClient.cs",
+    "server/InsuranceAIPlatform.Services.AiAnalysis/Rag/Retrieval/IVectorRetrievalRouter.cs",
+    "server/InsuranceAIPlatform.Services.AiAnalysis/Rag/Retrieval/VectorRetrievalRouter.cs",
+    "server/InsuranceAIPlatform.Api/Rag/HttpQdrantVectorClient.cs",
+    "server/InsuranceAIPlatform.Tests/VectorRetrievalRouterTests.cs"
+  ],
+  "filesModified": [
+    "server/InsuranceAIPlatform.Services.AiAnalysis/Rag/RagService.cs",
+    "server/InsuranceAIPlatform.Services.AiAnalysis/Rag/RagServiceCollectionExtensions.cs",
+    "server/InsuranceAIPlatform.Api/Program.cs",
+    "server/InsuranceAIPlatform.Tests/RagInfrastructureTests.cs"
+  ],
+  "liveSmoke": {
+    "claim": "CLM-1006",
+    "qdrantCollectionBefore": "does-not-exist",
+    "qdrantCollectionAfter": "green / points_count=13 / size=256 / Cosine",
+    "infrastructureBackend": "qdrant",
+    "vectorRuntimeStatus": "live_local",
+    "reachable": true,
+    "askHttp": 200,
+    "askProviderMode": "Mock",
+    "stubFingerprintExcluded": "empty-qdrant + in-memory-hash NOT observed; 13 live points + backend=qdrant observed"
+  },
+  "honestyFix": "backend=qdrant only after a real ensure+upsert+search round-trip; reachable-but-not-serving => in-memory-hash",
+  "boundariesHonored": [
+    "no source commit/push", "no Azure/cloud", "no paid providers", "no secrets", "no real PII",
+    "not on main", "no schema/EF migration", "no Ollama work", "no unrelated project edits", "no fake backend label"
+  ],
+  "qdrantRuntimeLeftRunning": "iap-qdrant on :6333 (collection insurance_evidence, 13 points) — stop: docker stop iap-qdrant",
+  "updated": "2026-06-05"
+}

@@ -1,65 +1,136 @@
-REQUEST_ID: REQ-2026-06-05-insuranceai-local-live-runtime-setup-check-v0-1
-STATUS: PARTIAL
-TASK_TYPE: project-runtime-verification
+REQUEST_ID: REQ-2026-06-05-insuranceai-qdrant-retrieval-adapter-v0-1
+STATUS: READY_FOR_AUDIT
+TASK_TYPE: project-implementation
 PROJECT: InsuranceAIPlatform
-GATE: LOCAL_LIVE_RUNTIME_SETUP_CHECK_QDRANT_OLLAMA_V0.1
+GATE: QDRANT_RETRIEVAL_ADAPTER_V0.1
 COMPLETED_BY: claude
-COMPLETED: 2026-06-05
 
-## Headline
-Qdrant local runtime is now LIVE_LOCAL (pulled + started + probe-verified). Ollama remains BLOCKED on a missing prerequisite (no installer path without winget + multi-GB model). Honest mixed state; no fake labels.
+# Qdrant Retrieval Adapter — v0.1
+
+Closes the semantic gap flagged in the previous gate: Qdrant is no longer merely probe-reachable, it
+now **actually stores and serves** claim evidence vectors when enabled and reachable, with a total,
+silent fallback to the in-process deterministic index when it is not. `backend=qdrant` is now reported
+only after a real Qdrant retrieval round-trip — never from a reachability flag.
 
 ## Routing Lock Verification
-- PROJECT = InsuranceAIPlatform; SOURCE_REPO = C:/Projects/InsuranceAIPlatform (matches ROUTING LOCK).
-- branch = `rag/local-foundation-mega-v0.1`; HEAD = `70af774`; working tree = 31 uncommitted RAG files (untouched this gate).
-- Report written ONLY to the three locked IAP paths. Global `_BRIDGE` / TwinCore untouched.
 
-## Runtime Setup Check
-- Qdrant: local Docker image pulled (`qdrant/qdrant:latest` = 1.18.2) and container `iap-qdrant` started on :6333. Local-only, public image, no account, no cloud.
-- Ollama: NOT installed; `winget` NOT available -> no silent automated install path. Bringing Ollama up needs a manual installer download (interactive) + a multi-GB model pull. Per DONE #4 the exact prerequisite is reported and this subpart is STOPPED (not faked, not force-installed).
+| Lock | Expected | Observed | OK |
+|---|---|---|---|
+| PROJECT | InsuranceAIPlatform | InsuranceAIPlatform | ✅ |
+| SOURCE_REPO | C:/Projects/InsuranceAIPlatform | C:/Projects/InsuranceAIPlatform | ✅ |
+| SOURCE_REPO_REMOTE | slavkan777/InsuranceAIPlatform | slavkan777/InsuranceAIPlatform | ✅ |
+| Branch | rag/local-foundation-mega-v0.1 | rag/local-foundation-mega-v0.1 | ✅ |
+| HANDOFF path | gpt-handoff/InsuranceAIPlatform/ | gpt-handoff/InsuranceAIPlatform/ | ✅ |
 
-## Qdrant Result
-- LIVE_LOCAL (runtime). `GET http://localhost:6333/` returns `qdrant - vector search engine`, version 1.18.2; TCP :6333 reachable; the API's mechanical probe confirms reachable=true -> vectorRuntime.status=live_local.
-- HONESTY CAVEAT: the RAG retrieval pipeline does NOT yet query Qdrant. Gate-1 implemented the status PROBE + a disabled-safe seam only — there is no Qdrant vector-retrieval adapter yet. So Qdrant as a RUNTIME is live_local (verified), but Qdrant as the RETRIEVAL BACKEND is not wired; vectors are still served by the in-process deterministic index. The API field `vectorRuntime.backend="qdrant"` reflects "enabled + reachable", NOT "serving retrieval".
+ROUTING_LOCK_RULE acknowledged; report written only to the three InsuranceAIPlatform project paths.
 
-## Ollama Result
-- BLOCKED (prerequisite). Exact prerequisite: Ollama is not installed AND `winget` is unavailable, so installation requires a manual installer download (interactive / likely UAC) plus a local model pull (multi-GB). Not performed in this gate (no silent path, heavy download). Status remains `skipped_not_available`. No fake live.
+## Current Repo State
 
-## Product Smoke Result (CLM-1006, runtime flags ENABLED, Qdrant UP)
-- Real API; `Rag__LocalLlamaEnabled=true`, `Rag__QdrantEnabled=true`, probe timeout 1500 ms.
-- GET `/api/claims/CLM-1006/rag/infrastructure` (fresh correlationId `ae903776...`, real DB):
-  - vectorRuntime: status=`live_local`, enabled=true, reachable=true, backend=`qdrant`  <- Qdrant runtime now reachable
-  - localReasoningRuntime: status=`skipped_not_available`, enabled=true, reachable=false  <- Ollama still down
-  - sqlSourceOfTruth=healthy, evidenceMemoryIndex=healthy
-- This proves the mechanical probe across BOTH states: down -> skipped_not_available (prior gate) and up -> live_local (now). Honest, no fake labels.
+- Branch `rag/local-foundation-mega-v0.1`, HEAD `70af774` **unchanged** (no source commit/push — per BOUNDARIES).
+- Working tree carries the uncommitted RAG feature (prior gates) + this gate's adapter files. No tracked file
+  was committed; the only tracked file edited is `Program.cs` (+24 lines, DI registration).
+
+## Qdrant Runtime Check
+
+- Container `iap-qdrant` (qdrant/qdrant 1.18.2) reused, `Up`, listening on `0.0.0.0:6333`.
+- Wire-format verified against the live container before coding (throwaway collection, then deleted):
+  create / upsert / claim-filtered search confirmed. The claim filter proved to be a real leakage guard
+  (a foreign-claim point with an identical vector to the query was correctly excluded by the filter).
+
+## Implementation Summary
+
+Minimal seam, no new NuGet (raw REST over `IHttpClientFactory`, same pattern as the runtime probe):
+
+| File | Role |
+|---|---|
+| `Services/.../Rag/Retrieval/IQdrantVectorClient.cs` (NEW) | Vector-store boundary: `EnsureCollectionAsync` / `UpsertAsync` / `SearchAsync` + `QdrantUpsertPoint` / `QdrantSearchHit`. |
+| `Services/.../Rag/Retrieval/IVectorRetrievalRouter.cs` (NEW) | `RankAsync` + `ResolveServingBackendAsync`; `RetrievalOutcome(Hits, Backend)`; `VectorBackends.{Qdrant,InMemoryHash}` constants. |
+| `Services/.../Rag/Retrieval/VectorRetrievalRouter.cs` (NEW) | Tries Qdrant (ensure → upsert claim chunks → claim-filtered search → map back); on disabled/no-client/any-error → in-process index. |
+| `Api/.../Rag/HttpQdrantVectorClient.cs` (NEW) | REST impl: `PUT /collections/{c}`, `PUT …/points?wait=true`, `POST …/points/search` (claimId filter). Deterministic MD5→GUID point ids (idempotent). Short timeout; never stalls. |
+| `Services/.../Rag/RagService.cs` (MOD) | `+IVectorRetrievalRouter? router`; Ask/Search route via the router; `GetInfrastructureStatus` resolves the **honest** backend via a real round-trip. |
+| `Services/.../Rag/RagServiceCollectionExtensions.cs` (MOD) | Registers the router; resolves `IQdrantVectorClient` with `GetService` so it stays optional. |
+| `Api/.../Program.cs` (MOD) | `AddHttpClient("qdrant")` + `IQdrantVectorClient → HttpQdrantVectorClient`. |
+
+Router and client are **optional** everywhere (defaulted null) — existing constructors and tests are untouched.
+
+## Retrieval Semantics
+
+- **Enabled + reachable + round-trip OK** → retrieval served by Qdrant; `backend=qdrant`.
+- **Enabled + reachable but round-trip fails** (e.g. collection error) → in-process index; `backend=in-memory-hash`
+  while `status=live_local`, `reachable=true`. This is the honest "up but not serving" state.
+- **Enabled + unreachable** → `status=skipped_not_available`, `backend=in-memory-hash`.
+- **Disabled** (default) → `status=disabled`, `backend=in-memory-hash`, Qdrant never contacted.
+- **Leakage guard (two layers):** every point is tagged with `claimId`; search filters by `claimId`; results are
+  then mapped back against the already-claim-scoped candidate set, so a stale/foreign point can never surface.
 
 ## Files Changed
-- NONE. No source files edited. Qdrant was brought up via Docker (runtime), not via code. Prior gate's RAG status code remains uncommitted on the feature branch.
+
+NEW (5): `IQdrantVectorClient.cs`, `IVectorRetrievalRouter.cs`, `VectorRetrievalRouter.cs`,
+`HttpQdrantVectorClient.cs`, `Tests/VectorRetrievalRouterTests.cs`.
+MODIFIED (4): `RagService.cs`, `RagServiceCollectionExtensions.cs`, `Program.cs`, `Tests/RagInfrastructureTests.cs`.
 
 ## Commands Run
-- git rev-parse/log/status (route lock).
-- `docker rm -f iap-qdrant`; `docker pull qdrant/qdrant:latest`; `docker run -d --name iap-qdrant -p 6333:6333 qdrant/qdrant:latest`; TCP + HTTP probe :6333; `docker ps`.
-- `Get-Command ollama` (absent); `Get-Command winget` (absent).
-- Started API DLL (seams enabled); GET rag/infrastructure; stopped API.
 
-## Verification Evidence
-- Qdrant live: container `iap-qdrant` Up; `/` returns qdrant 1.18.2; API probe reachable=true -> vectorRuntime.status=live_local.
-- Ollama: absent + no winget -> blocked prerequisite (reported, not faked).
-- Smoke JSON above shows the mixed honest state. Fallback preserved (sql/index healthy). No source code changed this gate, so the prior gate's 165 backend tests + 12 RAG e2e remain valid.
+- `dotnet build InsuranceAIPlatform.sln -c Debug` → **Build succeeded, 0 Warning, 0 Error**.
+- `dotnet test InsuranceAIPlatform.sln --no-build` → **Passed! Failed: 0, Passed: 174, Skipped: 0**.
+- Live API spawned with `Rag__QdrantEnabled=true` on `:5284` (env at spawn; restarted process — env-snapshot rule).
+- `curl` smoke: `/rag/infrastructure`, `/rag/ask`, and direct Qdrant REST queries. Process stopped after smoke.
+
+## Verification Evidence (live CLM-1006 smoke — real, not stub)
+
+| Evidence | Value |
+|---|---|
+| Qdrant collection BEFORE | `insurance_evidence` **doesn't exist**; `collections: []` |
+| `/rag/infrastructure` vectorRuntime | `status=live_local, enabled=true, backend=qdrant, reachable=true` (corr `22edd635…`) |
+| Qdrant collection AFTER | `status=green, points_count=13, size=256, distance=Cosine` |
+| Direct Qdrant filtered search | returns **only** CLM-1006 payloads (`…coverage-check#0`, `…repair-detail#1`, `…police#0`) |
+| `/rag/ask` | HTTP 200; trace `ragtrc_3abb3e39`; 4 citations, retrievedChunkIds all `CLM-1006-*`; `providerMode=Mock`; advisoryOnly=true |
+| API process log (named client `qdrant`) | real REST: `GET /`, `GET/PUT /collections/insurance_evidence`, `PUT …/points?wait=true`, `POST …/points/search` → localhost:6333 |
+| SQL / index | sql healthy (8/50/21/4); index healthy (13/13 embedded, `local-hash-embed-v0.1`, 256d) |
+
+**Stub-fingerprint check (G5):** the fallback fingerprint is an **empty** Qdrant + `backend=in-memory-hash`.
+Observed = 13 live points + `backend=qdrant` + real outbound REST → the stub path is definitively excluded.
+
+## Tests
+
+`dotnet test` = **174 passed / 0 failed** (was 165; +9 net, 1 corrected).
+
+- `VectorRetrievalRouterTests` (NEW, 9 cases): disabled→in-memory (Qdrant untouched); serving client→`qdrant`;
+  outage→in-memory fallback; no-client→in-memory; **foreign-chunk hit dropped (leakage guard)**;
+  `ResolveServingBackend` qdrant/outage/disabled; infra-status `qdrant` with serving adapter;
+  infra-status **outage → in-memory-hash, NOT a fake qdrant label**; `AskAsync` drives upsert+search through Qdrant.
+- `RagInfrastructureTests` (MOD): the prior test that asserted `reachable ⇒ backend=qdrant` (the dishonest
+  conflation) was corrected to assert reachable-without-serving-adapter → `in-memory-hash`.
 
 ## Boundaries Honored
-- No source commit/push; no Azure/cloud; no paid provider; no secrets; no PII; no main; no schema migration; no unrelated project edits; no fake live label.
-- Qdrant brought up LOCALLY only (public image, no account). Ollama NOT force-installed (heavy/interactive) -> reported per DONE #4.
+
+No source commit/push (HEAD `70af774` unchanged) · no Azure/cloud · no paid providers · no secrets (scan clean) ·
+no real PII · not on main · no schema/EF migration (zero entity/migration changes) · **no Ollama work** ·
+no unrelated project edits · **no fake `backend=qdrant`** (only after a real round-trip).
 
 ## Known Limitations
-- Qdrant is live as a RUNTIME but not yet a RETRIEVAL BACKEND (no adapter). `backend="qdrant"` means enabled+reachable, not serving. A Qdrant retrieval adapter is a separate BUILD gate.
-- Ollama live_local not achieved: needs manual install (no winget) + multi-GB model pull.
-- The `iap-qdrant` container is LEFT RUNNING as the prepared local runtime (stop: `docker stop iap-qdrant`; remove: `docker rm -f iap-qdrant`).
+
+1. The `/rag/ask` response does not carry a per-request backend field; "ask routes through Qdrant" is supported by
+   the combination (infra `backend=qdrant` + 13 points upserted live + the `AskAsync` unit test), not a response field.
+2. Upsert runs on each retrieval/status call (idempotent via deterministic ids) — no changed-only/incremental upsert yet.
+3. Embeddings remain the deterministic local-hash model (256d); Qdrant now stores/serves **these** vectors — embedding
+   quality is a separate concern, out of scope here.
+4. Cross-claim `similar-claims` still uses the in-process centroid ranker, not Qdrant (claim-scoped retrieval was the target).
+5. Qdrant Cosine scores differ slightly from in-process `VectorMath.Cosine` (Qdrant internal normalization); ordering is
+   consistent — byte-identical scores are not asserted.
+6. Frontend not modified; the existing Vector layer panel already renders `backend`/`reachable`, so it shows `qdrant` live.
 
 ## Not Touched
-- Source repo commits; `main`; other projects; global `_BRIDGE`; TwinCore; Azure; secrets; EF schema.
+
+Product source commits/branches; `main`; Azure/cloud; secrets/PII; EF schema & migrations; Ollama/LocalLlama seam;
+TwinCore and other projects; global `gpt-handoff/_BRIDGE/`; other project bridges.
 
 ## Next Safe Step
-- BUILD gate: implement a real Qdrant vector-retrieval adapter (upsert embeddings + query) so Qdrant actually serves retrieval, then re-verify backend=qdrant end-to-end (now that a live Qdrant is available locally).
-- If Ollama live is wanted: owner approves installing Ollama (manual installer, no winget) + pulling a small model (e.g. `llama3.2:1b`) -> then verify live_local for reasoning.
-- Or proceed to a commit-only gate for the uncommitted RAG status code.
+
+Tell GPT `отчёт` to audit this report. Candidate follow-ups (await an explicit prompt; not started here):
+(a) incremental/changed-only upsert + a real embedding model behind `IEmbeddingProvider`;
+(b) route `similar-claims` through Qdrant too;
+(c) owner-approved Ollama install for a genuine `live_local` reasoning runtime;
+(d) commit-only gate for the uncommitted RAG code.
+
+STOP after report — no commit, push, deploy, Azure, or unrelated-project changes performed.
