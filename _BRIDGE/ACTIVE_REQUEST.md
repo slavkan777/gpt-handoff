@@ -1,246 +1,349 @@
-REQUEST_ID: REQ-2026-06-03-azure-sql-cost-audit-readonly
+REQUEST_ID: REQ-2026-06-04-rag-golden-dataset-readonly
 STATE: READY_FOR_CLAUDE
-TASK_TYPE: audit
+TASK_TYPE: project-readonly-architecture-audit
 PROJECT: InsuranceAIPlatform
-TARGET_REPORT_PATH: _BRIDGE/LATEST_REPORT.md
-PROJECT_REPORT_PATH: InsuranceAIPlatform/azure-sql-cost-audit-readonly-v0.1/report.md
-AIKB_UPDATE_REQUIRED: after-approval
-CREATED: 2026-06-03T00:00:00+03:00
-CREATED_BY: architect-gpt
-GATE: external-access-audit / azure-readonly-cost-audit
+TARGET_REPORT_PATH: _BRIDGE/LATEST_REPORT.md and/or InsuranceAIPlatform/rag-golden-dataset-readonly/report.md
+AIKB_UPDATE_REQUIRED: no
+GATE: RAG_GOLDEN_DATASET_AND_SCHEMA_DISCUSSION_V0.1
+MODE: READ-ONLY DISCUSSION / NO CHANGES
 
-# AZURE SQL COST AUDIT — READ-ONLY REQUEST
+# PROJECT
 
-## CURRENT STATE
-Slava manually inspected Azure Portal for InsuranceAIPlatform resources.
-Observed screenshots show resource group `rg-iap-demo` contains Azure resources including:
-- Container App `iap-demo-api`
-- Managed Identity `iap-demo-api-mi`
-- Application Insights `iap-demo-api`
-- Container Apps Environment `iap-demo-cae`
-- Log Analytics workspace `iap-demo-law`
-- Static Web App `iap-demo-swa`
-- SQL server `iap-sql-r2-6c7q465`
-- Key Vault `iapdemokv...`
-- Storage account `iapdemost...`
-- SQL database `InsuranceAIPlatform (...)`
+InsuranceAIPlatform / Auto Insurance Claim AI Workbench.
 
-Azure Cost Analysis screenshot shows actual cost around `$1.03`, with almost all cost attributed to **SQL Database**. Storage and Log Analytics appear near zero.
+This is a portfolio-grade .NET/Azure/React/AI Engineering project.
+We are now discussing how to add a business-useful RAG + Vector Search + LLaMA layer.
 
-Important: durable AIKB may be stale about Azure because older AIKB says no Azure resources yet. For this task, trust actual Azure portal/CLI evidence over stale AIKB, but do NOT update AIKB. Report the discrepancy only.
+# CURRENT CONTEXT
 
-## CURRENT GATE
-`AZURE_SQL_COST_AUDIT_READONLY_V0.1`
+The project already has a strong insurance-platform foundation:
+- React / TypeScript UI.
+- Redux Toolkit / Redux-Saga workflow layer.
+- .NET backend / BFF/API.
+- service boundary direction.
+- Azure deployment direction.
+- SQL persistence direction.
+- AI Analysis Service / provider abstraction direction.
+- audit / cost / human-in-the-loop positioning.
 
-This is a read-only Azure audit / cost investigation gate.
-It is NOT a deploy gate.
-It is NOT a SQL resize/update gate.
-It is NOT a cleanup/delete gate.
-It is NOT an implementation gate.
+But full production RAG, Vector DB / vector index, Graph DB and LLaMA provider are not yet implemented.
 
-## WHY THIS TASK EXISTS
-The SQL Database appears to be consuming money. Slava wants to understand exactly why SQL is charging and whether it is configured for low-cost behavior: Serverless, auto-pause, minimal vCores, no accidental constant wakeups.
+Slava wants to discuss the next big chapter before coding:
+Create an **etalon / golden synthetic insurance database and evidence corpus** so RAG + Vector Search + LLaMA have high-quality data to work with.
 
-## GOAL
-Inspect Azure read-only state and produce a sanitized report answering:
-1. Which Azure SQL server and database exist for InsuranceAIPlatform?
-2. Is the SQL database Serverless or Provisioned?
-3. Is auto-pause enabled or disabled?
-4. What are min/max vCores / SKU / service tier / compute tier / storage settings?
-5. Is the database currently Online, Paused, Resuming, or another status?
-6. What Azure service/resource is responsible for the current cost?
-7. Is there evidence that something keeps SQL awake?
-8. What are the safest cost-reduction options, ranked by risk?
-9. What is the next safe manual action for Slava?
+# WHY THIS TASK EXISTS
 
-## DONE STATE
-This task is complete only when Claude publishes a sanitized report to:
-- `_BRIDGE/LATEST_REPORT.md`
-- and, if possible, `InsuranceAIPlatform/azure-sql-cost-audit-readonly-v0.1/report.md`
+We do not want to "just add Vector DB" as a technology toy.
 
-The report must include:
-- `REQUEST_ID` exactly matching `REQ-2026-06-03-azure-sql-cost-audit-readonly`.
-- Azure account/subscription identification at sanitized level only: subscription name/id may be partially masked if shown.
-- Resource group inventory for `rg-iap-demo`.
-- SQL server/database inventory.
-- SQL Database compute/storage configuration evidence.
-- Cost analysis evidence if CLI/API access allows it.
-- Read-only commands run and their sanitized outputs.
-- Clear conclusion: why SQL is costing money.
-- Clear options: keep serverless + auto-pause, reduce settings, stop app wakeups, export/delete DB, or defer action.
-- Explicit confirmation that no Azure resources were changed.
-- Explicit confirmation that no secrets/connection strings were printed.
+We want to understand, from the business and architecture perspective:
 
-## RISK PROFILE
-RED/YELLOW boundary due to Azure account and billing impact.
-Allowed: read-only inspection only.
-Forbidden: any mutation, resize, delete, deploy, secret retrieval, or paid-service enablement.
+1. What exact insurance business problems RAG solves.
+2. What golden data must exist in the DB.
+3. What documents/evidence/corpus must exist.
+4. What schema changes may be needed later.
+5. What should stay in SQL as source of truth.
+6. What should go into vector search / vector index.
+7. Where LLaMA fits.
+8. What should be implemented first, second, third.
+9. What should NOT be implemented yet.
+10. How to keep Azure cost low.
 
-## READ FIRST
-Use local/project context if available, but do not rely on stale AIKB for current Azure resource reality.
-If local repo exists, you may read only docs/reports that mention Azure resource names, but do not edit files.
+# HARD RULES
 
-Suggested local read-only paths if present:
-- `docs/architecture/azure/`
-- `docs/reports/`
-- `infra/`
-- `deploy/`
-- `server/`
+DO NOT CHANGE ANY FILES.
+DO NOT CREATE OR EDIT CODE.
+DO NOT CREATE OR EDIT DB/MIGRATIONS.
+DO NOT TOUCH AZURE.
+DO NOT CREATE AI SEARCH / VECTOR DB / LLaMA RESOURCES.
+DO NOT RUN DEPLOY.
+DO NOT COMMIT.
+DO NOT PUSH.
+DO NOT READ OR PRINT SECRETS.
+DO NOT READ OR PRINT API KEYS.
+DO NOT USE REAL PII.
 
-Do not modify any source repository files.
+This is a read-only thinking/audit/planning request only.
 
-## READ-ONLY AZURE SCOPE
-You may use read-only Azure CLI / portal inspection if access is already authenticated and safe:
-- `az account show`
-- `az group show --name rg-iap-demo`
-- `az resource list --resource-group rg-iap-demo --output table`
-- `az sql server list --resource-group rg-iap-demo --output table`
-- `az sql db list --resource-group rg-iap-demo --server <server-name> --output table`
-- `az sql db show --resource-group rg-iap-demo --server <server-name> --name <db-name> --output json`
-- `az monitor metrics list` for the SQL database resource id if available and read-only
-- `az costmanagement query` / Cost Management read-only query if permission exists
+# YOUR ROLE
 
-If Azure CLI is not installed, not logged in, wrong tenant, missing permission, or requires interactive login/2FA:
-- STOP the Azure CLI part;
-- do not ask for passwords/secrets;
-- report exact blocker;
-- tell Slava the minimal manual action needed.
+Act as:
+- senior .NET/Azure architect;
+- insurance domain analyst;
+- RAG systems architect;
+- data modeler;
+- AI Engineering / LLMOps reviewer;
+- cost/governance critic.
 
-## WRITABLE SCOPE
-Only gpt-handoff report files:
-- `_BRIDGE/LATEST_REPORT.md`
-- `InsuranceAIPlatform/azure-sql-cost-audit-readonly-v0.1/report.md`
-- optionally `InsuranceAIPlatform/azure-sql-cost-audit-readonly-v0.1/summary.json`
+Your job is to produce a clear recommendation report for Architect GPT and Slava.
 
-No product repo writes.
-No AIKB writes.
-No Azure writes.
+# MAIN QUESTION
 
-## FORBIDDEN SCOPE
-Strictly forbidden:
-- `az login` if it requires Slava credentials in chat.
-- Asking for passwords, tokens, API keys, connection strings, or subscription secrets.
-- Printing full connection strings.
-- Reading Key Vault secret values.
-- Changing SQL tier/compute/storage.
-- Enabling/disabling auto-pause.
-- Resizing SQL.
-- Deleting SQL database or server.
-- Stopping/deleting Container App.
-- Creating/deleting/updating any Azure resource.
-- Applying Bicep/Terraform.
-- Running deployment commands.
-- Running migrations.
-- Touching source repo code.
-- Commit/push in source repo.
-- Force push.
-- Cleanup/delete/archive.
+Should InsuranceAIPlatform start its RAG + Vector Search + LLaMA upgrade by first creating a high-quality **golden synthetic database / evidence corpus**?
 
-## PRESERVE
-- Azure account safety.
-- Billing safety.
-- Secrets safety.
-- Read-only evidence.
-- Slava final decision authority.
-- Gate separation.
+If yes:
+- what should be inside that DB/corpus?
+- how big should it be?
+- what schema/data model is needed?
+- what is the right phased plan?
+- how do we avoid overengineering?
+- how do we keep Azure cost low?
 
-## INVESTIGATION MAP
+# SPECIFIC THINGS TO ANALYZE
 
-### Phase 1 — Access and identity check
-1. Check whether Azure CLI is available.
-2. Run `az account show` only if already authenticated.
-3. Report sanitized subscription/tenant context.
-4. If not authenticated or wrong account, stop and report.
+## 1. Business value
 
-### Phase 2 — Resource inventory
-1. Inspect `rg-iap-demo`.
-2. List resources by type/name/location.
-3. Identify SQL server and SQL database names exactly.
-4. Identify whether any other expensive services exist unexpectedly: AKS, ACR, App Service, AI Search, OpenAI, VMs, always-on resources.
+Explain where RAG is useful in this insurance system:
+- policy coverage check;
+- missing document detection;
+- claim summary;
+- risk explanation;
+- similar claims search;
+- human approval support;
+- audit-friendly AI explanations.
 
-### Phase 3 — SQL configuration audit
-For the SQL database:
-1. Inspect SKU / service tier.
-2. Inspect compute tier: Serverless vs Provisioned.
-3. Inspect `autoPauseDelay`.
-4. Inspect `minCapacity`, max vCores / capacity if available.
-5. Inspect status: Online / Paused / Resuming.
-6. Inspect storage size/config if available.
-7. Determine whether config matches low-cost target.
+For each use case, answer:
+- who uses it;
+- what pain it solves;
+- what data it needs;
+- what answer/evidence should be shown in UI;
+- why SQL-only search is not enough;
+- why vector search helps;
+- what LLaMA adds.
 
-### Phase 4 — Cost source audit
-1. Use Cost Management read-only query if permission exists.
-2. Group by Resource / ServiceName if possible.
-3. Confirm whether SQL Database is the actual cost source.
-4. Report exact limitations if cost API is unavailable.
+## 2. Golden synthetic database
 
-### Phase 5 — Wake-up / activity hypothesis
-Investigate without changing anything:
-1. Look for current SQL status and recent metrics if accessible.
-2. Check metrics that may indicate activity: CPU, sessions, connections, app CPU billed / allocated storage if available.
-3. Infer possible wake-up sources:
-   - live API hitting DB;
-   - health checks touching SQL;
-   - Query Editor / SSMS / Azure Data Studio open sessions;
-   - manual portal operations;
-   - background app calls;
-   - missing auto-pause / provisioned tier.
-4. Label each as FACT or INFER.
+Propose the ideal "etalon" synthetic DB / corpus.
 
-### Phase 6 — Recommendation matrix
-Produce ranked options:
-- Option A: Keep DB but set/check Serverless + auto-pause manually later.
-- Option B: Stop application wakeups / avoid DB health checks.
-- Option C: Export/backup synthetic data, then delete SQL DB if demo persistence not needed.
-- Option D: Keep SQL for demo but accept small storage/compute cost.
-- Option E: Move demo back to mock/fallback until next demo.
+Include recommended counts:
+- customers;
+- policies;
+- vehicles;
+- claims;
+- documents per claim;
+- document types;
+- chunks per document;
+- policy clauses;
+- audit notes;
+- risk signals;
+- evaluation questions.
 
-For each option include:
-- expected benefit;
-- risk;
-- whether Azure mutation is required;
-- whether separate Slava approval gate is required.
+Do NOT blindly propose huge data.
+Explain what amount is enough for a strong portfolio demo and why.
 
-## VERIFICATION MATRIX
-Report the following:
-- Azure CLI access: PASS / BLOCKED / NOT_AVAILABLE.
-- `rg-iap-demo` inventory: PASS / BLOCKED.
-- SQL server identified: PASS / BLOCKED.
-- SQL database identified: PASS / BLOCKED.
-- Compute tier identified: PASS / BLOCKED.
-- Auto-pause value identified: PASS / BLOCKED.
-- Cost source confirmed: PASS / BLOCKED / LIMITED.
-- No Azure changes made: PASS required.
-- No secrets printed: PASS required.
+## 3. Required domain entities / tables / schemas
 
-## REPORT BACK FORMAT
-Write report in this structure:
+Propose what data structures we will eventually need.
 
-REQUEST_ID: REQ-2026-06-03-azure-sql-cost-audit-readonly
-STATUS: READY_FOR_AUDIT | BLOCKED | PARTIAL
-PROJECT: InsuranceAIPlatform
-GATE: AZURE_SQL_COST_AUDIT_READONLY_V0.1
+Separate them into:
 
-## Summary
-## Azure account context, sanitized
-## Resource inventory: rg-iap-demo
-## SQL database configuration
-## Cost source evidence
-## Activity / auto-pause analysis
-## Findings
-## Cost-reduction options
-## Risks
-## Commands run
-## Evidence
-## Boundaries honored
-## Not touched
-## Limitations
-## Recommended next safe step
+A. Existing/source-of-truth insurance data:
+- Customer;
+- Policy;
+- Vehicle;
+- Claim;
+- ClaimDocument;
+- ClaimPhotoMetadata;
+- RepairInvoice;
+- PoliceReport;
+- CustomerStatement;
+- OperatorNote;
+- AuditEvent;
+- RiskSignal;
+- AIAnalysisRun.
 
-## STOP LINE
-Stop after publishing the report.
-Do not change Azure.
-Do not change SQL.
+B. RAG-specific data:
+- EvidenceDocument;
+- EvidenceChunk;
+- ChunkMetadata;
+- CitationReference;
+- RetrievalQuery;
+- RetrievedEvidence;
+- GroundedAnswer;
+- RagEvaluationQuestion;
+- ExpectedAnswer;
+- RagAuditTrace.
+
+C. Vector-search-specific data:
+- embedding model name;
+- vector index id;
+- external index document id;
+- chunk hash;
+- indexing status;
+- indexedAt;
+- source version;
+- language;
+- claimId/policyId/customerId metadata filters.
+
+## 4. SQL vs Vector Search responsibility
+
+Explain clearly:
+- what stays in SQL;
+- what goes into vector index;
+- what is duplicated as searchable metadata;
+- what must never be only in vector DB;
+- how to rebuild vector index from SQL/corpus.
+
+Expected principle:
+SQL = source of truth.
+Vector Search = semantic retrieval index.
+LLaMA = explanation/generation layer.
+Audit = traceability.
+
+## 5. Azure stack options
+
+Evaluate options:
+
+Option A: Azure AI Search vector/hybrid search.
+Option B: PostgreSQL + pgvector.
+Option C: Qdrant.
+Option D: Neo4j / Graph DB later.
+Option E: no vector DB first; mock retrieval first.
+
+For each:
+- fit for this project;
+- cost;
+- demo/interview value;
+- complexity;
+- when to use;
+- whether to implement now or later.
+
+Important:
+Graph DB is probably future/later. Do not force it unless there is a strong business reason.
+
+## 6. LLaMA placement
+
+Explain how LLaMA should fit:
+
+- LocalLlamaProvider via Ollama / LM Studio / llama.cpp for dev.
+- AzureFoundryLlamaProvider disabled-by-default for Azure demo.
+- ContainerAppsGpuLlamaProvider as future advanced option only.
+
+Explain:
+- why LLaMA should not be the source of truth;
+- why retrieval must happen before generation;
+- why MockProvider remains default;
+- how to keep cost controlled.
+
+## 7. UI impact
+
+Propose how this should appear in the app.
+
+Recommended UI area:
+Claim Detail / Claim Workspace.
+
+Possible panel:
+"AI Evidence Assistant" or "Claim Evidence Intelligence".
+
+Candidate buttons:
+- Check policy coverage.
+- Find missing documents.
+- Explain risk.
+- Find similar claims.
+- Prepare approval summary.
+- Ask custom question.
+
+Each answer should show:
+- answer;
+- confidence;
+- evidence cards;
+- source document references;
+- retrieved chunks;
+- cost/tokens;
+- audit trace;
+- "AI advisory only, human final decision" boundary.
+
+## 8. Testing and evaluator strategy
+
+Propose how to test this correctly.
+
+Need semantic tests:
+- question -> retrieval returns expected sources;
+- answer cites correct documents;
+- no CLM-1006 fixture leak for other claims;
+- missing document detection is correct;
+- high-risk explanation does not accuse fraud;
+- answer is grounded in retrieved chunks;
+- audit/cost trace is persisted.
+
+Include:
+- MECHANICAL_PASS;
+- SEMANTIC_PASS;
+- PERSISTENCE_PASS;
+- NEGATIVE_PASS.
+
+## 9. Cost / Azure guardrails
+
+We want:
+- Static frontend always-on/free.
+- Expensive services disabled/paused/on-demand.
+- SQL cost controlled.
+- AI Search not created until approved.
+- LLaMA Azure endpoint disabled-by-default.
+- Mock/local mode default.
+
+Propose cost-control plan:
+- feature flags;
+- disabled-by-default providers;
+- small index;
+- minimal documents;
+- budget alerts;
+- manual demo activation;
+- teardown/parking plan.
+
+## 10. Phased implementation plan
+
+Propose gates. Do not implement them.
+
+Expected style:
+
+1. RAG_BUSINESS_VALUE_AND_GOLDEN_DATASET_PLAN_V0.1
+2. RAG_SCHEMA_AND_SEED_IMPLEMENTATION_V0.1
+3. LOCAL_MOCK_RAG_RETRIEVAL_V0.1
+4. CLAIM_AI_EVIDENCE_ASSISTANT_UI_V0.1
+5. RAG_E2E_SEMANTIC_EVIDENCE_V0.1
+6. AZURE_AI_SEARCH_VECTOR_INDEX_PLANNING_V0.1
+7. AZURE_AI_SEARCH_VECTOR_INDEX_IMPLEMENTATION_DISABLED_BY_DEFAULT_V0.1
+8. LOCAL_LLAMA_PROVIDER_V0.1
+9. AZURE_LLAMA_PROVIDER_PLANNING_ONLY_V0.1
+10. GRAPH_RELATIONSHIP_RISK_LAYER_FUTURE_V0.1
+
+Adjust if you think a better sequence exists.
+
+# OUTPUT FORMAT
+
+Write a structured report with these sections:
+
+1. Executive summary for Slava.
+2. Business use cases.
+3. Golden DB / corpus recommendation.
+4. Proposed data model.
+5. SQL vs Vector vs LLaMA responsibilities.
+6. Recommended stack decision.
+7. LLaMA options.
+8. UI concept.
+9. Test/evaluator plan.
+10. Cost/security guardrails.
+11. Phased gates.
+12. Risks and anti-goals.
+13. Final recommendation.
+14. Questions for Slava, maximum 5.
+
+# REPORT REQUIREMENTS
+
+Report must be concise but complete.
+Use tables where useful.
+Do not paste huge source code.
+Do not include secrets.
+Do not claim anything was implemented.
+Do not mark implementation as done.
+This is a discussion/planning report only.
+
+# STOP LINE
+
+Stop after producing the report.
+Do not edit source files.
+Do not edit docs.
 Do not update AIKB.
-Do not commit/push product repo.
-Do not proceed to a fix without Slava approval.
+Do not commit.
+Do not push.
+Do not deploy.
