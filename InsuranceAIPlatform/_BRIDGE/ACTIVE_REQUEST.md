@@ -1,28 +1,29 @@
-REQUEST_ID: REQ-2026-06-04-insuranceai-rag-audit-history-ui-persistence-fix-v0-2
+REQUEST_ID: REQ-2026-06-04-insuranceai-local-rag-infra-ui-v0-1
 STATE: READY_FOR_CLAUDE
 PROJECT: InsuranceAIPlatform
-GATE: RAG_AUDIT_HISTORY_UI_PERSISTENCE_FIX_AND_PRE_MANUAL_ACCEPTANCE_V0.2
+GATE: LOCAL_RAG_INFRASTRUCTURE_UI_DEMO_V0.1
 
 TASK
-Add Audit History UI to the RAG Claim Evidence Intelligence page.
+Extend the existing local RAG demo with local infrastructure status and optional local runtime adapters.
 
 GOAL
-The page should show persisted RAG audit history after reload by reading the existing audit endpoint for the current claim.
-
-CONTEXT
-Previous RAG completion report was accepted with one limitation: UI persistence after reload was skipped. Backend audit persistence already exists.
+Show on the AI Evidence page how SQL, local evidence index, optional local reasoning runtime, audit history, and human review fit together as one insurance workflow.
 
 DONE
-- Audit History panel exists.
-- It loads current claim audit history.
-- Reload shows previous RAG trace or answer metadata.
-- Playwright persistence test passes instead of being skipped.
-- Existing RAG buttons and similar-claims behavior continue working.
-- Build and tests pass.
-- Report is published to InsuranceAIPlatform project report paths.
+- Add an Evidence Intelligence Stack panel.
+- Show SQL Source of Truth status.
+- Show Evidence Memory Index status.
+- Show Local Reasoning Runtime status.
+- Add safe local health/check/reindex actions where practical.
+- Preserve existing RAG, similar claims, audit history, citations, and Playwright tests.
+- Run build, tests, targeted E2E, and local smoke where practical.
+- Publish final report to InsuranceAIPlatform project report paths.
+
+BOUNDARIES
+Keep work local. No commit, no push, no deploy. Do not touch other projects.
 
 REPORT
-Write final report to:
-- InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md
-- InsuranceAIPlatform/latest-report.md
-- InsuranceAIPlatform/rag-audit-history-ui-persistence-fix-v0.2/report.md
+Write report to InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md, InsuranceAIPlatform/latest-report.md, and InsuranceAIPlatform/local-rag-infrastructure-ui-v0.1/report.md.
+
+STOP
+Stop after implementation, verification, and report.
