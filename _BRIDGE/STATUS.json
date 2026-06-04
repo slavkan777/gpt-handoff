@@ -1,13 +1,13 @@
 {
   "bridge": "gpt-handoff/_BRIDGE",
   "state": "REPORT_READY",
-  "activeRequestId": "REQ-2026-06-03-azure-sql-cost-audit-readonly",
-  "activeRequestType": "audit",
+  "activeRequestId": "REQ-2026-06-04-rag-golden-dataset-readonly",
+  "activeRequestType": "project-readonly-architecture-audit",
   "activeProject": "InsuranceAIPlatform",
   "targetReportPath": "_BRIDGE/LATEST_REPORT.md",
-  "projectReportPath": "InsuranceAIPlatform/azure-sql-cost-audit-readonly-v0.1/report.md",
-  "lastReportId": "REQ-2026-06-03-azure-sql-cost-audit-readonly",
+  "projectReportPath": "InsuranceAIPlatform/rag-golden-dataset-readonly/report.md",
+  "lastReportId": "REQ-2026-06-04-rag-golden-dataset-readonly",
   "lastReportStatus": "READY_FOR_AUDIT",
-  "updated": "2026-06-03",
+  "updated": "2026-06-04",
   "updatedBy": "claude"
 }
