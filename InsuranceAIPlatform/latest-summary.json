@@ -1,26 +1,24 @@
 {
   "project": "InsuranceAIPlatform",
-  "reportId": "REQ-2026-06-04-insuranceai-local-qdrant-ollama-runtime-completion-v0-1",
-  "gate": "LOCAL_QDRANT_OLLAMA_RUNTIME_COMPLETION_AND_PRE_FINAL_AUTOMATION_V0.1",
-  "status": "READY_FOR_AUDIT",
+  "reportId": "REQ-2026-06-05-insuranceai-local-runtime-live-check-v0-1",
+  "gate": "LOCAL_RUNTIME_LIVE_CHECK_QDRANT_OLLAMA_V0.1",
+  "status": "PARTIAL",
+  "headline": "live_local NOT achievable without owner-approved download/install; honest skipped_not_available confirmed by real smoke",
   "runtimeDiscovery": {
-    "qdrant": "DOWN (localhost:6333 no response)",
-    "ollama": "DOWN (localhost:11434 no response)",
-    "docker": "no qdrant/ollama container"
+    "ollama": "not installed; port 11434 closed; no image",
+    "docker": "installed + up; no qdrant container",
+    "qdrant": "port 6333 closed; no binary; no image"
   },
-  "runtimeStatusLabels": {
-    "vector": "skipped_not_available (fallback backend: in-memory-hash)",
-    "localReasoning": "skipped_not_available (default seam: disabled)"
+  "smokeCLM1006": {
+    "vector": "skipped_not_available (reachable=false, backend=in-memory-hash)",
+    "localReasoning": "skipped_not_available (reachable=false)",
+    "sql": "healthy",
+    "index": "healthy",
+    "coldLatencyMs": 4186
   },
-  "verification": {
-    "backendTests": "165 passed / 0 failed",
-    "frontendBuild": "green (tsc -b + vite build)",
-    "e2eSpec22": "12 passed",
-    "httpSmoke": "real HttpRagRuntimeProbe vs down runtimes -> honest skipped_not_available, no hang",
-    "secretScan": "no leaks",
-    "scope": "feature branch rag/local-foundation-mega-v0.1; no source commit/push"
-  },
+  "filesChanged": "none (verification-only)",
   "sourceCommitted": false,
   "selfAccepted": false,
+  "nextSafeStep": "owner-approved gate to pull qdrant image / install ollama+model for live_local, OR commit-only gate for uncommitted RAG code",
   "updated": "2026-06-05"
 }
