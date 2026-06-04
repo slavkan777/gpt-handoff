@@ -1,13 +1,13 @@
 {
   "bridge": "gpt-handoff/_BRIDGE",
   "state": "REPORT_READY",
-  "activeRequestId": "REQ-2026-06-04-rag-golden-dataset-readonly",
-  "activeRequestType": "project-readonly-architecture-audit",
+  "activeRequestId": "REQ-2026-06-04-rag-local-foundation-mega-v0-1",
+  "activeRequestType": "project-implementation",
   "activeProject": "InsuranceAIPlatform",
   "targetReportPath": "_BRIDGE/LATEST_REPORT.md",
-  "projectReportPath": "InsuranceAIPlatform/rag-golden-dataset-readonly/report.md",
-  "lastReportId": "REQ-2026-06-04-rag-golden-dataset-readonly",
-  "lastReportStatus": "READY_FOR_AUDIT",
+  "projectReportPath": "InsuranceAIPlatform/rag-local-foundation-mega-v0.1/report.md",
+  "lastReportId": "REQ-2026-06-04-rag-local-foundation-mega-v0-1",
+  "lastReportStatus": "PARTIAL_READY_FOR_AUDIT",
   "updated": "2026-06-04",
   "updatedBy": "claude"
 }

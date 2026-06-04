@@ -1,0 +1,58 @@
+{
+  "requestId": "REQ-2026-06-04-rag-local-foundation-mega-v0-1",
+  "gate": "RAG_LOCAL_FOUNDATION_MEGA_V0.1",
+  "project": "InsuranceAIPlatform",
+  "verdict": "PARTIAL_READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "completed": "2026-06-04",
+  "branch": "rag/local-foundation-mega-v0.1",
+  "committed": false,
+  "pushed": false,
+  "commitsAheadOfDev": 0,
+  "boundaries": {
+    "noCommit": true, "noPush": true, "noAzure": true, "noDeploy": true,
+    "realProviderEnabled": false, "localLlamaEnabled": false, "secretsPrinted": false, "realPii": false
+  },
+  "design": {
+    "boundedContext": "AiAnalysis (schema ai_analysis) — no new context",
+    "entitiesRequested": 10,
+    "tablesCreated": 4,
+    "tables": ["PolicyClause", "EvidenceChunk", "RagEvaluationQuestion", "RagAuditTrace"],
+    "merges": "ChunkEmbedding->EvidenceChunk cache; ExpectedAnswer->RagEvaluationQuestion; RetrievalQuery/RetrievedEvidence/GroundedAnswer/CitationReference->RagAuditTrace",
+    "embedding": "DeterministicEmbeddingProvider FNV-1a feature-hash 256d L2-normalized (no external call)",
+    "retrieval": "in-SQL cosine top-k, claim-scoped source (leakage guard)",
+    "generation": "MockGroundedAnswerGenerator default; LocalLlama seam disabled-by-default"
+  },
+  "migration": "20260604161120_AddRagFoundation",
+  "seedCounts": { "PolicyClause": 6, "EvidenceChunk": 15, "RagEvaluationQuestion": 6,
+    "chunksByClaim": { "CLM-1006": 9, "CLM-1007": 3, "CLM-1008": 3 } },
+  "apiRoutes": [
+    "POST /api/claims/{claimId}/rag/ask",
+    "GET /api/claims/{claimId}/rag/evidence-search",
+    "GET /api/claims/{claimId}/rag/evaluation-questions",
+    "GET /api/claims/{claimId}/rag/audit"
+  ],
+  "verification": {
+    "dotnetBuild": "0 errors, 0 warnings",
+    "dotnetTest": "154 passed / 0 failed (137 prior + 17 RAG)",
+    "ragTests": 17,
+    "migrationAppliedToLocalDb": true,
+    "frontendBuild": "tsc -b && vite build exit 0",
+    "httpSmoke": {
+      "ask_CLM1006": "200, citations=4, retrieved=4, providerMode=Mock, advisoryOnly=true",
+      "leakGuard_CLM1007_to_CLM1006": 0,
+      "evalQuestions_CLM1006": 4
+    }
+  },
+  "passLabels": {
+    "MECHANICAL_PASS": true, "SEMANTIC_PASS": true, "PERSISTENCE_PASS": true, "NEGATIVE_PASS": true
+  },
+  "knownLimitations": [
+    "find-similar-claims is claim-scoped in v1 (cross-claim path = documented next step)",
+    "eval set is a 6-question starter (toward 30-60)",
+    "full Playwright e2e not run (covered by HTTP smoke + 17 tests + frontend build)",
+    "confidence values illustrative under deterministic hash embedding"
+  ],
+  "filesChanged": { "modifiedTracked": 11, "newUntrackedGroups": 11, "insertionsTracked": 518 },
+  "nextSafeStep": "Architect-GPT audit of branch+diff; if accepted, separate commit-only gate; then optional RAG_E2E_SEMANTIC_EVIDENCE_V0.1 + cross-claim similar path. No commit/push/deploy until approved."
+}
