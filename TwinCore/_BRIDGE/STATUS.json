@@ -1,0 +1,17 @@
+{
+  "bridge": "gpt-handoff/TwinCore/_BRIDGE",
+  "scope": "project",
+  "project": "TwinCore",
+  "state": "REPORT_READY",
+  "activeRequestId": "REQ-2026-06-04-twincore-main-review-v0-2",
+  "activeRequestType": "project-audit",
+  "gate": "audit",
+  "targetReportPath": "TwinCore/_BRIDGE/LATEST_REPORT.md",
+  "projectReportPath": "TwinCore/main-review-v0.2/report.md",
+  "compatibilityReportPath": "TwinCore/latest-report.md",
+  "lastReportId": "REQ-2026-06-04-twincore-main-review-v0-2",
+  "lastReportStatus": "READY_FOR_AUDIT",
+  "supersedes": "REQ-2026-06-04-twincore-main-review-v0-1",
+  "updated": "2026-06-04",
+  "updatedBy": "claude"
+}
