@@ -1,10 +1,10 @@
-REQUEST_ID: REQ-2026-06-06-insuranceai-ollama-local-reasoning-30-scenarios-v0-1
+REQUEST_ID: REQ-2026-06-06-insuranceai-ollama-local-full-execution-v0-2
 STATE: READY_FOR_CLAUDE
 TASK_TYPE: project-local-llm-integration-and-business-sweep
 PROJECT: InsuranceAIPlatform
-GATE: OLLAMA_LOCAL_REASONING_30_SCENARIOS_V0.1
+GATE: OLLAMA_LOCAL_FULL_EXECUTION_30_SCENARIOS_V0.2
 TARGET_REPORT_PATH: InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md
-PROJECT_REPORT_PATH: InsuranceAIPlatform/ollama-local-reasoning-30-scenarios-v0.1/report.md
+PROJECT_REPORT_PATH: InsuranceAIPlatform/ollama-local-full-execution-30-scenarios-v0.2/report.md
 LATEST_REPORT_PATH: InsuranceAIPlatform/latest-report.md
 CREATED_BY: architect-gpt
 
@@ -15,10 +15,10 @@ SOURCE_REPO_REMOTE: slavkan777/InsuranceAIPlatform
 HANDOFF_PROJECT_PATH: gpt-handoff/InsuranceAIPlatform/
 ACTIVE_REQUEST: gpt-handoff/InsuranceAIPlatform/_BRIDGE/ACTIVE_REQUEST.md
 LATEST_REPORT: gpt-handoff/InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md
-GATE_REPORT: gpt-handoff/InsuranceAIPlatform/ollama-local-reasoning-30-scenarios-v0.1/report.md
+GATE_REPORT: gpt-handoff/InsuranceAIPlatform/ollama-local-full-execution-30-scenarios-v0.2/report.md
 
 OPERATOR NOTE:
-Follow ROUTING LOCK strictly. This is a local-only Ollama/LLaMA reasoning integration + business scenario sweep. It is NOT Azure, NOT push, NOT main, NOT deployment. Azure comes later only after this local gate is accepted.
+Follow ROUTING LOCK strictly. Claude is the executor for the local technical pipeline. Slava should only be asked for OS/UAC confirmations or final manual Azure UI verification later. This gate is LOCAL ONLY: no Azure, no push, no main, no deployment.
 
 CONTEXT:
 Current local feature branch already has:
@@ -32,20 +32,28 @@ Current local feature branch already has:
 Known limitation: answers currently use deterministic local mock generator, not a live local LLM. This gate addresses that limitation locally.
 
 GOAL:
-After Slava installs Ollama locally, integrate/verify a local Ollama-backed reasoning path for InsuranceAIPlatform RAG and test it against 30 realistic user/business scenarios, while preserving the existing mock fallback and Qdrant retrieval behavior.
+Claude should perform the local Ollama/LLaMA setup, integration, verification, and 30-scenario business sweep as far as safely possible on this machine, while preserving mock fallback and Qdrant behavior. Azure comes later in a separate gate only after this local gate is accepted.
 
-PHASE 0 — OLLAMA AVAILABILITY RULE:
-1. First verify routing lock, repo path, branch, HEAD, and git status.
+PHASE 0 — LOCAL SETUP AUTHORIZATION:
+1. Verify routing lock, repo path, branch, HEAD, and git status before any action.
 2. Check Ollama mechanically:
-   - command availability (`ollama --version` if present);
-   - HTTP endpoint `http://localhost:11434/api/tags`;
+   - `ollama --version`;
+   - `http://localhost:11434/api/tags`;
    - local model list.
-3. If Ollama app is not installed/running, STOP with STATUS=BLOCKED and tell Slava exactly what to install/start manually. Do NOT install OS software yourself.
-4. If Ollama is installed but no small suitable model is present, you may pull ONE small local model only if it is clearly small/reasonable. Prefer `llama3.2:1b` or `qwen2.5:1.5b`. Do NOT pull large/unclear models. If size is unclear or pull fails, STOP that subpart and report blocker.
+3. If Ollama is already installed/running, continue.
+4. If Ollama is not installed, Claude MAY attempt a bounded official local install only through safe official tooling, preferably:
+   - `winget install Ollama.Ollama`, if winget is available; or
+   - official Ollama Windows installer only if already downloaded/accessible through a trusted official source.
+5. If Windows asks for UAC/admin confirmation, stop and ask Slava to approve the OS prompt manually. Do not ask Slava to paste passwords. Do not capture or print credentials.
+6. If safe install is not possible, report BLOCKED with exact manual install steps. Do not use random third-party installers.
+7. If no model exists, Claude MAY pull ONE small local model only:
+   - preferred: `llama3.2:1b`;
+   - alternative: `qwen2.5:1.5b`.
+   Do NOT pull 7B/13B/70B or unclear large models.
 
 IMPLEMENTATION GOAL:
 1. Add/complete a minimal local Ollama provider/adapter for grounded answer generation.
-2. Keep the existing deterministic mock generator as fallback.
+2. Keep deterministic mock generator as fallback.
 3. Provider mode must be explicit and honest:
    - `local_ollama` / `ollama` only when Ollama endpoint + model actually produced the answer;
    - `mock` when fallback is used;
@@ -58,7 +66,7 @@ IMPLEMENTATION GOAL:
 6. No Azure, no paid provider, no OpenAI/DeepSeek, no API keys, no secrets.
 
 30 REALISTIC BUSINESS SCENARIOS TO TEST:
-Use real seeded/demo data where possible. Do not invent database records. If a scenario cannot be represented by current data, mark DATA GAP and explain what seeded claim/evidence would be needed. For scenarios that can be tested as user questions against existing claim evidence, ask the app/API as a manager would.
+Use real seeded/demo data where possible. Do not invent database records. If a scenario cannot be represented by current data, mark DATA GAP and explain what seeded claim/evidence would be needed.
 
 1. CLM-1006 water damage coverage: is the water damage covered by the policy?
 2. CLM-1006 repair invoice reasonableness: is the invoice unusually high compared with evidence/benchmark?
@@ -96,8 +104,8 @@ VERIFICATION REQUIRED:
 2. Frontend build if frontend touched.
 3. Targeted tests for provider selection, timeout/fallback, confidence/citations preservation.
 4. Live smoke with Qdrant up + Ollama available:
-   - `/rag/infrastructure` should truthfully show vectorRuntime live_local/qdrant and localReasoningRuntime live/local if implemented;
-   - `/rag/ask` should return providerMode/model indicating Ollama only when actually used;
+   - `/rag/infrastructure` truthfully shows vectorRuntime live_local/qdrant and localReasoningRuntime live/local if implemented;
+   - `/rag/ask` returns providerMode/model indicating Ollama only when actually used;
    - citations remain claim-scoped.
 5. Fallback smoke:
    - stop/disable Ollama or use unreachable endpoint;
@@ -110,16 +118,16 @@ COMMIT RULE:
 If and only if implementation and verification pass, create ONE local source commit on current feature branch. Suggested message: `feat(rag): add local Ollama reasoning provider`. Do not push.
 
 BOUNDARIES:
-NO push. NO main. NO Azure. NO deployment. NO paid provider. NO OpenAI/DeepSeek. NO API keys/secrets. NO real PII. NO unrelated projects. NO schema/EF migration unless already unavoidable; if migration is required, STOP BLOCKED. NO large model download. NO fake live LLM labels. NO broad refactor. NO accepting URL/toast-only tests. NO making up business data.
+NO push. NO main. NO Azure. NO deployment. NO paid provider. NO OpenAI/DeepSeek. NO API keys/secrets. NO real PII. NO unrelated projects. NO schema/EF migration unless already unavoidable; if migration is required, STOP BLOCKED. NO large model download. NO fake live LLM labels. NO broad refactor. NO accepting URL/toast-only tests. NO making up business data. NO asking Slava for passwords.
 
 REPORT FORMAT:
-REQUEST_ID: REQ-2026-06-06-insuranceai-ollama-local-reasoning-30-scenarios-v0-1
+REQUEST_ID: REQ-2026-06-06-insuranceai-ollama-local-full-execution-v0-2
 STATUS: READY_FOR_AUDIT | PARTIAL | BLOCKED | FAILED
 TASK_TYPE: project-local-llm-integration-and-business-sweep
 PROJECT: InsuranceAIPlatform
-GATE: OLLAMA_LOCAL_REASONING_30_SCENARIOS_V0.1
+GATE: OLLAMA_LOCAL_FULL_EXECUTION_30_SCENARIOS_V0.2
 COMPLETED_BY: claude
 
-Sections: Routing Lock Verification, Starting State, Ollama Discovery, Model Setup, Implementation Summary, Provider/Fallback Semantics, Files Changed, Tests/Commands, Qdrant Proof, Ollama Proof, Fallback Proof, 30 Scenario Matrix, Failed/Weak Scenarios, Data Gaps, Console/Network Findings, Commit Result, Boundaries Honored, Remaining Known Limitations, Slava Manual Checklist, Azure Readiness Impact, Next Safe Step.
+Sections: Routing Lock Verification, Starting State, Ollama Discovery, Local Setup Actions, Model Setup, Implementation Summary, Provider/Fallback Semantics, Files Changed, Tests/Commands, Qdrant Proof, Ollama Proof, Fallback Proof, 30 Scenario Matrix, Failed/Weak Scenarios, Data Gaps, Console/Network Findings, Commit Result, Boundaries Honored, Remaining Known Limitations, Slava Manual Checklist, Azure Readiness Impact, Next Safe Step.
 
-STOP after local Ollama integration/scenario sweep/report. Do not push, merge, deploy, touch Azure, or touch unrelated projects.
+STOP after local Ollama setup/integration/scenario sweep/report. Do not push, merge, deploy, touch Azure, or touch unrelated projects.
