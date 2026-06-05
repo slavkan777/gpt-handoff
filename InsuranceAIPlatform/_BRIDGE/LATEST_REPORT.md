@@ -1,132 +1,143 @@
-REQUEST_ID: REQ-2026-06-05-insuranceai-playwright-manual-acceptance-sweep-v0-1
+REQUEST_ID: REQ-2026-06-05-insuranceai-business-process-acceptance-sweep-v0-1
 STATUS: READY_FOR_AUDIT
-TASK_TYPE: project-manual-acceptance-simulation
+TASK_TYPE: project-business-acceptance-simulation
 PROJECT: InsuranceAIPlatform
-GATE: PLAYWRIGHT_MANUAL_ACCEPTANCE_SWEEP_V0.1
+GATE: BUSINESS_PROCESS_ACCEPTANCE_SWEEP_V0.1
 COMPLETED_BY: claude
 
-# Playwright Manual-Acceptance Sweep — Qdrant RAG
+# Business-Process Acceptance Sweep — Claim Manager Role
 
-Playwright drove the LIVE UI + API as a human-like tester across all requested case groups. **8/8 case
-groups pass; 0 product bugs found.** One test-harness finding (frontend mock/backend mode gotcha) is
-documented for Slava's hands-on run. No product code changed; no commit; no push.
+Simulated a non-technical claim manager using the Claim Evidence Intelligence/RAG feature across realistic
+scenarios + degraded states (Playwright UI + API content analysis). **11/12 scenarios pass, 1 data-gap
+(NOT COVERED), and 1 real product bug found** (manager-facing confidence renders as `1400%`). No product
+code changed; no commit; no push. The bug is reported as a fix-gate proposal, not fixed here.
 
 ## Routing Lock Verification
 
-| Lock | Expected | Observed | OK |
-|---|---|---|---|
-| PROJECT / SOURCE_REPO | InsuranceAIPlatform / C:/Projects/InsuranceAIPlatform | same | ✅ |
-| Branch / HEAD | rag/local-foundation-mega-v0.1 / 912e841 | same, clean tree | ✅ |
-| HANDOFF path | gpt-handoff/InsuranceAIPlatform/ | report only | ✅ |
-
-Working tree returned to pristine `912e841` after the sweep (temp spec/config deleted, `.env.local` reverted).
+PROJECT InsuranceAIPlatform · SOURCE_REPO C:/Projects/InsuranceAIPlatform · branch rag/local-foundation-mega-v0.1 ·
+HEAD **912e841** (clean tree, restored after sweep) · report → gpt-handoff/InsuranceAIPlatform/. ✅
 
 ## Environment Setup
 
-- Qdrant `iap-qdrant` (1.18.2) reused on :6333.
-- Backend: built DLL with `Rag__QdrantEnabled=true`, `ASPNETCORE_ENVIRONMENT=Development`, :5284 (spawn-time env).
-- Frontend: Vite dev on :5173 with `VITE_INSURANCE_API_MODE=backend` (forced via webServer env + temporary `.env.local` flip; reverted to `mock` after).
-- Discovered a second chunk-bearing claim for the leakage case: **CLM-1009** (7 chunks); CLM-1006 has 13.
+Qdrant `iap-qdrant` :6333; backend built DLL with `Rag__QdrantEnabled=true` :5284; frontend Vite :5173 in
+`VITE_INSURANCE_API_MODE=backend` (temporary `.env.local` flip + webServer env; reverted to mock after). Uncommitted
+sweep spec/config created and deleted after the run.
 
-## Playwright Strategy
+## Data Discovery (real seeded demo data only)
 
-- Uncommitted config `playwright.acceptance.config.ts` + spec `e2e/_acceptance-sweep.spec.ts` (both deleted after the run).
-- Single worker, serial; real backend; the fallback case used `child_process` to `docker stop/start iap-qdrant` mid-run.
-- Discriminators chosen to avoid false matches: the vector row always renders a localized note containing
-  "(Qdrant)" and "in-process … fallback", so status was asserted via the **status badge** (`rag-infra-vector-status`)
-  and the backend value via case-sensitive substring (lowercase `qdrant` vs `in-memory-hash`).
+- 56 demo claims. **6 carry RAG evidence chunks:** CLM-1006(13), CLM-1010(10), CLM-1011(8), CLM-1009(7), CLM-1007(6), CLM-1008(6).
+- **50 claims have ZERO chunks** (e.g. CLM-1061) → used as the genuine insufficient-evidence case.
+- CLM-1006 evidence kinds: application, approval-summary, invoice, invoice-detail, photo-caption, police, statement (7 kinds).
+- Eval questions: CLM-1006/1009/1010/1011 = 4 each; 1008 = 3; 1007 = 2.
+- similar-claims(CLM-1006) → CLM-1010(0.66), 1011(0.53), 1009(0.53), 1008(0.51), 1007(0.49) — claim-level only.
 
-## Test Matrix
+## Business Scenario Matrix
 
-| Case | Description | Result |
-|---|---|---|
-| A | App loads, demo login, navigate to CLM-1006 evidence; no fatal console errors | ✅ PASS |
-| B | CLM-1006 happy path: vector live_local/qdrant, answer + advisory, citations + retrieved chunks all CLM-1006, provider=Mock | ✅ PASS |
-| C | Infra API == UI (backend=qdrant, reachable, live_local); Qdrant collection points_count≥13; repeat-Check stable | ✅ PASS |
-| D | Fallback: stop Qdrant → skipped_not_available + in-memory-hash (no fake qdrant), ask still answers; restart → qdrant | ✅ PASS |
-| E | CLM-1009 retrieval returns only CLM-1009 chunks; no CLM-1006 leakage | ✅ PASS |
-| F | Rapid clicks + nav away/back + reload: no crash, no blank screen | ✅ PASS |
-| G | Desktop (1280×800) + mobile (390×844): vector row + coverage answer visible/usable | ✅ PASS |
-| H | Regression: spec22 mock 12/12; real-backend sweep = 7/7 | ✅ PASS |
+| # | Scenario | Result | Note |
+|---|---|---|---|
+| A | Manager happy-path coverage review | ✅ PASS | answer readable + advisory + 4 citations; vector live_local/qdrant |
+| B | Evidence-backed explanation quality | ✅ PASS | answer stitches the 4 retrieved chunks verbatim ([1]…[4]); citations map to real kinds; not a generic paragraph |
+| C | Degraded runtime, business continuity | ✅ PASS | stop Qdrant → honest skipped/in-memory-hash; coverage still answers |
+| D | Cross-claim business separation | ✅ PASS | CLM-1009 cites only CLM-1009; zero CLM-1006 leakage |
+| E | Repeated actions + audit trust | ✅ PASS | repeated checks, reset, claim-switch stable; audit-history panel present |
+| F | Insufficient/no evidence | ✅ PASS | CLM-1061: conf 0%, 0 citations, "Недостатньо релевантних доказів… перегляд людиною" |
+| G | Partial/ambiguous coverage | ⚠️ NOT COVERED | no claim is modeled as partial-coverage AND the mock generator is deterministic/templated — cannot exhibit nuance. Data + generator gap (see Data Gaps) |
+| H | Duplicate/similar claim | ✅ PASS | similar-claims = claim-level cards only, no evidence text / no citation table; **truthful limitation: ranking is in-process centroid, not Qdrant** |
+| I | Non-technical usability/readability | ✅ PASS (with caveat) | mobile flow usable; BUT confidence label reads `1400%` (see Bug) and labels are technical (qdrant/local-hash) |
+| J | Demo/presentation flow | ✅ PASS (with caveats) | full script healthy→coverage→citations→degrade→fallback→restore works; caveats below |
+| K | Negative/error-state behavior | ✅ PASS | mock-mode gotcha is honest-degraded (mock shows disabled); no fake success. The confidence bug is the one real defect |
+| L | Decision-boundary / legal safety | ✅ PASS | every answer advisory-only; no binding/payout/rejection/fraud wording |
 
-Sweep run: **7 passed (50.3s)**. Regression spec22 (mock): **12 passed (56.8s)**.
+Sweep run: **7 UI scenarios passed (50.8s)**; B/G/L resolved via API content analysis.
 
-## Passed Cases
+## Passed Scenarios (business highlights)
 
-All A–H above. Semantic highlights (not just URL/toast):
-- Every retrieved-chunk badge and every citation Chunk cell for CLM-1006 start with `CLM-1006-`; for CLM-1009, all start with `CLM-1009-` and none contain `CLM-1006`.
-- Provider chip reads `Mock` (no fake live model claimed); advisory banner present on every answer.
-- Vector status badge flips live_local→skipped_not_available→live_local exactly tracking Qdrant up/down.
+- **A/B:** CLM-1006 coverage answer opens "За умовами полісу та матеріалами справи:" then quotes the 4 retrieved chunks
+  (driver statement, application, repair detail, police report). Summary use-case surfaces the financial discrepancy
+  ("оцінка 2720 доларів перевищує бенчмарк … на 38 відсотків … потребує перевірки людиною"). A manager gets actionable, sourced context.
+- **F:** zero-evidence CLM-1061 returns a cautious "insufficient evidence, human review recommended, AI is advisory only" with 0% confidence and no citations — no overconfident decision.
+- **C/J:** during a live Qdrant outage the panel honestly flips to skipped_not_available / in-memory-hash and the coverage answer still renders from the fallback — business continuity holds, no crash/blank.
+- **D/H:** claim isolation holds (CLM-1009 cites only itself); similar-claims stays claim-level (no foreign evidence as primary citation).
 
-## Failed / Blocked Cases
+## Failed / Weak Scenarios
 
-None (product). One **first-attempt harness failure**, root-caused and fixed (see Console/Network Findings).
+None failed. **I** is weakened by the confidence-display bug (below). **G** not covered (data/generator gap).
+
+## Data Gaps
+
+- **G partial/ambiguous coverage:** no seeded claim models "only part of the damage / part of the policy applies," and the
+  current generator is the deterministic mock (templated; cannot produce graded nuance). Recommend a seeded partial-coverage
+  test claim AND a real generator before claiming nuanced-coverage capability.
+- Only 6/56 claims have RAG evidence; the other 50 are bare. Fine for a demo, but stakeholders should be steered to CLM-1006/1009/1010.
 
 ## Screenshots / Artifacts
 
-Per-step screenshots were written to `test-results/sweep-*.png` during the run. Note: `test-results/` is
-ephemeral — a subsequent Playwright run (the spec22 regression) clears the output dir by default, so the
-sweep PNGs were overwritten. The authoritative evidence is the per-case pass/fail above + the API/Qdrant
-proofs below. `test-results/` is gitignored and nothing was committed.
+`test-results/biz-*.png` captured per scenario (ephemeral — gitignored, not committed; cleared by later Playwright runs).
+Authoritative evidence = the per-scenario pass/fail + the captured `BIZ_FINDING` log lines + API answer captures in this report.
 
 ## Console / Network Findings
 
-- Case A asserted no fatal console errors (benign noise filtered: favicon, vite HMR, React devtools). **None found.**
-- **Harness finding (NOT a product bug):** the first sweep attempt showed the Vector row as `disabled`. Root cause:
-  the frontend served **mock mode** (a stale/leftover Vite or `.env.local=mock` precedence), and the mock fixture
-  hard-codes `vectorRuntime.status='disabled'`. Fixed by forcing `VITE_INSURANCE_API_MODE=backend` (webServer env)
-  and a fresh Vite. **Acceptance implication for Slava:** if the Vector row shows `disabled` during hands-on, the UI
-  is in mock mode — ensure `.env.local` has `VITE_INSURANCE_API_MODE=backend` and no stale Vite is reused.
+No fatal console errors during the manager flows (scenario A). Network: UI ↔ :5284 ↔ Qdrant :6333 all healthy when up;
+graceful fallback on outage.
 
-## Qdrant UI/API Proof
+## Business Readability Findings
 
-- `GET /api/claims/CLM-1006/rag/infrastructure` → `vectorRuntime: {status:"live_local", backend:"qdrant", reachable:true}` — UI badge agrees (live_local) and row shows backend `qdrant`.
-- `GET http://localhost:6333/collections/insurance_evidence` → `points_count ≥ 13`.
-- Repeated Check clicks keep the panel consistent (no duplicate/broken state).
+- **Confidence reads `1400%`** for CLM-1006 coverage (and `1700%`, `4100%` for risk/summary) — see Product Bugs. This is the single biggest readability/credibility problem for a manager.
+- Layer labels are engineer-oriented (`qdrant`, `local-hash-embed`, `in-memory-hash`, `live_local`). A manager can still proceed
+  (the advisory banner + answer + citations carry the meaning), but a "plain-language status" would help a non-technical user.
+- Answers are in Ukrainian (matches the corpus); fine for the target user.
 
-## Fallback Proof
+## Legal / Decision-Boundary Findings
 
-Live, same backend process (Qdrant enabled): `docker stop iap-qdrant` → UI Check → badge `skipped_not_available`,
-row backend `in-memory-hash`, **no lowercase `qdrant` backend value** (note's "(Qdrant)" is capitalized); coverage
-answer still renders from the fallback with CLM-1006 chunks. `docker start iap-qdrant` → Check → badge back to
-`live_local`, backend `qdrant`.
-
-## Cross-Claim Leakage Findings
-
-None. CLM-1009's coverage answer retrieved only `CLM-1009-*` chunks; zero `CLM-1006` chunk ids in its retrieved
-list or citation table. CLM-1006's flow likewise surfaced only its own chunks. The claim-filter + map-back guard holds through the UI.
+**Safe.** All answers carry `advisoryOnly=true` and the persistent "AI advisory only — human makes the final decision"
+banner. The risk use-case is explicitly framed "рекомендаційно, без звинувачень" (advisory, without accusations). No answer
+implies automatic payout, rejection, binding decision, or a fraud finding — even CLM-1009, whose police report notes
+intoxication, presents it as cited evidence for human review, not an accusation. No legal-boundary violation observed.
 
 ## Product Bugs Found
 
-**None.** No product source change is warranted by this sweep.
+1. **[MEDIUM] Confidence renders as `1400%` in real-backend mode.** The UI computes `confidence * 100`
+   (`ClaimEvidenceIntelligencePanel.tsx:303`). The mock API returns confidence as a 0–1 fraction (0.82 → "82%"), but the
+   real backend returns it as a 0–100 integer (`backendInsuranceApi.ts:374` passes `dto.confidence` through unchanged;
+   API returned 14/17/41), so the UI shows 1400% / 1700% / 4100%. Real-vs-mock contract mismatch. Manager-facing
+   credibility issue; not a crash, no data leak, no security/legal impact. **Not fixed (out of scope this gate).**
+   Repro: backend `Rag__QdrantEnabled=true`, UI `VITE_INSURANCE_API_MODE=backend`, open CLM-1006 → Check policy coverage → Confidence field reads `1400%`.
+
+## Recommended Fix Gates
+
+1. **CONFIDENCE_CONTRACT_FIX (small):** align the confidence scale — either map `confidence/100` in `backendInsuranceApi.ts`,
+   or have the backend emit a 0–1 fraction, or have the UI not multiply when the value is already 0–100. Make mock and real agree; add a test asserting the rendered % is ≤100.
+2. **(Future) Real generator + seeded nuance cases:** a real local generator (owner-approved Ollama) + a seeded partial-coverage claim to cover scenario G.
+3. **(Optional) Plain-language status:** a manager-friendly label alongside the technical `qdrant`/`live_local` values.
 
 ## Files Changed
 
-None committed. Transient, since-deleted helpers: `playwright.acceptance.config.ts`, `e2e/_acceptance-sweep.spec.ts`.
-`.env.local` (gitignored) was flipped to `backend` for the run and reverted to `mock`. Product HEAD `912e841` unchanged.
+None committed. Transient, since-deleted: `playwright.acceptance.config.ts`, `e2e/_business-sweep.spec.ts`.
+`.env.local` (gitignored) flipped to backend for the run, reverted to mock. Product HEAD `912e841` unchanged.
 
 ## Commands Run
 
+- API discovery + `/rag/ask` answer capture (CLM-1006 coverage/risk/summary, CLM-1061, CLM-1009) via curl/python.
 - `npx playwright test --config playwright.acceptance.config.ts` → 7 passed.
-- `npx playwright test 22-rag-evidence --config playwright.mock.config.ts` → 12 passed.
-- `curl` infra/Qdrant probes; `docker stop/start iap-qdrant` (fallback case).
+- `docker stop/start iap-qdrant` (degraded scenario).
 
 ## Boundaries Honored
 
 NO product source changes · NO commit · NO push · NO main · NO Azure · NO deploy · NO paid provider · NO secrets ·
-NO real PII · NO Ollama · NO schema migration · NO unrelated projects · NO fake pass (every case asserts semantic
-data, not just URL/toast). Bug-fixing was out of scope and not needed (no bugs).
+NO real PII · NO Ollama · NO schema migration · NO unrelated projects · NO fake pass (every scenario asserts business
+semantics) · NO invented data (zero-evidence + partial-coverage gaps reported honestly).
 
 ## Manual Acceptance Recommendation
 
-**READY for Slava's hands-on acceptance.** All automated human-like flows pass against the live Qdrant-backed UI.
-Use the checklist from the previous gate (qdrant-to-manual-acceptance-mega) — Section B (UI) one caveat: confirm the
-frontend is in backend mode (Vector row should read `live_local`/`qdrant`, not `disabled`). Qdrant + backend behaved
-correctly under happy-path, fallback, cross-claim, rapid-interaction, reload, and responsive conditions.
+**Business-ready for hands-on acceptance with ONE fix before a stakeholder demo:** correct the confidence display
+(`1400%` → real %). Everything else a manager needs is present and sound: sourced advisory answers, honest degraded
+state + continuity, claim isolation, cautious behavior on thin evidence, and clear legal/advisory boundaries.
+Demo caveats Slava should say aloud: (a) answers come from a deterministic local mock generator, not a live LLM;
+(b) similar-claims ranking is in-process, not yet Qdrant; (c) confidence figure is currently mis-scaled (fix pending).
 
 ## Next Safe Step
 
-Tell GPT `отчёт` to audit this sweep. After Slava's manual acceptance: candidate gates (await prompt) —
-push/PR gate · real embedding model + incremental upsert · `similar-claims` via Qdrant · owner-approved Ollama.
+Tell GPT `отчёт` to audit this sweep. Recommended next gate: **CONFIDENCE_CONTRACT_FIX** (small, then re-verify),
+after which manual acceptance / demo. Await an explicit prompt before any fix or push.
 
 STOP after report — no product change, commit, push, deploy, or unrelated-project work performed.
