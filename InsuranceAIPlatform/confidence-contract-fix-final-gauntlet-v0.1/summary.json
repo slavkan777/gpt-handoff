@@ -1,0 +1,31 @@
+{
+  "requestId": "REQ-2026-06-05-insuranceai-confidence-fix-final-gauntlet-v0-1",
+  "gate": "CONFIDENCE_CONTRACT_FIX_FINAL_GAUNTLET_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "selfAccepted": false,
+  "bugFixed": "confidence rendered 1400%/1700%/4100% in real-backend mode -> now 14%/17%/41%",
+  "rootCause": "UI multiplies confidence by 100 (expects 0..1 fraction); backend emits 0..100 int; ragAsk/ragAudit passed it through raw",
+  "fix": "src/utils/ragConfidence.ts backendConfidenceToFraction() applied in ragAsk + ragAudit (frontend-only, narrowest contract location)",
+  "commit": "697fed2 (fix(rag): normalize evidence confidence display)",
+  "commitFiles": 3,
+  "pushed": false,
+  "branch": "rag/local-foundation-mega-v0.1",
+  "verification": {
+    "backendTests": "174 passed (untouched)",
+    "frontendBuild": "ok",
+    "spec22Mock": "12 passed",
+    "spec23ConfidenceContract": "4 passed (committed regression)",
+    "liveGauntlet": "6 passed",
+    "backendRestartSmoke": "recovered: backend=qdrant, ask sane"
+  },
+  "confidenceProof": { "coverage": "14%", "risk": "17%", "summary": "41%", "clm1061": "0%", "neverExceeds100": true },
+  "adversarial": ["rapid-clicks ok", "qdrant stop/start ok", "qdrant empty->recreated ok", "backend restart ok", "claim switch no-leak ok", "mock/backend distinguishable", "no fatal console errors"],
+  "knownLimitations": ["mobile layout cramped at phone widths (PRE-EXISTING, out-of-scope, confidence value still correct) -> recommend RESPONSIVE_LAYOUT gate", "mock generator not live LLM", "similar-claims in-process not Qdrant", "no seeded partial-coverage claim"],
+  "boundariesHonored": ["no push","no main","no Azure","no deploy","no paid","no secrets","no PII","no Ollama","no migration","no broad refactor","no unrelated files in commit"],
+  "manualAcceptanceRecommendation": "READY",
+  "transientFilesDeleted": ["playwright.acceptance.config.ts", "e2e/_gauntlet.spec.ts"],
+  "envLocalRevertedToMock": true,
+  "updated": "2026-06-05"
+}
