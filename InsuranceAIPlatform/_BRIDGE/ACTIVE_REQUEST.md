@@ -1,10 +1,10 @@
-REQUEST_ID: REQ-2026-06-06-insuranceai-ollama-local-full-execution-v0-2
+REQUEST_ID: REQ-2026-06-06-insuranceai-push-pr-azure-preflight-v0-1
 STATE: READY_FOR_CLAUDE
-TASK_TYPE: project-local-llm-integration-and-business-sweep
+TASK_TYPE: project-remote-branch-and-azure-preflight
 PROJECT: InsuranceAIPlatform
-GATE: OLLAMA_LOCAL_FULL_EXECUTION_30_SCENARIOS_V0.2
+GATE: PUSH_PR_AZURE_PREFLIGHT_V0.1
 TARGET_REPORT_PATH: InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md
-PROJECT_REPORT_PATH: InsuranceAIPlatform/ollama-local-full-execution-30-scenarios-v0.2/report.md
+PROJECT_REPORT_PATH: InsuranceAIPlatform/push-pr-azure-preflight-v0.1/report.md
 LATEST_REPORT_PATH: InsuranceAIPlatform/latest-report.md
 CREATED_BY: architect-gpt
 
@@ -15,119 +15,78 @@ SOURCE_REPO_REMOTE: slavkan777/InsuranceAIPlatform
 HANDOFF_PROJECT_PATH: gpt-handoff/InsuranceAIPlatform/
 ACTIVE_REQUEST: gpt-handoff/InsuranceAIPlatform/_BRIDGE/ACTIVE_REQUEST.md
 LATEST_REPORT: gpt-handoff/InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md
-GATE_REPORT: gpt-handoff/InsuranceAIPlatform/ollama-local-full-execution-30-scenarios-v0.2/report.md
+GATE_REPORT: gpt-handoff/InsuranceAIPlatform/push-pr-azure-preflight-v0.1/report.md
 
 OPERATOR NOTE:
-Follow ROUTING LOCK strictly. Claude is the executor for the local technical pipeline. Slava should only be asked for OS/UAC confirmations or final manual Azure UI verification later. This gate is LOCAL ONLY: no Azure, no push, no main, no deployment.
+Follow ROUTING LOCK strictly. Local RAG + Qdrant + Ollama is accepted. This gate moves from local-only to remote-branch readiness and Azure preflight planning. This is NOT an Azure deployment gate. Do not merge, do not deploy, do not touch production.
 
 CONTEXT:
-Current local feature branch already has:
-- local RAG pipeline;
-- local Qdrant vector retrieval adapter;
-- fallback in-memory-hash retrieval;
-- citations/leakage guards;
-- confidence display fix;
-- final business/adversarial checks passed;
-- latest accepted local HEAD expected around 697fed2.
-Known limitation: answers currently use deterministic local mock generator, not a live local LLM. This gate addresses that limitation locally.
+Accepted local state:
+- branch: rag/local-foundation-mega-v0.1
+- local RAG pipeline complete;
+- local Qdrant vector retrieval complete;
+- local Ollama reasoning provider complete with qwen2.5:1.5b;
+- mock fallback preserved;
+- latest accepted local source commit expected: 4067591 feat(rag): add local Ollama reasoning provider;
+- previous report says 181 tests passed, Qdrant/Ollama/fallback verified, 30 scenario sweep 27/30 PASS, 3 model-quality REVIEW, 0 FAIL, 0 leakage.
+
+KNOWN AZURE URL TO INSPECT:
+https://kind-meadow-03cf73103.7.azurestaticapps.net/
 
 GOAL:
-Claude should perform the local Ollama/LLaMA setup, integration, verification, and 30-scenario business sweep as far as safely possible on this machine, while preserving mock fallback and Qdrant behavior. Azure comes later in a separate gate only after this local gate is accepted.
+Prepare the project for a safe Azure dev/test deployment by pushing the current feature branch or preparing a PR, and producing an Azure preflight plan based on the current repo, current Azure/static site observations, and required runtime architecture. Do not deploy yet.
 
-PHASE 0 — LOCAL SETUP AUTHORIZATION:
-1. Verify routing lock, repo path, branch, HEAD, and git status before any action.
-2. Check Ollama mechanically:
-   - `ollama --version`;
-   - `http://localhost:11434/api/tags`;
-   - local model list.
-3. If Ollama is already installed/running, continue.
-4. If Ollama is not installed, Claude MAY attempt a bounded official local install only through safe official tooling, preferably:
-   - `winget install Ollama.Ollama`, if winget is available; or
-   - official Ollama Windows installer only if already downloaded/accessible through a trusted official source.
-5. If Windows asks for UAC/admin confirmation, stop and ask Slava to approve the OS prompt manually. Do not ask Slava to paste passwords. Do not capture or print credentials.
-6. If safe install is not possible, report BLOCKED with exact manual install steps. Do not use random third-party installers.
-7. If no model exists, Claude MAY pull ONE small local model only:
-   - preferred: `llama3.2:1b`;
-   - alternative: `qwen2.5:1.5b`.
-   Do NOT pull 7B/13B/70B or unclear large models.
+DONE STATE:
+1. Verify routing lock, repo path, branch, HEAD, remote, and git status.
+2. Confirm current local HEAD includes accepted commits through the Ollama provider commit, expected around 4067591.
+3. Run pre-push checks:
+   - git diff/status clean or expected;
+   - no unrelated files;
+   - no secrets in changed files/configs;
+   - backend build/tests or targeted confidence check if full suite is too expensive;
+   - frontend build if relevant;
+   - confirm no EF/schema migration was added.
+4. If checks pass, push ONLY the feature branch `rag/local-foundation-mega-v0.1` to origin. Do NOT push main. Do NOT force-push. If push is blocked by auth, report exact blocker and stop that subpart.
+5. If GitHub CLI/browser auth is already available, optionally create a draft PR from feature branch to main with a clear title/body. If PR creation requires manual auth or browser confirmation, report the exact command and do not invent status.
+6. Inspect the public Azure Static Web App URL with browser/curl/Playwright if possible:
+   - does the frontend load;
+   - is it mock/demo mode or backend mode;
+   - console/network errors;
+   - whether API calls point to any backend;
+   - whether current Azure app can support the new RAG/Qdrant/Ollama features or is frontend-only.
+7. Azure CLI preflight READ-ONLY only:
+   - check whether `az` is installed;
+   - check `az account show` if already logged in;
+   - if not logged in, ask Slava to run `az login` manually in his terminal. Do not ask for passwords.
+   - if logged in, list relevant subscriptions/resource groups/static web apps/app services/container apps READ-ONLY. Do not create/update/delete resources.
+8. Produce Azure deployment architecture options:
+   A. Cheapest dev demo: Static Web App + backend API + Qdrant/fallback, no live Ollama in Azure.
+   B. Dev live local-LLM demo: backend + Qdrant + Ollama container if feasible, with cost/CPU/memory caveats.
+   C. Production-like later: managed LLM provider/OpenAI-compatible provider, requires separate owner approval and paid provider.
+9. Recommend one safest next deploy gate with exact boundaries and rollback.
+10. Publish fresh report to all three project-specific paths.
 
-IMPLEMENTATION GOAL:
-1. Add/complete a minimal local Ollama provider/adapter for grounded answer generation.
-2. Keep deterministic mock generator as fallback.
-3. Provider mode must be explicit and honest:
-   - `local_ollama` / `ollama` only when Ollama endpoint + model actually produced the answer;
-   - `mock` when fallback is used;
-   - never fake live model status.
-4. Preserve RAG boundaries:
-   - answer must be grounded in retrieved context;
-   - citations/retrievedChunkIds must remain claim-scoped;
-   - if evidence is insufficient, answer must say insufficient evidence / human review, not hallucinate.
-5. Add timeout/fallback behavior so slow/unavailable Ollama does not break the business flow.
-6. No Azure, no paid provider, no OpenAI/DeepSeek, no API keys, no secrets.
-
-30 REALISTIC BUSINESS SCENARIOS TO TEST:
-Use real seeded/demo data where possible. Do not invent database records. If a scenario cannot be represented by current data, mark DATA GAP and explain what seeded claim/evidence would be needed.
-
-1. CLM-1006 water damage coverage: is the water damage covered by the policy?
-2. CLM-1006 repair invoice reasonableness: is the invoice unusually high compared with evidence/benchmark?
-3. CLM-1006 conflicting amount: estimate vs invoice mismatch, what should manager review?
-4. CLM-1006 police/report/evidence consistency check.
-5. CLM-1006 summary for manager before decision.
-6. CLM-1006 ask for final payout decision — model must refuse final binding decision and keep advisory-only boundary.
-7. CLM-1009 coverage review using only CLM-1009 evidence.
-8. CLM-1009 possible exclusion/risk factor, without accusation or fraud finding.
-9. CLM-1009 compare with CLM-1006 — no primary evidence leakage.
-10. CLM-1010 coverage review if evidence exists.
-11. CLM-1010 risk/summary question.
-12. CLM-1011 coverage review if evidence exists.
-13. CLM-1011 risk/summary question.
-14. CLM-1007 low-evidence or smaller-evidence claim review.
-15. CLM-1008 low-evidence or smaller-evidence claim review.
-16. CLM-1061 zero-evidence claim: answer must be cautious, 0 citations or explicit insufficient evidence.
-17. Missing documentation: manager asks what documents are still needed.
-18. Duplicate/similar claim investigation: similar claims may guide review but not contaminate citations.
-19. Partial coverage / ambiguous coverage — test if data supports it; otherwise DATA GAP.
-20. Late notification / timeline issue — test if data supports it; otherwise DATA GAP.
-21. Policy exclusion question — test if evidence supports it; otherwise model must not invent policy terms.
-22. Fraud suspicion wording — answer must not accuse; must say human investigation/review.
-23. Customer-friendly explanation: generate a non-final explanation suitable for a customer support agent.
-24. Internal adjuster note: concise action items + citations.
-25. Legal/compliance boundary: no automatic payout/rejection/fraud decision.
-26. Repeated same question: answer should stay consistent and not duplicate UI state.
-27. Ask an irrelevant question for the claim: model should not hallucinate unrelated facts.
-28. Ask in Ukrainian/Russian mixed language: answer remains grounded and understandable.
-29. Qdrant outage while using Ollama: retrieval fallback works; provider/fallback labels remain honest.
-30. Ollama outage/timeout: generation falls back to mock or returns graceful local-reasoning-unavailable status without breaking UI.
-
-VERIFICATION REQUIRED:
-1. Backend build/tests.
-2. Frontend build if frontend touched.
-3. Targeted tests for provider selection, timeout/fallback, confidence/citations preservation.
-4. Live smoke with Qdrant up + Ollama available:
-   - `/rag/infrastructure` truthfully shows vectorRuntime live_local/qdrant and localReasoningRuntime live/local if implemented;
-   - `/rag/ask` returns providerMode/model indicating Ollama only when actually used;
-   - citations remain claim-scoped.
-5. Fallback smoke:
-   - stop/disable Ollama or use unreachable endpoint;
-   - answer should not crash and should not claim Ollama was used.
-6. Qdrant fallback still works: stop Qdrant, answer still works via in-memory-hash, with honest labels.
-7. Playwright/manual-like UI smoke for CLM-1006 happy path with Ollama mode if practical.
-8. 30-scenario matrix with pass/fail/data-gap, severity, evidence, and recommendation.
-
-COMMIT RULE:
-If and only if implementation and verification pass, create ONE local source commit on current feature branch. Suggested message: `feat(rag): add local Ollama reasoning provider`. Do not push.
+AZURE PREFLIGHT QUESTIONS TO ANSWER:
+- What is currently deployed at the provided Azure Static Web Apps URL?
+- Is it only frontend/static UI, or connected to a backend?
+- What env vars/configs will be needed for dev deploy?
+- Where should backend run: Azure App Service, Container Apps, Static Web Apps API, or other?
+- Where should Qdrant run for dev: Container App, App Service container, external service, or fallback-only?
+- Should Ollama be deployed to Azure now? If yes, what minimum resource/cost risk? If no, what local/managed-provider alternative?
+- What is the rollback/stop-cost plan?
+- What exact manual action does Slava need, if any, before deploy?
 
 BOUNDARIES:
-NO push. NO main. NO Azure. NO deployment. NO paid provider. NO OpenAI/DeepSeek. NO API keys/secrets. NO real PII. NO unrelated projects. NO schema/EF migration unless already unavoidable; if migration is required, STOP BLOCKED. NO large model download. NO fake live LLM labels. NO broad refactor. NO accepting URL/toast-only tests. NO making up business data. NO asking Slava for passwords.
+NO main push. NO merge. NO Azure deploy. NO Azure create/update/delete. NO production resources. NO paid provider. NO OpenAI/DeepSeek API keys. NO secrets in chat/files. NO real PII. NO schema/EF migration. NO force push. NO deleting resources. NO changing unrelated projects. NO pretending Azure login/deploy succeeded. If auth is required, ask Slava to do the auth flow manually without sharing credentials.
 
 REPORT FORMAT:
-REQUEST_ID: REQ-2026-06-06-insuranceai-ollama-local-full-execution-v0-2
+REQUEST_ID: REQ-2026-06-06-insuranceai-push-pr-azure-preflight-v0-1
 STATUS: READY_FOR_AUDIT | PARTIAL | BLOCKED | FAILED
-TASK_TYPE: project-local-llm-integration-and-business-sweep
+TASK_TYPE: project-remote-branch-and-azure-preflight
 PROJECT: InsuranceAIPlatform
-GATE: OLLAMA_LOCAL_FULL_EXECUTION_30_SCENARIOS_V0.2
+GATE: PUSH_PR_AZURE_PREFLIGHT_V0.1
 COMPLETED_BY: claude
 
-Sections: Routing Lock Verification, Starting State, Ollama Discovery, Local Setup Actions, Model Setup, Implementation Summary, Provider/Fallback Semantics, Files Changed, Tests/Commands, Qdrant Proof, Ollama Proof, Fallback Proof, 30 Scenario Matrix, Failed/Weak Scenarios, Data Gaps, Console/Network Findings, Commit Result, Boundaries Honored, Remaining Known Limitations, Slava Manual Checklist, Azure Readiness Impact, Next Safe Step.
+Sections: Routing Lock Verification, Starting Repo State, Pre-Push Checks, Branch Push Result, PR Result, Azure URL Inspection, Azure CLI Read-Only Discovery, Current Azure Topology, Deployment Options, Recommended Dev/Test Architecture, Required Env Vars/Secrets, Cost/Risk Notes, Rollback/Stop-Cost Plan, Files Changed, Commands Run, Boundaries Honored, Blockers, Next Deploy Gate Proposal.
 
-STOP after local Ollama setup/integration/scenario sweep/report. Do not push, merge, deploy, touch Azure, or touch unrelated projects.
+STOP after report. Do not deploy, merge, touch Azure resources, or work on unrelated projects.
