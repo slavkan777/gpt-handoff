@@ -1,96 +1,100 @@
-REQUEST_ID: REQ-2026-06-06-insuranceai-azure-ui-manual-acceptance-by-claude-v0-1
+REQUEST_ID: REQ-2026-06-06-insuranceai-azure-business-manager-workflow-acceptance-v0-1
 STATUS: READY_FOR_AUDIT
-TASK_TYPE: project-azure-ui-manual-like-acceptance-smoke
+TASK_TYPE: project-azure-business-manager-workflow-acceptance
 PROJECT: InsuranceAIPlatform
-GATE: AZURE_UI_MANUAL_ACCEPTANCE_BY_CLAUDE_MEGA_V0.1
+GATE: AZURE_BUSINESS_MANAGER_WORKFLOW_ACCEPTANCE_MEGA_V0.1
 COMPLETED_BY: claude
 
-# Manual-like Azure UI acceptance sweep — PASS (pre-acceptance; Slava remains final acceptor)
+# Business-manager workflow acceptance — VERDICT: DEMO_READY_FOR_MANAGER_WORKFLOW
 
-One-line: ran a 66-point manual-like acceptance sweep against the **live Azure dev/test site** with headless Chromium + direct API probes. **41 automated scenarios PASS, 0 PARTIAL, 0 FAIL**, plus 6/6 API probes green. The public UI is genuinely backend-mode (not mock), RAG works on CLM-1006 with claim-scoped citations + advisory + sane confidence, insufficient-evidence (CLM-1012) and not-found (CLM-1061/CLM-9999) are handled safely, and there are **no cross-claim citation leaks**. The only console/network noise is **expected** negative-path artifacts (404s from deliberately visiting non-existent claims; `ERR_ABORTED` from rapid navigation / the navigate-away test) — zero JS exceptions, zero 500s, zero auth bursts. **No source/Azure/DB mutation. Not a substitute for your final manual acceptance.**
+One-line: I used the live Azure dev/test site as a claim manager would during a working session — morning triage, deep CLM-1006 coverage/anomaly/missing-docs review, similar-claims, manager handoff summary, a second claim (CLM-1007), an insufficient-evidence claim (CLM-1012), audit/traceability, interruptions, custom questions, and an end-of-work recommendation. A real manager **can run a believable claim-review process**: the AI gives **cited, claim-scoped, advisory-only** support, surfaces a **real cost anomaly** (38% over benchmark; 8h catalog vs 14h billed), behaves safely on weak/missing evidence, and **never makes a final payout/fraud/legal decision**. Confidence is intentionally modest (fallback hash-retrieval + Mock generator) and must be described honestly. Read-only; no source/Azure/DB mutation. **Slava remains the final manual acceptor.**
 
 ## Routing Lock Verification
-- PROJECT InsuranceAIPlatform; SOURCE_REPO `C:/Projects/InsuranceAIPlatform`; branch `rag/local-foundation-mega-v0.1`. This gate is **test-only** — no source edit, no commit to the product repo, no Azure/DB mutation. Target = live SWA `https://kind-meadow-03cf73103.7.azurestaticapps.net/` + backend `iap-demo-api…azurecontainerapps.io` (revision `iap-demo-api--0000003`).
-
-## Site / Backend Mode Verification
-- SWA `200`, title `InsuranceAIPlatform · Auto Claim AI Workbench`. Live bundle `index-B8iViJhY.js` carries the backend FQDN, 0 `localhost`. During the sweep the UI made **dozens of calls to the Azure backend, all 200** across the claim workspace + RAG. **Backend mode proven, not mock-only.**
+- PROJECT InsuranceAIPlatform, branch `rag/local-foundation-mega-v0.1`. Test-only — no source edit, no product commit, no Azure/DB mutation. Target = live SWA + backend revision `iap-demo-api--0000003` (RAG fallback).
 
 ## Credential Handling Statement
-- Used the existing **seeded demo account** (`demo@insurance.local`) whose password is shown under the login form **by design** (committed in `e2e/helpers/auth.ts`) — not a secret known only to Claude. Password value not reproduced here. No credential created, stored in repo/handoff/screenshots, or printed. No real PII (synthetic customers e.g. "Роберт Джонсон").
+- Used the existing seeded **demo** account (`demo@insurance.local`; password shown on the login form by design, committed in `e2e/helpers/auth.ts`) — not a Claude-only secret. Password not reproduced. No credential stored in repo/handoff/screenshots/report. Data is synthetic (no real PII).
 
-## Browser / Playwright Setup
-- Headless Chromium (Playwright, repo install), viewport 1440×900 (+ 390×844 for narrow checks). Global capture of console errors, failed/aborted requests, and all backend responses (RAG bodies parsed for providerMode/confidence/citations). Standalone script in temp (not committed to product repo).
+## Environment / Backend Mode Verification
+- Backend mode confirmed: 13 RAG asks + claim/triage data all served by the Azure backend (`iap-demo-api…`), providerMode `Mock`, vector `in-memory-hash`, local LLM disabled. Not mock-only UI.
 
-## Scenario Matrix Summary
-**41 PASS / 0 PARTIAL / 0 FAIL** (automated) + **6/6 API probes**. Verdict **PASS**.
+## Business Workflow Summary
+All 15 manager workflows (A–O) exercised. Manager can triage → review → detect anomaly → check missing docs → see similar cases → produce a handoff summary → switch claims safely → handle insufficient evidence → trace AI actions → recover from interruptions. **No blocking defect.** Verdict **DEMO_READY_FOR_MANAGER_WORKFLOW**.
 
-## Detailed Scenario Results A–L
-**A. Availability / backend mode** — A1 PASS (title), A2 PASS (bundle→backend FQDN, no localhost), A3 PASS (`/health` 200), A4 PASS (`/api/claims` 200 + CORS allow-origin=SWA), A5 PASS (0 console errors at load), A6 PASS (0 failed requests at load).
-**B. Auth / session** — B7 PASS (login→`/`), B8 PASS (wrong creds: stays on `/login`, no crash), B9 PASS (refresh preserves session), B10 PASS (direct `/claims/CLM-1006` while logged in), B11 PASS (logout→`/login`, protects claim page).
-**C. Dashboard / navigation** — C12 PASS (dashboard renders), C13 PASS (dashboard↔claims↔detail↔evidence nav), C14 PASS (Back/Forward), C15 PASS (hard reload), C16 PASS (unknown route → `/` app shell, no blank screen).
-**D. Claims list** — D17 PASS (8 rows from backend), D18 PASS (≥5 render), D19 PASS (search filters to 1 for "CLM-1006"), D20 PASS (empty state shown for no-match), D21 PASS (click CLM-1006 → its detail), D22 PASS (click CLM-1007 → CLM-1007's own data).
-**E. Claim detail CLM-1006** — E23 PASS (customer/vehicle/claim info renders), E24 PASS (no stale fixture after CLM-1007→CLM-1006), E25 PASS (7/7 tabs render: documents/ai-evidence/risks/policy/customer-vehicle/approval/audit), E26 PASS (reload keeps CLM-1006 context).
-**F. Evidence Intelligence happy path** — F27 PASS (panel mounts), F28 PASS (infra honest: `vectorRuntime=disabled/in-memory-hash`, `localLLM=disabled`), F29 PASS (coverage answer card), F30 PASS (advisory banner), F31 PASS (confidence renders, sane), F32 PASS (citations table renders), F33 PASS (all citations CLM-1006-scoped), F34 PASS (audit endpoint stable), F35 PASS (repeat coverage stable, no stale spinner).
-**G. RAG business scenarios** — G36–42 PASS (5/5 fixed use-case actions — coverage/missing_docs/risk/similar/summary — produced output; all advisory, no final payout/fraud language; `similar` renders claim-level cards).
-**H. Negative / edge** — H43 PASS (irrelevant "weather" custom question → answered without crash; Mock/low-relevance), H44 PASS (CLM-1012 → insufficient evidence, conf 0, 0 citations), H45 PASS (CLM-1061 non-existent → safe, no crash), H46 PASS (rapid 5× click → answer stable, +0 console errors), H47 PASS (navigate away while RAG pending → no crash, request aborted cleanly), H48 PASS (reload after answer → panel ok).
-**I. Cross-claim leakage** — I49–52 PASS (3× CLM-1006 asks incl. one right after visiting CLM-1007 → citations always `CLM-1006-*`; **0 leaks**; CLM-1007 ask returns only `CLM-1007-*`).
-**J. API probes** — see below, 6/6 green.
-**K. Visual / UX** — K59 PASS (1440×900 screenshots: dashboard, claims list, CLM-1006 detail, evidence answer), K60 PASS (390×844 narrow remains usable), K61 PASS (no blank panels/overlaps), K62 PASS (loading/error states understandable), K63 PASS (advisory wording visible).
-**L. Reliability** — L64 PASS (initial load 2.8s; RAG ask 0.27–0.67s), L65 PASS (happy path stable across fresh contexts), L66 PASS (0 401/403/CORS bursts).
+## Detailed Workflow Results A–O
+**A. Morning triage — PASS.** Claims list = 8 claims, backend-driven, with manager-grade columns: `CLAIM NO. · CUSTOMER·VEHICLE · TYPE · STATUS · DOCS · AI STATUS · RISK · SLA · NEXT ACTION`. A manager can decide what to open next without confusion; search filters; empty state clean. Picked CLM-1006, CLM-1007, CLM-1012.
+**B. CLM-1006 coverage support — PASS.** Coverage answer grounds in driver statement (sudden braking, wet road, within speed limit), claim application (DTP 18.05.2026 Boryspil, Toyota Camry 2021, front bumper/fender), and STO detail. 4 citations, all `CLM-1006-*`, advisory banner, no final decision. Manager can form a *supported* recommendation from citations.
+**C. Repair/cost anomaly — PASS (strong).** Risk + "repair hours/parts" action returned a **real, cited anomaly**: "repair $2720 exceeds average benchmark $1970 by **38%**; catalog norm **8h** body-work vs **14h billed**; part #521190X910 — discrepancy needs human review." Anomaly is explainable, cited, and safely framed (human review, not fraud verdict).
+**D. Missing documents — PASS.** `missing_docs` on CLM-1006 (cits: coverage-check, statement, photo-rear, policy-terms) and CLM-1007 (cits: statement, missing-docs, application, invoice) — claim-scoped, no mixing. Manager can identify gaps and decide request-doc vs human-review.
+**E. Similar claims / patterns — PASS.** `similar` returns claim-level cards (CLM-1010 66%, CLM-1011 53%) with **reasons** ("shared evidence categories: application, coverage-check, invoice, photo-caption, police, statement; semantic proximity 66%") and matching-category chips — clearly separated from current-claim citations; no fraud/payout implication.
+**F. Summary / handoff — PASS (strong).** `summary` produced a manager-grade handoff: "Evidence summary for human decision: STO invoice (bumper $980 / painting $740 / body $1000 = $2720); comparative rate $85–95/hr district vs $120 billed — rate excess needs human review; estimate exceeds average…". Concise, grounded, safe. Usable as adjuster/supervisor handoff.
+**G. Second claim CLM-1007 + isolation — PASS.** Header/customer/vehicle change to CLM-1007; coverage + missing_docs citations all `CLM-1007-*`; returning to CLM-1006 → citations back to `CLM-1006-*`. No stale header/answer/citations.
+**H. Insufficient evidence CLM-1012 — PASS.** Coverage → confidence **0**, **0 citations**, answer: "Недостатньо релевантних доказів у матеріалах справи для відповіді. Рекомендується перегляд людиною. AI-аналіз має лише рекомендаційний характер…". Manager protected from hallucinated decisions.
+**I. Non-existing claim — PASS.** CLM-1061/CLM-9999 → safe structured 404 (`CLAIM_NOT_FOUND`), no blank/crash (verified prior gate + API here).
+**J. Interrupted work — PASS.** Started a RAG action then navigated away → no crash, claims list rendered; back/forward + reload tolerate interruptions; no auth loss; no wrong-claim context.
+**K. Custom manager questions — PASS (with one honest note).** Asked 5 Ukrainian questions on CLM-1006: (1) evidence supporting coverage — conf 22; (2) missing docs before approval — conf 24; (3) repair hours/parts consistency — conf 14 (returned the 8h-vs-14h + 38% anomaly); (4) what a human should review next — conf 15; all grounded, `CLM-1006`-cited, advisory. (5) irrelevant "What's the weather tomorrow?" — the app did **not** hallucinate a forecast; it returned the claim's accident-weather evidence (rain/wet road) with citations + advisory. **Safe** (no fabrication) but the fallback does not *explicitly* reject off-topic questions — it always answers from claim evidence (honest model-mode limitation, see Gaps).
+**L. End-of-work recommendation — PASS.** Manager outcome tables below; "safe for automated final decision" = **NO** for every claim.
+**M. Audit / traceability — PASS.** `/rag/audit` records each RAG action (coverage conf 14, summary conf 41, …); the claim's **Audit & Cost** page shows "AI Run Audit & Cost · full execution trace · governance evidence · RUN SUCCESSFUL · RUN ID …". Sufficient traceability for a demo.
+**N. Visual realism — PASS.** Screenshots captured for triage, CLM-1006 evidence, similar-claims, CLM-1007, CLM-1012 insufficient, audit, and narrow viewport. Citation cards, confidence bar, advisory banner, tab labels readable; narrow 390×844 usable.
+**O. Demo readiness — PASS.** Narrative below.
 
-## J. API Endpoint Probes (deployed backend)
-| # | Probe | Result |
-|---|---|---|
-| 53 | `/health` | **200** in 0.27s |
-| 54 | `/api/claims` (+Origin SWA) | **200**, `access-control-allow-origin` = SWA |
-| 55 | `/api/claims/CLM-1006/rag/infrastructure` | **200** |
-| 56 | `/api/claims/CLM-1006/rag/ask` (coverage) | **200** in 0.67s — `Mock`, conf 62, citations all `CLM-1006-*`, advisory |
-| 57 | `/api/claims/CLM-1012/rag/ask` | **200** in 0.18s — `Mock`, conf 0, **0 citations**, "Недостатньо релевантних доказів… Рекомендується перегляд людиною" |
-| 58 | `/api/claims/CLM-9999/rag/infrastructure` | **404** structured `{code:CLAIM_NOT_FOUND}` (not 500) |
+## Manager Outcome Tables
+**CLM-1006**
+| Field | Value |
+|---|---|
+| Evidence strength | Strong (13 chunks; coverage/anomaly/docs all cited) |
+| Key supporting citations | driver statement, claim application, STO repair-detail, police report, invoice, policy-terms |
+| Missing / uncertain | rate excess ($120 vs $85–95/hr), labor hours (14 vs 8 catalog) need human verification |
+| Risk / anomaly | repair $2720 = **+38%** over $1970 benchmark; flagged for human review |
+| Recommended next action | Route to human adjuster to verify labor hours + rate before approval |
+| Safe for automated final decision | **NO** (advisory-only) |
 
-## Screenshots / Artifacts
-Under `gpt-handoff/InsuranceAIPlatform/azure-ui-manual-acceptance-by-claude-v0.1/`: `K59-dashboard.png`, `K59-claims-list.png`, `K59-claim-1006-detail.png`, `K59-evidence-answer.png`, `K60-narrow-evidence.png` (all synthetic data, no secrets/PII).
+**CLM-1012**
+| Field | Value |
+|---|---|
+| Evidence strength | None (0 evidence chunks) |
+| Key supporting citations | none |
+| Missing / uncertain | all — no seeded evidence |
+| Risk / anomaly | n/a |
+| Recommended next action | Gather evidence / human review; AI explicitly declines to answer |
+| Safe for automated final decision | **NO** (insufficient evidence) |
 
-## Network Findings
-- Core API requests all 200 in normal paths. **21 `net::ERR_ABORTED`** — all from rapid test navigation + the explicit navigate-away-while-pending test (incl. one intended `POST /rag/ask` abort). These are browser-canceled in-flight XHRs, **expected/benign**, not failures. **0 401/403**, no CORS errors (allow-origin present).
+## RAG Evidence / Citation Proof
+- 13 asks, providerMode `Mock` throughout. Confidence varies sanely by question (0 for CLM-1012; 11–41 for evidence-backed). Every evidence-backed answer carried 4 citations + advisory banner + closing "фінальне рішення приймає людина-адʼюстер" disclaimer. Anomaly figures ($2720, +38%, 8h vs 14h, $120 vs $85–95) are drawn from cited evidence, not fabricated.
 
-## Console Findings
-- **25 console errors, all "Failed to load resource: …404"** — exclusively from deliberately visiting non-existent claims (CLM-1061, CLM-9999) whose sub-resources 404. **0 at normal load (A5).** No JS exceptions, no unhandled promise rejections, no React error boundaries triggered.
+## Cross-Claim Leakage Proof
+- CLM-1006 asks → only `CLM-1006-*` citations (statement/application/repair-detail/police/policy-terms/approval-summary/invoice/photo-front/photo-rear/coverage-check). CLM-1007 asks → only `CLM-1007-*` (statement/application/invoice/missing-docs). CLM-1012 → 0. **Zero leakage across 13 asks**, including an immediate CLM-1007→CLM-1006 switch.
 
-## RAG Evidence Proof
-- providerMode `Mock` everywhere (LocalLlama disabled). Infra panel honest: `vectorRuntime` disabled / `in-memory-hash` / not reachable; `localReasoningRuntime` disabled. SQL counts via UI infra match DB (PolicyClauses 8 / EvidenceChunks 50 / EvalQuestions 21). Confidence varies sanely by question (UI coverage button 14; custom ДТП question 62) — derived from hash-retrieval scores, never fabricated. Advisory-only banner + closing disclaimer present on every answer.
-
-## Citation / Leakage Proof
-- CLM-1006 citations ∈ {`CLM-1006-application`,`-statement`,`-repair-detail`,`-police`,`-photo-front`,`-policy-terms`}. CLM-1007 citations ∈ {`CLM-1007-application`,`-invoice`,`-missing-docs`,`-police`}. CLM-1012 → 0 citations. **No citation ID ever crosses claim boundary across the full sweep (leaks=0).**
+## Audit / Traceability Finding
+- `/rag/audit?limit` returns recent asks (useCase + confidence). Claim "Audit & Cost" page shows a full AI-run execution trace + governance evidence + RUN ID. Adequate for a demo; deeper per-question RAG audit UI could be a future enhancement.
 
 ## Visual / UX Findings
-- Enterprise-grade layout renders cleanly at 1440×900 (sidebar nav, claim header/tabs, AI Analysis & Evidence, infra status cards, answer card with confidence bar + citation table). Narrow 390×844 stays usable (main content visible, no broken overlap observed). No infinite spinners, no blank panels. Advisory wording legible.
+- Enterprise look holds: triage table with status/risk/SLA/next-action chips, claim header + 8 tabs, AI Analysis & Evidence, infra status cards, answer card with confidence bar + citation table, advisory banner. Narrow viewport usable. No blank panels / overlaps / infinite spinners observed.
 
-## Performance Notes
-- Initial SWA load ~2.8s. RAG ask 0.18–0.67s (Mock + in-memory-hash is fast). Backend cold-start not observed during the run (revision warm). No obviously excessive request.
+## Defects / Product Gaps
+- **None blocking.** Honest gaps for the demo narrative: (1) **Confidence is modest** (fallback hash-retrieval + Mock generator) — present it as decision *support*, not authority. (2) **No explicit off-topic rejection** — irrelevant questions get a claim-grounded answer (safe, no fabrication) rather than "this is out of scope"; a real LLM behind the seam would improve this. (3) Visiting a thin/non-existent claim emits benign `404` console lines (handled gracefully). (4) RAG-specific audit is via API + the general AI-run audit page; a dedicated per-question RAG history UI would be a nice future add.
 
-## Defects Found
-- **None blocking.** One **cosmetic/minor observation** (not a defect for this gate): visiting a non-existent claim route (e.g. CLM-1061) triggers several `404` console lines as the page attempts each sub-resource; it is handled gracefully (no crash, no blank screen), but a future polish could short-circuit sub-resource fetches once the claim itself 404s. Non-blocking, owner's discretion.
+## Demo Narrative For Slava
+1. **Story:** "An AI claim-evidence workbench: a manager triages claims, then for any claim the AI retrieves the claim's own evidence and gives a **cited, advisory** read on coverage, cost anomalies, and missing docs — keeping the human as the decision-maker."
+2. **Real & working now:** triage table; claim workspace + tabs; Evidence Intelligence with coverage/risk/missing-docs/summary/similar + custom questions; **claim-scoped citations**; cost-anomaly detection (38% / 8h-vs-14h); insufficient-evidence safety; similar-claims; audit trace; cross-claim isolation.
+3. **Describe honestly as fallback:** retrieval uses **in-memory hash embeddings** (not a live vector DB), generation is the **Mock grounded generator** (local LLM disabled) → confidence is modest and phrasing is templated. All data synthetic.
+4. **Manager value visible:** evidence is cited and verifiable; anomalies are quantified; the system defers to humans and refuses when evidence is thin.
+5. **Do not oversell:** it is not making fraud/payout decisions, not a live LLM, not real customer data.
+6. **Top-5 demo steps:** (1) Claims list — point out RISK/SLA/NEXT-ACTION columns. (2) Open CLM-1006 → AI Evidence → **Coverage** (show citations + advisory). (3) Ask **repair hours/cost anomaly** → show the **38% / 14h-vs-8h** cited finding. (4) **Summary** → read the human-handoff. (5) Open **CLM-1012** → show the safe "insufficient evidence — human review" refusal.
 
-## Regression Risks
-- Low. Fallback mode means no external vector/LLM dependency at runtime. Confidence is intentionally modest in fallback (hash retrieval) — set expectations for the demo narrative. Serverless SQL auto-pause can add a one-time cold-connect delay after long idle (handled by retry; not user-facing in normal use).
+## Screenshots / Artifacts
+Under `gpt-handoff/InsuranceAIPlatform/azure-business-manager-workflow-acceptance-v0.1/`: `triage-claims-list.png`, `clm1006-evidence-answer.png`, `clm1006-similar-claims.png`, `clm1007-evidence-answer.png`, `clm1012-insufficient.png`, `clm1006-audit.png`, `narrow-evidence.png` (synthetic data, no secrets/PII).
+
+## Network / Console Findings
+- Core requests 200. Console noise = **18 benign `404`s** (thin-claim sub-resource fetches, handled gracefully) + **8 `net::ERR_ABORTED`** (navigation/interrupted-work test, incl. the intended pending-`/rag/ask` abort). **Zero JS exceptions, zero 500s, zero 401/403.**
 
 ## Boundaries Honored
-NO source change · NO product repo commit/push · NO main · NO merge · NO Azure deploy/update/create/delete · NO DB schema/data change · NO new resources · NO Qdrant/Ollama Azure · NO paid provider · NO secrets printed/stored · NO real PII · NO fake pass · NO claiming final manual acceptance for Slava (this is pre-acceptance testing only).
+NO source change · NO product commit/push · NO main · NO merge · NO Azure deploy/update/create/delete · NO DB change · NO data mutation · NO new resources · NO Qdrant/Ollama Azure · NO paid provider · NO secrets printed/stored · NO real PII · NO fake pass · NO claiming final acceptance for Slava (business pre-acceptance only).
 
 ## Files / Artifacts Created
-- Temp (local, not committed to product repo): Playwright sweep script, result JSON, 5 screenshots. Screenshots + this report published to the gate folder in gpt-handoff only.
+- Temp/local (not committed to product repo): Playwright manager-session script, result JSON, 7 screenshots. Screenshots + this report published to the gate folder in gpt-handoff only.
 
-## Commands Run (high level)
-- Headless Playwright sweep (login, nav, claims, CLM-1006/1007/1012/1061 flows, RAG asks, negative/edge, leakage, viewport); `curl` API probes (`/health`, `/api/claims`, `/rag/infrastructure`, `/rag/ask` CLM-1006/1012/1007, CLM-9999); bundle/CORS checks. All read-only.
-
-## Slava Manual Checklist (for your final acceptance)
-1. Open https://kind-meadow-03cf73103.7.azurestaticapps.net/ , log in with the demo account on the form.
-2. Claims list → open CLM-1006 → AI Evidence → click "Coverage" → confirm answer + advisory + citation cards feel right to you.
-3. Try a custom question + an irrelevant question; open CLM-1012 (insufficient) to see the cautious refusal.
-4. Eyeball mobile width + overall polish. (Optional) decide whether to keep the dev/test SQL Entra admin or revoke it.
-
-## Recommended Next Step
-- Architect GPT audit via «отчёт». If accepted, this dev/test environment is demo-ready in honest fallback mode; an optional separately-authorized gate could wire a managed vector store + managed LLM behind the existing seam for richer confidence.
+## Final Verdict
+**DEMO_READY_FOR_MANAGER_WORKFLOW** — a claim manager can run a believable end-to-end review process with cited, advisory, claim-scoped AI support and safe handling of weak/missing evidence; honest fallback caveats apply. Slava remains the final manual acceptor.
 
 STOP — holding after report. No defect fixes, no deploy, no Azure mutation in this gate.
