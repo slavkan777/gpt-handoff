@@ -1,0 +1,23 @@
+{
+  "requestId": "REQ-2026-06-06-insuranceai-azure-dev-deploy-rag-fallback-mega-v0-1",
+  "gate": "AZURE_DEV_DEPLOY_RAG_FALLBACK_MEGA_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "BLOCKED",
+  "completedBy": "claude",
+  "azureMutated": false,
+  "deployMechanism": { "feasible": true, "registry": "GHCR (ghcr.io/slavkan777/insuranceai-api, public, anonymous pull)", "acr": "none", "dockerfile": "server/Dockerfile (tracked, proven - built current live image)", "dockerLocal": "20.10.23", "ghcrAuthCached": true, "ciWorkflow": "azure-deploy-demo.yml is a DISABLED skeleton (not wired)", "deployVerb": "az containerapp update --image" },
+  "currentAzure": { "containerApp": "iap-demo-api", "image": "ghcr.io/slavkan777/insuranceai-api:14d5c81-cors", "activeRevision": "iap-demo-api--0000002", "minReplicas": 0, "swa": "iap-demo-swa (Free, mock)", "acr": "none" },
+  "blocker": {
+    "what": "Azure SQL InsuranceAIPlatform DB lacks the RAG schema (EvidenceChunks/RagAuditTraces/RagEvaluationQuestions/PolicyClauses)",
+    "evidence": ["live image 14d5c81 predates AddRagFoundation migration 20260604 (commit 912e841 > Azure SQL deploy 70af774)", "API Program.cs has no startup Migrate/Seed (only Build+Run); seeding is separate DbMigrator", "old image /api/claims=200 but /rag=404"],
+    "consequence": "deploying RAG image -> /rag/infrastructure queries missing tables -> HTTP 500 (STOP condition)",
+    "conflict": "fix requires EF/schema migration, which THIS gate forbids (NO schema/EF migration)",
+    "demoRisk": "flipping SWA to backend would break the working public mock demo",
+    "certainty": "strong inference (not direct SQL query; firewall/Entra blocks read-only table list without a resource change)"
+  },
+  "decision": "STOP BLOCKED before any Azure mutation; all Azure calls read-only; live demo intact; no rollback needed (nothing deployed)",
+  "rollbackTargetForFutureGate": "iap-demo-api--0000002",
+  "recommendedPrerequisiteGate": "AZURE_SQL_RAG_MIGRATE_SEED_V0.1 (apply AddRagFoundation + RagSeeder to Azure SQL, separately authorized) then re-run this deploy gate",
+  "boundaries": "no deploy/create/update/delete/main/merge/prod/new-resource/qdrant/ollama/paid/secret/migration/force/fake-status",
+  "selfAccepted": false
+}
