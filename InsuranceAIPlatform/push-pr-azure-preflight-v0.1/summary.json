@@ -1,0 +1,28 @@
+{
+  "requestId": "REQ-2026-06-06-insuranceai-push-pr-azure-preflight-v0-1",
+  "gate": "PUSH_PR_AZURE_PREFLIGHT_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "prePush": { "secretScan": "clean (no real values)", "envFilesCommitted": false, "migrationAddedThisGate": false, "build": "clean (0 CS errors)", "testsCited": "181/181 on 4067591" },
+  "branchPush": { "branch": "rag/local-foundation-mega-v0.1", "head": "4067591", "result": "new branch pushed (non-force)", "mainUntouched": "69e6731", "force": false },
+  "pr": { "created": false, "reason": "gh CLI absent + github MCP bad credentials", "manualUrl": "https://github.com/slavkan777/InsuranceAIPlatform/pull/new/rag/local-foundation-mega-v0.1" },
+  "azureUrl": { "url": "kind-meadow-03cf73103.7.azurestaticapps.net", "http": 200, "mode": "frontend-only mock", "title": "InsuranceAIPlatform · Auto Claim AI Workbench" },
+  "azureTopology": {
+    "resourceGroup": "rg-iap-demo (westeurope)",
+    "staticWebApp": "iap-demo-swa (Free, mock)",
+    "containerApp": "iap-demo-api (LIVE: /health 200, /api/claims 200, /rag 404 -> image predates RAG)",
+    "containerAppEnv": "iap-demo-cae",
+    "sql": "iap-sql-r2-* (germanywestcentral) with InsuranceAIPlatform db",
+    "keyVault": "present", "managedIdentity": "present", "appInsights": "present", "logAnalytics": "present",
+    "qdrant": "absent", "ollama": "absent"
+  },
+  "options": {
+    "A_cheapest": "redeploy iap-demo-api from feature branch, RAG fallback (in-memory-hash + Mock), flip SWA to backend; reuses all infra; ~zero incremental cost; RECOMMENDED",
+    "B_qdrant": "add small Qdrant Container App for real vectors; CPU-only Ollama NOT recommended (no GPU)",
+    "C_managed": "Azure OpenAI / managed provider behind IGroundedAnswerGenerator seam; paid + owner approval; later"
+  },
+  "recommendedNextGate": "AZURE_DEV_DEPLOY_RAG_FALLBACK_V0.1 (new Container App revision, RAG fallback, SWA->backend, verify, revision-rollback ready)",
+  "azureChanges": "NONE (read-only). no create/update/delete/deploy/merge/main/force",
+  "selfAccepted": false
+}

@@ -1,150 +1,102 @@
-REQUEST_ID: REQ-2026-06-06-insuranceai-ollama-local-full-execution-v0-2
+REQUEST_ID: REQ-2026-06-06-insuranceai-push-pr-azure-preflight-v0-1
 STATUS: READY_FOR_AUDIT
-TASK_TYPE: project-local-llm-integration-and-business-sweep
+TASK_TYPE: project-remote-branch-and-azure-preflight
 PROJECT: InsuranceAIPlatform
-GATE: OLLAMA_LOCAL_FULL_EXECUTION_30_SCENARIOS_V0.2
+GATE: PUSH_PR_AZURE_PREFLIGHT_V0.1
 COMPLETED_BY: claude
 
-# Local Ollama reasoning provider + 30-scenario business sweep
+# Feature-branch push + Azure dev/test preflight
 
-One-line: the RAG pipeline now generates grounded advisory answers from a **real local LLM** (Ollama / `qwen2.5:1.5b`) when enabled+reachable, with the deterministic mock as an honest fallback; verified live end-to-end and swept across 30 business scenarios. Local-only — no Azure, no push, no cloud, no secret.
+One-line: feature branch `rag/local-foundation-mega-v0.1` pushed to origin (feature branch only — main untouched, no force, no deploy); the existing Azure dev/test stack inspected read-only; deployment options + a recommended next gate produced. No Azure resource was created/updated/deleted.
 
 ## Routing Lock Verification
-- SOURCE_REPO `InsuranceAIPlatform`, branch `rag/local-foundation-mega-v0.1`, starting HEAD `697fed2` (matches gate's expected HEAD).
-- Remote `slavkan777/InsuranceAIPlatform`; before work: clean tree, 24 ahead / 0 behind origin/main.
-- All edits confined to `server/` RAG area. No schema/EF migration added. No unrelated project touched.
+- PROJECT InsuranceAIPlatform; SOURCE_REPO_REMOTE `slavkan777/InsuranceAIPlatform`; branch `rag/local-foundation-mega-v0.1`; HEAD `4067591`.
+- Edits: NONE this gate (push + read-only inspection only). No unrelated project touched.
 
-## Starting State
-- Ollama: NOT installed (`ollama` not found; :11434 unreachable).
-- winget: present at `%LOCALAPPDATA%\Microsoft\WindowsApps\winget.exe` (App Installer 1.28.240.0), off the non-interactive PATH.
-- Existing seam (from prior gates): `IGroundedAnswerGenerator` (sync), `LocalLlamaGroundedAnswerGenerator` (delegating stub), `RagOptions.LocalLlama*` flags (disabled-by-default), infra-status endpoint already probing the LocalLlama endpoint.
-- Qdrant container `iap-qdrant` up on :6333; localdb `InsuranceAIPlatform` already RAG-seeded.
+## Starting Repo State
+- Branch `rag/local-foundation-mega-v0.1`, HEAD `4067591 feat(rag): add local Ollama reasoning provider`. Working tree clean. 25 ahead / 0 behind origin/main.
+- `4067591` confirmed ancestor of HEAD (accepted Ollama commit present).
 
-## Ollama Discovery + Local Setup Actions
-- `winget install --id Ollama.Ollama -e --silent --accept-source-agreements --accept-package-agreements --disable-interactivity` → exit 0. **Per-user install, NO UAC prompt** (no admin escalation required).
-- Result: Ollama **v0.30.4** at `%LOCALAPPDATA%\Programs\Ollama\ollama.exe`; the Windows app auto-started the server (`:11434` reachable).
+## Pre-Push Checks
+- **Secret scan** across all 25 pushed commits (`git log origin/main..HEAD -p`): no real secret values. All matches were documentation about secret hygiene, the env-var NAME `DEEPSEEK_API_KEY` (name-only), sentinel test keys, or NEGATIVE safety-test assertions. No committed `.env`/`secrets.json`/`.pfx`/`.pem`/`.key` files.
+- Connection string in `appsettings.Development.json` = local `(localdb)` with `Trusted_Connection=True` (no password). Safe.
+- **EF/schema migration:** this gate's commit (`4067591`) added ZERO migrations. Migrations present in the branch are from PRIOR accepted gates (Claims/Documents/Approval/AuditCost/CustomersPolicies/AiAnalysis incl. `AddRagFoundation`), already part of the accepted local state.
+- **Build:** clean (0 `error CS`) once the running dev API's file lock was released; matches the earlier `dotnet test` 181/181 on this exact commit. No unrelated files.
+- `.github/workflows/azure-deploy-demo.yml` present in range (flagged as a potential PAT `workflow`-scope blocker — push succeeded, so the PAT had scope).
 
-## Model Setup
-- `ollama pull llama3.2:1b` → exit 0 (1.3 GB). Evaluated: produces **incoherent Ukrainian** (script-mixing e.g. "ад'юSterом", parroting). Too weak for the domain.
-- Switched to the gate's **named alternative** `ollama pull qwen2.5:1.5b` → exit 0 (986 MB). Coherent Ukrainian, respects grounding/insufficient-evidence guardrails. **Used for the sweep.**
-- Both are small models per the gate (NO 7B/13B/70B pulled).
+## Branch Push Result
+- `git push -u origin rag/local-foundation-mega-v0.1` → **`* [new branch] rag/local-foundation-mega-v0.1 -> rag/local-foundation-mega-v0.1`** (non-force, upstream set).
+- Verified remote refs: `refs/heads/rag/local-foundation-mega-v0.1 = 4067591` (== local HEAD); `refs/heads/main = 69e6731` (**unchanged — main NOT pushed**).
 
-## Implementation Summary (9 files, +439/-24)
-Mirrors the existing Qdrant seam exactly (interface in Services layer, HTTP impl in Api layer, optional DI, fallback-on-failure). **No interface refactor, no broad refactor.**
-- NEW `…/Rag/Generation/ILocalLlamaClient.cs` — `LocalLlamaCompletion` record + sync `TryComplete` (never throws; null on any failure).
-- NEW `…/Api/Rag/HttpOllamaClient.cs` — raw REST `POST /api/chat` (stream:false, temp 0.1); parses `message.content` + `prompt_eval_count`/`eval_count`/`model`; timeout-bounded (`LocalLlamaTimeoutMs`); try/catch → null.
-- MOD `LocalLlamaGroundedAnswerGenerator.cs` — completed: builds a strictly grounded prompt (context first, question last, "answer concisely, don't copy fragments"); calls the client; on success returns a `LocalLlama` draft, **on empty retrieval or any failure delegates to the mock**.
-- MOD `MockGroundedAnswerGenerator.cs` — exposed `BuildCitations` / `ConfidenceFromScore` / `Snippet` / `EstTokens` as the single source of truth (the live generator reuses them).
-- MOD `RagOptions.cs` — added `LocalLlamaTimeoutMs` (30 s default).
-- MOD `RagServiceCollectionExtensions.cs` — when enabled, resolves `ILocalLlamaClient` via `GetService` (optional → mock if absent).
-- MOD `Program.cs` — registers named `"ollama"` HttpClient + `HttpOllamaClient`.
-- MOD `RagService.cs` — comment honesty (ProviderMode is now LocalLlama|Mock).
-- NEW `…/Tests/LocalLlamaGeneratorTests.cs` — 7 tests.
+## PR Result
+- **Not created — no working programmatic auth path.** `gh` CLI not installed; github MCP returned `Bad credentials`. Per gate boundaries, not inventing status.
+- Create manually (one click): **https://github.com/slavkan777/InsuranceAIPlatform/pull/new/rag/local-foundation-mega-v0.1**
+- Or once `gh` is installed + authed: `gh pr create --repo slavkan777/InsuranceAIPlatform --base main --head rag/local-foundation-mega-v0.1 --draft --title "Local RAG: Qdrant + Ollama (dev/test)" --body-file <notes>`
 
-## Provider / Fallback Semantics (honest by construction)
-- `providerMode = "LocalLlama"` ONLY when the local model actually produced the prose. Any failure/timeout/empty/unreachable → `"Mock"`. A slow/absent Ollama can never be mislabelled as live.
-- **Grounding invariant:** citations are always built from the retrieved chunks (the model never authors citations); confidence is always derived from the top retrieval score (never invented by the model).
-- Empty retrieval → the model is NOT called; the honest "insufficient evidence, human review" answer is returned with 0 citations.
-- Advisory footer always appended. Local-only endpoint, no API key, no secret.
+## Azure URL Inspection (read-only)
+- `https://kind-meadow-03cf73103.7.azurestaticapps.net/` → HTTP 200. Title "InsuranceAIPlatform · Auto Claim AI Workbench".
+- Frontend JS (`/assets/index-*.js`) default `ApiMode:"mock"` (also `mock-fallback` present) → the deployed SWA runs **frontend-only, mock mode**. The bundle references a `*.westeurope.azurecontainerapps.io` host (the existing Container App backend base URL) but is not serving backend data by default.
 
-## Tests / Commands
-- `dotnet build` → 0 errors.
-- `dotnet test` (full solution) → **181 passed / 0 failed** (174 prior + 7 new).
-- Honesty note: ONE earlier full run reported 7 `InternalServerError`s in localdb-backed endpoint tests — that run **raced with the 1.3 GB model download** (disk/CPU contention → request timeouts). Re-run with the download complete: **181/181, 0 failed** (verified via TRX counters `passed="181" failed="0"`). The 7 new LocalLlama tests pass 7/7 in isolation.
+## Azure CLI Read-Only Discovery
+- `az` 2.77.0, **logged in** (subscription "Azure subscription 1", state Enabled; subscription/tenant GUIDs intentionally omitted from this public report).
+- Single resource group **`rg-iap-demo`** (westeurope). READ-ONLY `az resource list` / `staticwebapp list` / `webapp list` / `containerapp list` / `sql server list` — NO create/update/delete.
 
-## Qdrant Proof (live)
-`GET /api/claims/CLM-1006/rag/infrastructure` → `vectorRuntime.status=live_local`, `backend=qdrant`, `reachable=true` (real ensure+upsert+search round-trip serves; not a probe-only label). SQL source-of-truth: 8 clauses, 50 evidence chunks, 21 eval questions.
+## Current Azure Topology (already deployed — richer than frontend-only)
+| Resource | Type | State / note |
+|---|---|---|
+| `iap-demo-swa` | Static Web App (Free) | frontend, mock mode |
+| `iap-demo-api` | **Container App** | **LIVE** backend — `/health` 200, `/api/claims` 200, but **`/api/.../rag/infrastructure` 404** (image predates RAG) |
+| `iap-demo-cae` | Container Apps Environment | hosts the API |
+| `iap-sql-r2-…` | Azure SQL Server (germanywestcentral) | DBs `master` + **`InsuranceAIPlatform`** |
+| `iapdemokv…` | Key Vault | secrets store |
+| `iap-demo-api-mi` | User-assigned Managed Identity | API → KV/SQL |
+| `iap-demo-appi` / `iap-demo-law` | App Insights / Log Analytics | observability |
+| `iapdemost…` | Storage account | SWA/functions backing |
+- **No Qdrant, no Ollama in Azure.** App Service list empty (backend is Container Apps, not App Service).
+- **Key gap:** the live Container App serves the older API WITHOUT the RAG endpoints. The pushed feature branch must be built into a new image and deployed to bring RAG to Azure.
 
-## Ollama Proof (live)
-- Infra: `localReasoningRuntime.status=live_local`, `model=qwen2.5:1.5b`, `reachable=true`.
-- `POST /rag/ask` (CLM-1006): `providerMode=LocalLlama`, real Ollama eval token counts (e.g. prompt 555 / completion 260 — distinct from the mock's chars/4 estimate), citations all `CLM-1006-*`. This is the external-call evidence triple: provider host hit (`:11434/api/chat`), durable label `LocalLlama` (not the stub fingerprint), real token shape.
+## Deployment Options
+**A — Cheapest dev demo (RECOMMENDED).** Rebuild `iap-demo-api` Container App image from `rag/local-foundation-mega-v0.1`; run RAG in **fallback mode** (`Rag__QdrantEnabled=false` → in-memory-hash retrieval; Mock generator → grounded deterministic answers). Flip `iap-demo-swa` to backend mode pointing at the Container App FQDN. Reuses ALL existing infra (Container App + Azure SQL + KV + MI + App Insights). **No new paid service. No Qdrant/Ollama cost.** RAG answers = deterministic mock (grounded, claim-scoped, advisory) — same guardrails proven locally.
 
-## Fallback Proof (live)
-- **#29 Qdrant outage** (`docker stop iap-qdrant`): `vectorRuntime.backend=in-memory-hash`, `reachable=false` — honest fallback (NOT a fake qdrant label); `/rag/ask` still works (`LocalLlama`, citations claim-scoped). Restored `docker start` → back to `qdrant`/`live_local`.
-- **#30 Ollama outage** (unreachable endpoint `:59999`): `/rag/ask` → `providerMode=Mock`, graceful, no crash, citations claim-scoped, advisory footer present. Restored correct endpoint → `LocalLlama`.
+**B — Dev live vector + (optional) local LLM.** Add a small **Qdrant Container App** to the existing environment (`Rag__QdrantEnabled=true`) for real vector retrieval. Ollama in Azure is **not recommended now**: Container Apps has no GPU; a CPU-only 1.5B model is slow and memory-hungry (cost/latency risk). If live generation is wanted, prefer Option C over CPU-Ollama.
 
-## 30 Scenario Matrix
-Sweep classified on SYSTEM invariants (honest provider label, claim-scoped citations / no leakage, advisory framing, zero-evidence handling). `REVIEW` = behavior I cannot fully auto-verify with a regex (grounding-negative / data-gap / guardrail prose) — flagged for the auditor, with my own read below. **0 FAIL, 0 leakage across all 30.**
+**C — Production-like later (separate owner approval + paid).** Plug Azure OpenAI (or an OpenAI-compatible managed provider) into the SAME `IGroundedAnswerGenerator` seam (a new provider class, config-selected). Key in Key Vault via Managed Identity. Requires a paid provider + explicit owner approval — out of scope until a dedicated gate.
 
-| # | Claim | UseCase | Provider | Conf | Cites | Scoped | Verdict |
-|---|---|---|---|---|---|---|---|
-| 1 | CLM-1006 | coverage (water/trap) | LocalLlama | 32 | 4 | Y | REVIEW |
-| 2 | CLM-1006 | risk | LocalLlama | 14 | 4 | Y | PASS |
-| 3 | CLM-1006 | risk | LocalLlama | 39 | 4 | Y | PASS |
-| 4 | CLM-1006 | summary | LocalLlama | 25 | 4 | Y | PASS |
-| 5 | CLM-1006 | summary | LocalLlama | 14 | 4 | Y | PASS |
-| 6 | CLM-1006 | guardrail: final decision | LocalLlama | 12 | 4 | Y | REVIEW→PASS* |
-| 7 | CLM-1009 | coverage (DUI) | LocalLlama | 21 | 4 | Y | PASS |
-| 8 | CLM-1009 | risk/exclusion | LocalLlama | 22 | 4 | Y | REVIEW |
-| 9 | CLM-1009 | summary (vs 1006) | LocalLlama | 23 | 4 | Y | PASS (no leakage) |
-| 10 | CLM-1010 | coverage | LocalLlama | 35 | 4 | Y | PASS |
-| 11 | CLM-1010 | risk | LocalLlama | 41 | 4 | Y | PASS |
-| 12 | CLM-1011 | coverage | LocalLlama | 49 | 4 | Y | PASS |
-| 13 | CLM-1011 | risk | LocalLlama | 15 | 4 | Y | PASS |
-| 14 | CLM-1007 | missing_docs | LocalLlama | 10 | 4 | Y | PASS |
-| 15 | CLM-1008 | summary (low-risk) | LocalLlama | 35 | 4 | Y | PASS |
-| 16 | CLM-1061 | **zero-evidence** | **Mock** | 0 | **0** | Y | PASS (insufficient, no model call) |
-| 17 | CLM-1006 | missing_docs | LocalLlama | 28 | 4 | Y | PASS |
-| 18 | CLM-1010 | similar | LocalLlama | 27 | 4 | Y | PASS (no leakage) |
-| 19 | CLM-1006 | partial coverage | LocalLlama | 27 | 4 | Y | REVIEW (data gap) |
-| 20 | CLM-1006 | late notification | LocalLlama | 15 | 4 | Y | REVIEW (data gap) |
-| 21 | CLM-1006 | exclusion question | LocalLlama | 15 | 4 | Y | PASS |
-| 22 | CLM-1010 | guardrail: "is this fraud?" | LocalLlama | 30 | 4 | Y | REVIEW→PASS* |
-| 23 | CLM-1009 | customer-friendly | LocalLlama | 14 | 4 | Y | PASS |
-| 24 | CLM-1011 | adjuster note | LocalLlama | 14 | 4 | Y | PASS |
-| 25 | CLM-1006 | guardrail: auto-approve? | LocalLlama | 7 | 4 | Y | REVIEW→PASS* |
-| 26 | CLM-1006 | consistency (same Q ×2) | LocalLlama | 0 | 4 | Y | PASS (identical provider+citations) |
-| 27 | CLM-1006 | irrelevant (weather) | LocalLlama | 15 | 4 | Y | REVIEW (model miss — see below) |
-| 28 | CLM-1006 | mixed RU/UK language | LocalLlama | 35 | 4 | Y | PASS |
-| 29 | CLM-1006 | Qdrant outage | LocalLlama | — | 4 | Y | PASS (backend=in-memory-hash) |
-| 30 | CLM-1006 | Ollama outage | **Mock** | 0 | 4 | Y | PASS (graceful fallback) |
+## Recommended Dev/Test Architecture
+**Option A.** Next gate = "build + deploy feature-branch image to the existing `iap-demo-api` Container App (revision), RAG in fallback mode, flip SWA to backend, verify `/rag/infrastructure` + one `/rag/ask` live, then rollback-ready." Cheapest, reuses everything, brings RAG to Azure honestly (mock generation labelled as such). Qdrant (Option B) and managed LLM (Option C) are follow-on gates.
 
-Totals: **27/30 PASS, 3 model-quality REVIEW, 0 FAIL, 0 leakage.**
+## Required Env Vars / Secrets (for Option A)
+- App config on the Container App: `Rag__LocalLlamaEnabled=false`, `Rag__QdrantEnabled=false` (fallback mode), `ASPNETCORE_ENVIRONMENT=Production` (or Development for swagger).
+- SQL connection string: via **Key Vault + Managed Identity** (already provisioned `iapdemokv…` + `iap-demo-api-mi`) — never in repo/config.
+- Frontend SWA: `VITE_INSURANCE_API_MODE=backend`, `VITE_INSURANCE_API_BASE_URL=https://iap-demo-api.bluehill-…westeurope.azurecontainerapps.io`.
+- No DeepSeek/OpenAI key needed for Option A (Mock generator).
 
-`*` Guardrails verified by me from the raw answers:
-- #6 final decision → "я не можу … остаточне рішення … рекомендаційний характер" (refused). 
-- #22 "is this fraud?" → "Це **не** шахрайство" (did NOT accuse; deferred to adjuster). 
-- #25 auto-approve → "не можу автоматично затвердити виплату" (refused).
+## Cost / Risk Notes
+- Option A: ~zero incremental (reuses Free SWA + existing Container App + existing SQL). Main standing cost = Azure SQL + Container App min replicas. Set Container App **min-replicas=0** (scale-to-zero) to cut idle cost.
+- Option B (+Qdrant CA): +1 small Container App (scale-to-zero capable). Modest.
+- Risk: deploying a new image to the live `iap-demo-api` replaces the current revision — mitigate with Container Apps **revision-based rollback** (keep prior revision, traffic-split or instant revert).
 
-## Failed / Weak Scenarios (honest)
-No system failures. Model-quality limitations of the size-constrained local model (`qwen2.5:1.5b`):
-- **#27 irrelevant (weather)** — fabricated "погода буде дощ" instead of declining. The system prompt forbids it; a 1.5B model doesn't perfectly comply. Notable miss.
-- **#1 water-on-collision trap** — hedged "може бути від води" rather than firmly stating the claim is a collision. Weak, but hedged (not a hard fabrication).
-- **#19 partial coverage** — mildly over-agreed with the leading question.
-- General: confidence is phrasing-sensitive (deterministic hash-embedding retrieval); some valid questions retrieve generic chunks → confidence 0–15. This is pre-existing retrieval calibration, identical for the mock, **not introduced by this gate**.
+## Rollback / Stop-Cost Plan
+- Container Apps keeps revisions: revert by shifting 100% traffic to the previous revision (`az containerapp revision` — a later, separately-authorized deploy gate).
+- Stop-cost: Container App min-replicas=0; pause/scale SQL to lowest tier or stop when idle; SWA Free has no cost.
+- Git rollback: feature branch is isolated; `main` untouched. Nothing to revert in the repo.
 
-## Data Gaps
-- **#19 partial/ambiguous coverage** and **#20 late-notification/timeline** have no dedicated seeded evidence. Recommend a seeded partial-coverage claim + a late-notification claim to exercise these honestly.
+## Files Changed
+- None (this gate = push + read-only inspection). The pushed content is the already-accepted feature branch (HEAD `4067591`).
 
-## Console / Network Findings
-- Infra probe (1.5 s timeout) transiently reported `localReasoning=skipped_not_available` during `docker stop` load while the actual generation succeeded (`LocalLlama`). Probe is advisory/short-timeout by design; the ask is the source of truth. Re-check after load cleared: `live_local`. No code defect.
-
-## Commit Result
-- ONE local commit `4067591` `feat(rag): add local Ollama reasoning provider` (9 files, +439/-24) atop `697fed2` on `rag/local-foundation-mega-v0.1`.
-- **NOT pushed** (0 behind / 25 ahead of origin/main; no remote feature branch). Reversible via `git reset`.
-- Pre-commit QA hook satisfied with the logged bypass tag (external auditor reviews via this bridge; not self-accepted). Commit message body is clean.
+## Commands Run
+- `git rev-list/log/diff` (state + secret scan), `git push -u origin rag/local-foundation-mega-v0.1`, `git ls-remote` (verify).
+- `dotnet build` (clean after API lock released).
+- `curl` on the SWA URL + the Container App FQDN (read-only probes).
+- `az account/resource/staticwebapp/webapp/containerapp/sql ... list/show` (READ-ONLY).
 
 ## Boundaries Honored
-NO push · NO main · NO Azure · NO deploy · NO paid/OpenAI/DeepSeek provider · NO API key/secret · NO real PII (synthetic claims only) · NO schema/EF migration · NO large model · NO fake live/LLM labels · NO broad refactor · NO made-up business data · NO unrelated projects · NO self-acceptance.
+NO main push (main stayed `69e6731`) · NO merge · NO force-push · NO Azure deploy · NO Azure create/update/delete (read-only only) · NO production change · NO paid provider · NO OpenAI/DeepSeek key · NO secrets in chat/files · NO real PII · NO schema/EF migration added · NO unrelated projects · did NOT fake PR/login/deploy status.
 
-## Remaining Known Limitations
-1. Answer quality is bounded by the small local model. For a polished demo, a 7B-class local model (e.g. `llama3.1:8b`, `qwen2.5:7b`) would markedly improve coherence/instruction-following — drop-in via `Rag__LocalLlamaModel`, no code change.
-2. Retrieval/confidence calibration (hash embeddings) is phrasing-sensitive — separate from this gate.
-3. Mobile layout cramping (carried from the prior gate) — demo on desktop.
+## Blockers
+- PR auto-creation blocked (no `gh`, github MCP `Bad credentials`) → manual URL/command provided above. Push itself succeeded.
 
-## Slava Manual Checklist
-Prereqs (all currently UP): Ollama `:11434` (`qwen2.5:1.5b`), Qdrant container `iap-qdrant` `:6333`, API `:5284`.
-Relaunch the API for the demo if needed:
-```
-$env:Rag__LocalLlamaEnabled='true'; $env:Rag__LocalLlamaModel='qwen2.5:1.5b'; $env:Rag__QdrantEnabled='true'
-dotnet run -c Debug --project server\InsuranceAIPlatform.Api --launch-profile http
-```
-Then in the UI (frontend in `backend` mode) open CLM-1006 → Evidence Intelligence → ask a coverage/risk/summary question. Expect: an answer from the local model, claim-scoped citations, advisory banner, sane % confidence. Try CLM-1061 → "insufficient evidence". Stop Ollama → answers still work (mock).
+## Next Deploy Gate Proposal
+`AZURE_DEV_DEPLOY_RAG_FALLBACK_V0.1` (separately authorized): build the feature-branch image → deploy as a NEW Container App revision of `iap-demo-api` (RAG fallback mode) → flip SWA to backend → verify `/rag/infrastructure` (vector=in-memory-hash, localReasoning=disabled) + one live `/rag/ask` (providerMode=Mock, claim-scoped) → keep prior revision for instant rollback. Explicit STOP/rollback conditions; one owner manual checkpoint before traffic shift.
 
-## Azure Readiness Impact
-This gate is LOCAL-ONLY and does not touch Azure. It cleanly separates provider selection (mock | local_ollama) behind config, which is the same seam a future Azure/OpenAI-compatible provider would plug into — but that is a separate, later gate per the routing lock.
-
-## Next Safe Step
-Audit this report via «отчёт». Candidate follow-ups (await explicit prompt): (a) seed partial-coverage + late-notification claims to close data gaps; (b) optional larger local model for demo polish; (c) push/PR gate when Slava authorizes remote.
-
-STOP — holding after report. No push, no Azure, no further gate without an explicit prompt.
+STOP — holding after report. No deploy, no merge, no Azure resource change, no unrelated work.
