@@ -1,73 +1,80 @@
-REQUEST_ID: REQ-2026-06-06-insuranceai-azure-dev-deploy-rag-fallback-mega-v0-1
+REQUEST_ID: REQ-2026-06-06-insuranceai-azure-sql-rag-migrate-seed-redeploy-mega-v0-1
 STATUS: BLOCKED
-TASK_TYPE: project-azure-dev-deploy-and-smoke
+TASK_TYPE: project-azure-sql-migrate-seed-deploy-smoke
 PROJECT: InsuranceAIPlatform
-GATE: AZURE_DEV_DEPLOY_RAG_FALLBACK_MEGA_V0.1
+GATE: AZURE_SQL_RAG_MIGRATE_SEED_AND_REDEPLOY_MEGA_V0.1
 COMPLETED_BY: claude
 
-# Azure dev deploy — BLOCKED before any Azure mutation (RAG SQL-schema prerequisite vs. gate's no-migration boundary)
+# Azure SQL RAG migrate+seed+redeploy — BLOCKED on SQL access (no Azure mutation performed)
 
-One-line: the deploy MECHANISM is understood and feasible, but the target **Azure SQL database lacks the RAG schema**, and creating it requires an **EF migration which THIS gate explicitly forbids**. Deploying the RAG image would make `/rag/*` return **500** (missing tables) — a STOP condition — and flipping the frontend would break the currently-working public mock demo. Therefore I stopped **before mutating any Azure resource** (all Azure calls this gate were READ-ONLY). No deploy, no revision change, no frontend flip, no rollback needed.
+One-line: the migration cannot start because **no allowed, secret-safe credential path grants me DDL access to the dev/test Azure SQL DB**. The backend authenticates to SQL via **Managed Identity** (usable only by the app's MI, not from my workstation), the SQL server has **no Entra admin**, my Azure identity has **no Key Vault access** and **no SQL DB login**. Per the gate's own STOP condition ("SQL access requires a pasted password/secret → STOP BLOCKED"), I stopped **before any change** — all Azure calls this gate were READ-ONLY; **no firewall rule was added, no migration run, no deploy**. The blocker is a one-time access grant only you can authorize.
 
 ## Routing Lock Verification
-- PROJECT InsuranceAIPlatform; remote `slavkan777/InsuranceAIPlatform`; branch `rag/local-foundation-mega-v0.1`; HEAD `4067591` (pushed, matches preflight). Working tree clean. No source change this gate.
+- PROJECT InsuranceAIPlatform; remote `slavkan777/InsuranceAIPlatform`; branch `rag/local-foundation-mega-v0.1`; HEAD `4067591` (pushed). Tree clean. No source change.
 
 ## Starting Repo State
-- `git status` clean; HEAD `4067591 feat(rag): add local Ollama reasoning provider`; `origin/rag/local-foundation-mega-v0.1 = 4067591`; `origin/main = 69e6731` (untouched).
+- HEAD `4067591`; `origin/rag/local-foundation-mega-v0.1 = 4067591`; `origin/main = 69e6731` (untouched).
 
 ## Azure Target Verification (READ-ONLY)
-- Logged in (subscription enabled; GUIDs omitted from this public report). RG `rg-iap-demo` (westeurope).
-- Container App `iap-demo-api`: image **`ghcr.io/slavkan777/insuranceai-api:14d5c81-cors`**, `registries=null` (anonymous GHCR pull → package is public), **active revision `iap-demo-api--0000002`** (rollback target), minReplicas=0, FQDN `iap-demo-api.bluehill-ebdd0494.westeurope.azurecontainerapps.io`.
-- Static Web App `iap-demo-swa`: Free, mock mode, host `kind-meadow-03cf73103.7.azurestaticapps.net`.
-- **No ACR** in the subscription.
+- Subscription logged in as `info.msdn.com@gmail.com` (my Azure identity). RG `rg-iap-demo` ✓. SQL server `iap-sql-r2-6c7g465.database.windows.net`, DB `InsuranceAIPlatform` ✓ (state Ready). SWA `iap-demo-swa` (mock). Container App `iap-demo-api`, active revision `iap-demo-api--0000002`, image `…:14d5c81-cors` (rollback target). Public SWA URL loads (200).
 
-## Pre-Deploy Checks
-- Secret scan (carried from preflight): clean. No `.env`/secret files committed. Connection string = passwordless localdb (dev). Build: 181/181 on `4067591` (this session). No new migration in this gate's HEAD.
-- **Deploy mechanism discovered:** `server/Dockerfile` is tracked (multi-stage .NET 9, context `server/`, runtime :8080 — it is the SAME Dockerfile that produced the current live image). Docker available locally (20.10.23). GHCR auth cached in docker config. Deploy verb would be `az containerapp update -n iap-demo-api -g rg-iap-demo --image ghcr.io/slavkan777/insuranceai-api:<tag>`. **Mechanism is feasible** — it is NOT the blocker.
-- **The `.github/workflows/azure-deploy-demo.yml` is a DISABLED skeleton** (build/push/deploy steps commented; "disabled until AZURE_MINIMAL_DEPLOY_V0.1"; GH secrets "not configured"). So CI-based deploy is not wired; a manual `docker build → GHCR push → az containerapp update` is the only working path.
+## SQL Access Method — the blocker (all evidence READ-ONLY, no secret value printed)
+1. **Backend uses Managed Identity for SQL.** The Container App env has `AZURE_CLIENT_ID` (= user-assigned MI `iap-demo-api-mi`) and `ConnectionStrings__InsuranceAIPlatform` → Container App secret `sql-connection`. I retrieved that secret's value and classified it WITHOUT printing: length 173, **no `Password=`, no `Authentication=`, no `Active Directory` keyword** → it is a passwordless, token-(MI)-authenticated connection string. The MI token can only be acquired by the MI identity inside the app, not from my workstation.
+2. **No Entra admin on the SQL server** (`az sql server ad-admin list` → `[]`) → I cannot connect via Active Directory auth as my own identity, and there is no AAD principal with DDL rights I can use.
+3. **No Key Vault access for me** (`az keyvault secret list` on `iapdemokv6c7g465vrcfi4` → denied) → I cannot retrieve any alternate SQL admin connection string/password.
+4. **No SQL-auth password available** anywhere I can read; the gate forbids you pasting a secret into chat.
+5. Firewall currently allows only `AllowAllAzureServices` (0.0.0.0); my client IP `176.36.240.192` is not allowed (a temp rule was permitted, but it is moot without working credentials, so I did NOT create one).
 
-## THE BLOCKER (hard) — Azure SQL is missing the RAG schema, and creating it is forbidden here
-Evidence the RAG tables are absent in the Azure SQL `InsuranceAIPlatform` DB:
-1. The live backend image is `…:14d5c81-cors` — commit `14d5c81`, which **predates** the RAG migration `20260604161120_AddRagFoundation` (committed in `912e841`, after the Azure SQL persistence deploy `70af774`).
-2. The API does **NOT** migrate or seed at startup — `server/.../Api/Program.cs` contains only `builder.Build()` (l.224) and `app.Run()` (l.247); no `Database.Migrate()`, no `RagSeeder`. Schema/seed is applied by the **separate `DbMigrator` project**, which the old deploy ran only up to its commit (pre-RAG).
-3. Live proof: `/api/claims` → 200 (Claims schema present), but `/api/.../rag/infrastructure` → 404 on the old image (no RAG endpoint). On the NEW image that endpoint exists and immediately queries `PolicyClauses`/`EvidenceChunks`/`RagAuditTraces`/`RagEvaluationQuestions` — tables that do not exist → **SqlException → HTTP 500**.
+Net: every credential path the gate authorizes — Managed Identity / Key Vault / configured connection string / Azure CLI Entra token — is unavailable to me for DDL. Tooling itself is ready (`dotnet-ef` + `sqlcmd` installed, `DbMigrator` exists).
 
-Consequence: deploying the RAG image in fallback mode would turn `/rag/*` from 404 into **500** (STOP condition "/rag returns 500" / "RAG endpoints remain 404"). The fix — apply `AddRagFoundation` + run `RagSeeder` against Azure SQL — is an **EF/schema migration**, which this gate **explicitly forbids** ("NO schema/EF migration"). The two requirements are mutually exclusive within this gate.
+## Prechecks (done where possible)
+- Tree clean; HEAD `4067591`; backend 181/181 on this commit (this session); the migration to apply is the EXISTING `20260604161120_AddRagFoundation` (NOT a newly-generated one — confirmed).
 
-Additional reason not to proceed: the public SWA demo currently works in mock mode; flipping it to backend mode against a backend whose `/rag` 500s would **break the live portfolio demo**. Not worth it for a predictably-failing RAG path.
+## Pre-Migration DB State
+- Could not be inspected (no DB access). Strong prior evidence (preflight gate) that RAG tables are absent: live image predates `AddRagFoundation`; API does not migrate at startup.
 
-## Backend Build/Image/Deploy
-- NOT performed (would be wasted — the deploy would fail RAG smoke and require rollback). Mechanism + Dockerfile validated by inspection; image-build risk LOW (feature branch passes `dotnet build` + 181/181; Dockerfile is the proven one).
+## Migration/Seed Actions
+- NONE. No connection established; `DbMigrator`/`dotnet ef` NOT run against Azure SQL.
 
-## Backend Env Settings / Frontend Deploy/Config / Smoke / UI / RAG-fallback / Citation proofs
-- NOT performed — gated behind the blocker above. No Azure resource was created/updated/deleted; no frontend redeploy; live SWA + Container App untouched.
+## Post-Migration DB Proof / Backend Deploy / Frontend Deploy / Smoke / RAG Fallback / Citation proofs
+- NONE — all gated behind the SQL-access blocker. No Container App revision created, no image pushed, no SWA change.
 
-## Rollback State
-- N/A — nothing was deployed. Live state unchanged: `iap-demo-api--0000002` (image `14d5c81-cors`) still active; SWA still mock. Recorded rollback target for the future gate: revision `iap-demo-api--0000002`.
+## Rollback/Cleanup State
+- Nothing to roll back (no mutation). No temporary firewall rule created (so none to remove). Live demo + backend untouched. Rollback target recorded for the future deploy: revision `iap-demo-api--0000002`.
 
 ## Files Changed
-- None (no source/config change; no commit this gate).
+- None.
 
 ## Commands Run (all READ-ONLY for Azure)
-- `git` state/secret-scan; `az account/resource/staticwebapp/webapp/containerapp/acr/sql show|list` (read-only); `curl` health/endpoint probes; `docker version`; local file reads (Dockerfile, Program.cs, workflow).
+- `az account/sql server (show, ad-admin list, firewall-rule list)/keyvault secret (list)/containerapp (show, secret show)` — read-only; secret value classified, never printed.
+- `git` state; tooling version checks; public-IP lookup.
 
 ## Boundaries Honored
-NO Azure deploy · NO Azure create/update/delete (read-only only) · NO main push · NO merge · NO production · NO new resources · NO Qdrant/Ollama Azure · NO paid provider · NO secrets printed/committed · NO schema/EF migration · NO force push · NO fake deploy/smoke status · live demo left intact.
+NO Azure mutation (read-only only) · NO firewall rule created · NO migration run · NO deploy · NO new resources · NO main/merge/prod · NO Qdrant/Ollama Azure · NO paid provider · NO secret printed/committed (SQL secret retrieved for classification only, never displayed) · NO new EF migration · NO destructive op · NO fake status.
 
 ## Cost/Risk Notes
-- Zero cost incurred (read-only). The recommended prerequisite (migrate+seed Azure SQL) adds no standing cost; Container App stays scale-to-zero.
+- Zero cost (read-only). No security posture changed (I deliberately did NOT set an Entra admin / grant myself access — that is your decision).
 
 ## Blockers/Failures
-- **BLOCKER:** Azure SQL `InsuranceAIPlatform` DB lacks the RAG schema; the migration to create it is forbidden by this gate's "NO schema/EF migration" boundary. (Strong inference from image tag + Program.cs + migration ordering; not a direct SQL query — Azure SQL firewall/Entra prevents a read-only table list without a firewall/access change, which would itself be a resource mutation.)
-- Override path: if the `ai_analysis` schema in Azure SQL was in fact migrated to `AddRagFoundation` + seeded in a step not visible to me, this gate can proceed directly — confirm and I will deploy on the next prompt.
+- **BLOCKER (access):** no secret-safe DDL credential path to Azure SQL `InsuranceAIPlatform` from my workstation (MI-only app auth + no Entra admin + no KV access + no DB login). This is a one-time access/ownership decision, not a technical defect.
 
-## Slava Manual Azure Checklist (if you want to unblock now)
-None required for THIS report. To enable the deploy, the prerequisite gate below needs explicit authorization (it performs an EF migration on the cloud DB — its own risk gate).
+## Slava Manual Azure Checklist — pick ONE to unblock (no secret in chat needed)
+**Option 1 (recommended — you run the migration; you already own the DB).** From your machine/portal, apply the existing migration + seed:
+```
+# connection string with YOUR admin access (portal Query editor, or AAD as server admin, or SQL admin login)
+$env:ConnectionStrings__InsuranceAIPlatform = "<your Azure SQL admin connection string>"
+dotnet run --project server/InsuranceAIPlatform.DbMigrator
+```
+(Idempotent: applies `AddRagFoundation` + runs all seeders incl. `RagSeeder`; no drops.) Then fire the next «промт» and I complete the build → GHCR push → `az containerapp update` → smoke.
 
-## Next Safe Step — proposed prerequisite gate
-`AZURE_SQL_RAG_MIGRATE_SEED_V0.1` (separately authorized, because it is a schema migration on a cloud DB):
-1. Read-only confirm current `ai_analysis` schema level in Azure SQL (sqlcmd with Entra token + temporary client-IP firewall allow, then revert) — verify RAG tables truly absent.
-2. Apply `AddRagFoundation` via `DbMigrator` (or `dotnet ef database update`) against Azure SQL; run `RagSeeder` (synthetic CLM-1006…1011 + CLM-1061). Idempotent.
-3. THEN re-run THIS deploy gate (`AZURE_DEV_DEPLOY_RAG_FALLBACK_MEGA_V0.1`) — mechanism already de-risked: `docker build -f server/Dockerfile server` → `docker push ghcr.io/slavkan777/insuranceai-api:<tag>` → `az containerapp update --image … --set-env-vars Rag__QdrantEnabled=false Rag__LocalLlamaEnabled=false` → smoke → revision-rollback to `iap-demo-api--0000002` if needed.
+**Option 2 (grant me access, then I do everything next prompt).** Either:
+- set an Entra admin on the SQL server and add my identity as a DDL user:
+  `az sql server ad-admin create -g rg-iap-demo -s iap-sql-r2-6c7g465 --display-name slava --object-id <your-aad-object-id>` (then create a contained DB user for `info.msdn.com@gmail.com` with `db_ddladmin`), **or**
+- grant my identity Key Vault data-plane read if a SQL admin connection string is stored there:
+  `az role assignment create --assignee info.msdn.com@gmail.com --role "Key Vault Secrets User" --scope <kv resource id>`.
+Either way I add a temp client-IP firewall rule, migrate+seed, deploy, smoke, and remove the rule.
 
-STOP — holding after report. No deploy, no Azure mutation, no migration, no main, no unrelated work.
+## Next Safe Step
+After SQL is migrated/seeded (Option 1 or 2), the rest is low-risk and ready: `docker build -f server/Dockerfile server` → `docker push ghcr.io/slavkan777/insuranceai-api:rag-fallback-<sha>` → `az containerapp update -n iap-demo-api -g rg-iap-demo --image … --set-env-vars Rag__QdrantEnabled=false Rag__LocalLlamaEnabled=false` → smoke `/rag/infrastructure` (in-memory-hash, Llama disabled) + `/rag/ask` (Mock, claim-scoped) → SWA backend-mode → rollback to `iap-demo-api--0000002` if needed.
+
+STOP — holding after report. No Azure mutation, no migration, no deploy, no security/access change, no main, no unrelated work.
