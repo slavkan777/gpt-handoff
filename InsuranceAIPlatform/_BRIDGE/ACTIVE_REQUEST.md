@@ -1,10 +1,10 @@
-REQUEST_ID: REQ-2026-06-06-insuranceai-push-pr-azure-preflight-v0-1
+REQUEST_ID: REQ-2026-06-06-insuranceai-azure-dev-deploy-rag-fallback-mega-v0-1
 STATE: READY_FOR_CLAUDE
-TASK_TYPE: project-remote-branch-and-azure-preflight
+TASK_TYPE: project-azure-dev-deploy-and-smoke
 PROJECT: InsuranceAIPlatform
-GATE: PUSH_PR_AZURE_PREFLIGHT_V0.1
+GATE: AZURE_DEV_DEPLOY_RAG_FALLBACK_MEGA_V0.1
 TARGET_REPORT_PATH: InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md
-PROJECT_REPORT_PATH: InsuranceAIPlatform/push-pr-azure-preflight-v0.1/report.md
+PROJECT_REPORT_PATH: InsuranceAIPlatform/azure-dev-deploy-rag-fallback-mega-v0.1/report.md
 LATEST_REPORT_PATH: InsuranceAIPlatform/latest-report.md
 CREATED_BY: architect-gpt
 
@@ -15,78 +15,98 @@ SOURCE_REPO_REMOTE: slavkan777/InsuranceAIPlatform
 HANDOFF_PROJECT_PATH: gpt-handoff/InsuranceAIPlatform/
 ACTIVE_REQUEST: gpt-handoff/InsuranceAIPlatform/_BRIDGE/ACTIVE_REQUEST.md
 LATEST_REPORT: gpt-handoff/InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md
-GATE_REPORT: gpt-handoff/InsuranceAIPlatform/push-pr-azure-preflight-v0.1/report.md
+GATE_REPORT: gpt-handoff/InsuranceAIPlatform/azure-dev-deploy-rag-fallback-mega-v0.1/report.md
 
 OPERATOR NOTE:
-Follow ROUTING LOCK strictly. Local RAG + Qdrant + Ollama is accepted. This gate moves from local-only to remote-branch readiness and Azure preflight planning. This is NOT an Azure deployment gate. Do not merge, do not deploy, do not touch production.
+This is ONE combined Azure dev/test deploy mega-gate. Avoid endless micro-prompts. Execute the complete safe dev deploy path if possible, then smoke-test and report. Slava should only be interrupted for auth/UAC/manual browser confirmations if a tool requires it. Do not ask for passwords/secrets.
 
-CONTEXT:
-Accepted local state:
-- branch: rag/local-foundation-mega-v0.1
-- local RAG pipeline complete;
-- local Qdrant vector retrieval complete;
-- local Ollama reasoning provider complete with qwen2.5:1.5b;
-- mock fallback preserved;
-- latest accepted local source commit expected: 4067591 feat(rag): add local Ollama reasoning provider;
-- previous report says 181 tests passed, Qdrant/Ollama/fallback verified, 30 scenario sweep 27/30 PASS, 3 model-quality REVIEW, 0 FAIL, 0 leakage.
-
-KNOWN AZURE URL TO INSPECT:
-https://kind-meadow-03cf73103.7.azurestaticapps.net/
+CONTEXT FROM ACCEPTED PREFLIGHT:
+- Feature branch `rag/local-foundation-mega-v0.1` is pushed to origin at expected HEAD `4067591`.
+- main remains untouched.
+- Existing Azure dev/test resource group: `rg-iap-demo`.
+- Existing Static Web App: `iap-demo-swa`, currently frontend mock mode.
+- Existing backend Container App: `iap-demo-api`, currently live but old image; `/health` and `/api/claims` work; `/api/.../rag/infrastructure` returns 404 because image predates RAG.
+- Existing Azure SQL DB and Key Vault/Managed Identity already exist.
+- No Qdrant or Ollama exists in Azure.
+- Recommended Option A: cheapest dev demo using existing infra, RAG fallback mode only: `Rag__QdrantEnabled=false`, `Rag__LocalLlamaEnabled=false`, Mock grounded generator, in-memory-hash retrieval.
 
 GOAL:
-Prepare the project for a safe Azure dev/test deployment by pushing the current feature branch or preparing a PR, and producing an Azure preflight plan based on the current repo, current Azure/static site observations, and required runtime architecture. Do not deploy yet.
+Deploy the already-accepted feature branch to the existing Azure DEV/TEST environment using the cheapest safe architecture: existing Static Web App + existing backend Container App + existing Azure SQL/KV/MI, with RAG fallback mode only. Then smoke-test from Azure URL as a user would and publish a complete report. No production, no main, no paid provider, no Qdrant/Ollama Azure deployment in this gate.
 
 DONE STATE:
-1. Verify routing lock, repo path, branch, HEAD, remote, and git status.
-2. Confirm current local HEAD includes accepted commits through the Ollama provider commit, expected around 4067591.
-3. Run pre-push checks:
-   - git diff/status clean or expected;
-   - no unrelated files;
+1. Verify routing lock, current repo, branch, HEAD, remote state, and clean/expected tree.
+2. Reconfirm target Azure resources read-only before changes:
+   - subscription logged in;
+   - resource group `rg-iap-demo`;
+   - static web app `iap-demo-swa`;
+   - container app `iap-demo-api`;
+   - previous revision/image and current FQDN;
+   - rollback target/current active revision.
+3. Re-run lightweight pre-deploy checks:
+   - no unrelated local changes;
    - no secrets in changed files/configs;
-   - backend build/tests or targeted confidence check if full suite is too expensive;
-   - frontend build if relevant;
-   - confirm no EF/schema migration was added.
-4. If checks pass, push ONLY the feature branch `rag/local-foundation-mega-v0.1` to origin. Do NOT push main. Do NOT force-push. If push is blocked by auth, report exact blocker and stop that subpart.
-5. If GitHub CLI/browser auth is already available, optionally create a draft PR from feature branch to main with a clear title/body. If PR creation requires manual auth or browser confirmation, report the exact command and do not invent status.
-6. Inspect the public Azure Static Web App URL with browser/curl/Playwright if possible:
-   - does the frontend load;
-   - is it mock/demo mode or backend mode;
-   - console/network errors;
-   - whether API calls point to any backend;
-   - whether current Azure app can support the new RAG/Qdrant/Ollama features or is frontend-only.
-7. Azure CLI preflight READ-ONLY only:
-   - check whether `az` is installed;
-   - check `az account show` if already logged in;
-   - if not logged in, ask Slava to run `az login` manually in his terminal. Do not ask for passwords.
-   - if logged in, list relevant subscriptions/resource groups/static web apps/app services/container apps READ-ONLY. Do not create/update/delete resources.
-8. Produce Azure deployment architecture options:
-   A. Cheapest dev demo: Static Web App + backend API + Qdrant/fallback, no live Ollama in Azure.
-   B. Dev live local-LLM demo: backend + Qdrant + Ollama container if feasible, with cost/CPU/memory caveats.
-   C. Production-like later: managed LLM provider/OpenAI-compatible provider, requires separate owner approval and paid provider.
-9. Recommend one safest next deploy gate with exact boundaries and rollback.
-10. Publish fresh report to all three project-specific paths.
+   - backend build/test or targeted build if full suite is too expensive;
+   - frontend build if frontend will be deployed;
+   - no new EF/schema migration in this deploy step.
+4. Build and deploy backend from `rag/local-foundation-mega-v0.1` to existing `iap-demo-api` ONLY as a new Container App revision/image, using the existing deployment mechanism/registry/workflow/scripts if present. If registry/workflow auth is missing, stop with exact blocker. Do not create new Azure resources.
+5. Configure backend env/app settings for DEV fallback mode only:
+   - `Rag__QdrantEnabled=false`;
+   - `Rag__LocalLlamaEnabled=false`;
+   - preserve existing SQL/KV/MI settings;
+   - no API keys;
+   - no paid providers.
+6. Deploy/update frontend to existing `iap-demo-swa` so it calls the backend Container App, not mock-only mode. If Vite env vars are build-time, rebuild with:
+   - `VITE_INSURANCE_API_MODE=backend`;
+   - `VITE_INSURANCE_API_BASE_URL=<iap-demo-api FQDN>`.
+   Use existing SWA deployment path if present. Do not create a new SWA.
+7. Smoke test Azure end-to-end:
+   - SWA URL loads: `https://kind-meadow-03cf73103.7.azurestaticapps.net/`;
+   - frontend is backend mode, not mock-only;
+   - backend `/health` 200;
+   - `/api/claims` 200;
+   - `/api/claims/CLM-1006/rag/infrastructure` no longer 404;
+   - expected in fallback mode: vector backend/status honestly shows in-memory/fallback or qdrant disabled, not qdrant/live;
+   - `/api/claims/CLM-1006/rag/ask` returns 200, `providerMode=Mock`, claim-scoped citations only CLM-1006, advisory banner/wording;
+   - UI CLM-1006 Evidence Intelligence renders answer/citations/confidence from Azure backend;
+   - CLM-1061 insufficient evidence still cautious if available;
+   - no fatal console/network errors.
+8. Rollback behavior:
+   - record previous backend revision/image before changes;
+   - if smoke fails critically, rollback Container App traffic to previous revision and restore SWA/mock or previous frontend deployment if feasible;
+   - report exactly what was rolled back or why rollback was not needed.
+9. Publish report to all three project paths.
 
-AZURE PREFLIGHT QUESTIONS TO ANSWER:
-- What is currently deployed at the provided Azure Static Web Apps URL?
-- Is it only frontend/static UI, or connected to a backend?
-- What env vars/configs will be needed for dev deploy?
-- Where should backend run: Azure App Service, Container Apps, Static Web Apps API, or other?
-- Where should Qdrant run for dev: Container App, App Service container, external service, or fallback-only?
-- Should Ollama be deployed to Azure now? If yes, what minimum resource/cost risk? If no, what local/managed-provider alternative?
-- What is the rollback/stop-cost plan?
-- What exact manual action does Slava need, if any, before deploy?
+ALLOWED CHANGES:
+- Existing dev/test Azure resources in `rg-iap-demo` only:
+  - update `iap-demo-api` Container App revision/image/env;
+  - update `iap-demo-swa` deployment/config to backend mode;
+  - read Azure SQL/KV/MI settings without exposing secret values.
+- Build artifacts/images required for this dev deploy.
+- No source code changes unless a tiny deploy config fix is absolutely required; if source/config changes are required, commit locally and report before/after. Prefer no source changes.
 
-BOUNDARIES:
-NO main push. NO merge. NO Azure deploy. NO Azure create/update/delete. NO production resources. NO paid provider. NO OpenAI/DeepSeek API keys. NO secrets in chat/files. NO real PII. NO schema/EF migration. NO force push. NO deleting resources. NO changing unrelated projects. NO pretending Azure login/deploy succeeded. If auth is required, ask Slava to do the auth flow manually without sharing credentials.
+STRICT BOUNDARIES:
+NO main push. NO merge. NO production. NO new Azure resources unless explicitly unavoidable and then STOP for Slava approval. NO Qdrant Azure deployment. NO Ollama Azure deployment. NO paid provider. NO OpenAI/DeepSeek/Azure OpenAI key. NO secrets printed or committed. NO real PII. NO schema/EF migration. NO force push. NO deleting resources. NO unrelated projects. NO fake deploy status. NO pretending smoke passed if endpoints/UI fail. If Azure/GitHub auth is required, ask Slava to complete the auth flow manually; never ask for passwords.
+
+STOP / ROLLBACK CONDITIONS:
+- Target resource group is not `rg-iap-demo` or resource names mismatch.
+- Deployment path would touch production or main.
+- A secret would need to be pasted into chat or committed.
+- Backend cannot build.
+- Backend health fails after deploy.
+- RAG endpoints remain 404 after deploy.
+- `/rag/ask` returns 500 or non-claim-scoped citations.
+- Frontend cannot reach backend due to CORS/config and cannot be fixed safely within deploy config.
+- Azure cost/resource creation would exceed existing dev/test scope.
+- Any destructive operation is required.
 
 REPORT FORMAT:
-REQUEST_ID: REQ-2026-06-06-insuranceai-push-pr-azure-preflight-v0-1
-STATUS: READY_FOR_AUDIT | PARTIAL | BLOCKED | FAILED
-TASK_TYPE: project-remote-branch-and-azure-preflight
+REQUEST_ID: REQ-2026-06-06-insuranceai-azure-dev-deploy-rag-fallback-mega-v0-1
+STATUS: READY_FOR_AUDIT | PARTIAL | ROLLED_BACK | BLOCKED | FAILED
+TASK_TYPE: project-azure-dev-deploy-and-smoke
 PROJECT: InsuranceAIPlatform
-GATE: PUSH_PR_AZURE_PREFLIGHT_V0.1
+GATE: AZURE_DEV_DEPLOY_RAG_FALLBACK_MEGA_V0.1
 COMPLETED_BY: claude
 
-Sections: Routing Lock Verification, Starting Repo State, Pre-Push Checks, Branch Push Result, PR Result, Azure URL Inspection, Azure CLI Read-Only Discovery, Current Azure Topology, Deployment Options, Recommended Dev/Test Architecture, Required Env Vars/Secrets, Cost/Risk Notes, Rollback/Stop-Cost Plan, Files Changed, Commands Run, Boundaries Honored, Blockers, Next Deploy Gate Proposal.
+Sections: Routing Lock Verification, Starting Repo State, Azure Target Verification, Pre-Deploy Checks, Backend Build/Image/Deploy, Backend Env Settings, Frontend Deploy/Config, Azure Smoke Matrix, UI Smoke Result, RAG Fallback Proof, Citation/Leakage Proof, Console/Network Findings, Rollback State, Files Changed, Commands Run, Boundaries Honored, Cost/Risk Notes, Blockers/Failures, Slava Manual Azure Checklist, Next Safe Step.
 
-STOP after report. Do not deploy, merge, touch Azure resources, or work on unrelated projects.
+STOP after report. Do not continue to Qdrant/Ollama Azure, paid providers, main merge, or unrelated work.
