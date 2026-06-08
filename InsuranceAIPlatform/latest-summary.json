@@ -1,27 +1,26 @@
 {
+  "requestId": "REQ-2026-06-08-insuranceai-azure-langchain-sidecar-deployment-and-smoke-v0-1",
+  "gate": "AZURE_LANGCHAIN_SIDECAR_DEPLOYMENT_AND_SMOKE_V0.1",
   "project": "InsuranceAIPlatform",
-  "reportId": "REQ-2026-06-05-insuranceai-local-live-runtime-setup-check-v0-1",
-  "gate": "LOCAL_LIVE_RUNTIME_SETUP_CHECK_QDRANT_OLLAMA_V0.1",
-  "status": "PARTIAL",
-  "headline": "Qdrant runtime LIVE_LOCAL (pulled+started+probe-verified); Ollama BLOCKED on prerequisite; retrieval still in-process (no Qdrant adapter yet)",
-  "qdrant": {
-    "runtime": "live_local",
-    "evidence": "container iap-qdrant Up on :6333; root returns qdrant 1.18.2; API probe reachable=true",
-    "retrievalBackend": "in-memory-hash (no Qdrant retrieval adapter yet; backend=qdrant label = enabled+reachable, not serving)"
-  },
-  "ollama": {
-    "runtime": "skipped_not_available / blocked",
-    "prerequisite": "not installed; winget unavailable -> manual installer + multi-GB model pull required (not performed)"
-  },
-  "smokeCLM1006": {
-    "vector": "live_local (reachable=true, backend=qdrant)",
-    "localReasoning": "skipped_not_available (reachable=false)",
-    "sql": "healthy", "index": "healthy"
-  },
-  "containerLeftRunning": "iap-qdrant (:6333) — stop: docker stop iap-qdrant",
-  "filesChanged": "none (verification/setup only)",
-  "sourceCommitted": false,
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
   "selfAccepted": false,
-  "nextSafeStep": "BUILD gate: real Qdrant retrieval adapter; OR owner-approved Ollama install+model; OR commit-gate for uncommitted RAG code",
-  "updated": "2026-06-05"
+  "date": "2026-06-08",
+  "source": { "branch": "rag/local-foundation-mega-v0.1", "commit": "0b47346" },
+  "images": {
+    "api": "ghcr.io/slavkan777/insuranceai-api:adv-ai-2259946-20260608211714",
+    "sidecar": "ghcr.io/slavkan777/insuranceai-langchain-sidecar:adv-ai-2259946-20260608211714"
+  },
+  "azure": {
+    "env": "iap-demo-cae",
+    "backendRevision": "iap-demo-api--0000005",
+    "rollbackBackendRevision": "iap-demo-api--0000004",
+    "sidecarApp": "iap-langchain-sidecar",
+    "sidecarRevision": "iap-langchain-sidecar--nqj6jlh",
+    "sidecarIngress": "internal",
+    "swa": "https://kind-meadow-03cf73103.7.azurestaticapps.net"
+  },
+  "smoke": { "A": "PASS", "B": "PASS", "C": "PASS", "D": "PASS", "E": "PASS", "F": "PASS" },
+  "syntheticData": ["CLM-1032"],
+  "finalLine": "GitHub handoff ready. Tell GPT: отчёт."
 }
