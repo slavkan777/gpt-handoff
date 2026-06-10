@@ -1,18 +1,17 @@
 {
-  "requestId": "REQ-2026-06-10-agentfactory-repo-create-bootstrap-skeleton-v0-1",
+  "requestId": "REQ-2026-06-10-agentfactory-first-runnable-task-workflow-v0-1",
   "project": "AgentFactory",
-  "gate": "AGENT_FACTORY_REPO_CREATE_BOOTSTRAP_SKELETON_V0.1",
+  "gate": "AGENT_FACTORY_FIRST_RUNNABLE_TASK_WORKFLOW_GATE",
   "status": "READY_FOR_AUDIT",
   "completed": "2026-06-10",
   "completedBy": "claude",
   "sourceRepo": "slavkan777/pi-setup",
   "sourceBranch": "main",
-  "sourceRepoAccessible": true,
-  "sourceRepoCreated": true,
-  "bootstrapCommit": "f75d0366f3b68816fbf6470ff1eb3b8e9530df76",
-  "targetReportPath": "AgentFactory/agent-factory-repo-create-bootstrap-skeleton-v0.1/report.md",
+  "sourceCommitBefore": "f75d0366f3b68816fbf6470ff1eb3b8e9530df76",
+  "sourceCommitAfter": "9f1cbd15a6bb068fc5c09bb3221130daf5782994",
+  "filesChanged": ["rules/NO_SECRETS.md", "README.md", "docs/ai-reports/first-runnable-task-workflow-v0.1.md"],
+  "targetReportPath": "AgentFactory/agent-factory-first-runnable-task-workflow-v0.1/report.md",
   "latestReportPath": "AgentFactory/latest-report.md",
   "blockedReason": "",
-  "filesChanged": ["pi-setup: 21 skeleton files @ f75d036 (full list in report)", "AgentFactory/agent-factory-repo-create-bootstrap-skeleton-v0.1/report.md", "AgentFactory/latest-report.md", "AgentFactory/latest-summary.json", "AgentFactory/_BRIDGE/LATEST_REPORT.md", "AgentFactory/_BRIDGE/STATUS.json"],
-  "nextSafeStep": "AGENT_FACTORY_FIRST_RUNNABLE_TASK_WORKFLOW_GATE - one bounded /task workflow end-to-end local-only inside pi-setup."
+  "nextSafeStep": "Owner choice: /review workflow first run (inspect gate over pi-setup) OR MVP-1 planning gate (docs-only)."
 }
