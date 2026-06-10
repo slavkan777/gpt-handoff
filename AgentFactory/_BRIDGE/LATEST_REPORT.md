@@ -1,117 +1,62 @@
-REQUEST_ID: REQ-2026-06-10-agentfactory-first-review-run-v0-1
+REQUEST_ID: REQ-2026-06-10-agentfactory-mvp1-finalize-review-fixes-v0-1
 STATUS: READY_FOR_AUDIT
-TASK_TYPE: audit
+TASK_TYPE: implementation-docs-only
 PROJECT: AgentFactory
-GATE: AGENT_FACTORY_FIRST_REVIEW_RUN_GATE
+GATE: AGENT_FACTORY_MVP1_FINALIZE_REVIEW_FIXES_GATE
 COMPLETED: 2026-06-10
 COMPLETED_BY: claude
 
 ## Current State
 
-First formal `/review` run executed over the entire `slavkan777/pi-setup` tree at commit **`16104cf32aca25d40072d68e1e352c89b01e227b`** (= the accepted MVP-1 tip), read-only. Pre-inspection state: branch `main`, working tree clean, local = origin 0/0 — no stop-conditions triggered. All 27 tracked files inspected fresh (full `git ls-files` + content read + pattern scans). Result: **0 BLOCKER, 0 HIGH, 4 MEDIUM, 1 LOW, 3 OBSERVATION** — the docs foundation is sound; the real findings are staleness/consistency polish, none of which blocks the next workflow run.
+All actionable findings from the first `/review` run (4 MEDIUM + 1 LOW) **and** the optional OB-1 observation are fixed in one docs-only commit on `slavkan777/pi-setup`. Stop-conditions were clean before work (branch `main`, empty tree, 0/0, base `16104cf` = the reviewed tip). MVP-1 is now the candidate for owner acceptance: `MVP1_READY_FOR_OWNER_ACCEPTANCE`.
 
-Honesty note: the reviewer (this session) authored most of the reviewed files in prior gates — lineage bias is real and is mitigated by (a) deliberately adversarial re-reading of the live tree (which DID surface findings against the author's own work, see CR-1) and (b) the fact that the actual verdict belongs to the GPT audit, not to this recommendation.
+## Review Findings Fixed
 
-## Review Scope
+| Finding | Status | What was done |
+|---|---|---|
+| **CR-1** (README stale) | **fixed** | Status block: "MVP-1 — workflow docs formalized", `/task` proven + `/review` completed (findings fixed by this gate); "First runnable target" → "**Proven so far**" with both done gates named; workflows table row lists all six specs. Confirmed: `grep -c "MVP-0 — docs-first skeleton only"` → 0 |
+| **CR-2** (governance traceability) | **fixed** | Exact label kept (`AIKB Project Bridge Protocol v1.2`) + canonical path added (`00_CONTROL_CENTER/PROJECT_BRIDGE_PROTOCOL.md`) + required note verbatim ("AgentFactory follows this protocol through gpt-handoff project/gate-specific channels; AIKB is not modified from AgentFactory gates"). **No AIKB reads or writes performed** — mapping text from the request used as instructed |
+| **CR-3** (`/quick` audit-exempt reading) | **fixed** | Explicit paragraph after the phases: report **still subject to GPT audit**; **owner acceptance closes the gate**; `/quick` is **not audit-exempt** (grep line 20) |
+| **AR-1** (learning homes fuzzy) | **fixed** | `learnings/README.md` rewritten with the concrete boundary exactly per the request (LOG.md = durable accepted lessons, **default home**; `learnings/` = operational scratchpad only when volume justifies separate files; no durable learnings in gpt-handoff; AIKB only after «зафиксируй»; rules promotion = owner approval) **+ a worked `/recurse` example** (raw failure log here → one distilled durable lesson to LOG.md). `docs/ai-learnings/LOG.md` left unchanged — structural guidance, no fabricated lesson entries |
+| **AR-2** (`/feature` roles) | **fixed** | Every phase now names its product role exactly per the required mapping (Creator ×3, Cross-reviewer ×2, Tester, Test-verifier, Creator-or-designated-reporter, Improver, GPT audit + Slava owner gate) — 8 role annotations confirmed by grep |
+| **OB-1** (optional, stale wording) | **fixed** | Operating-doc gate history: "this gate" replaced with explicit gate names + dates; history now lists all five gates incl. the `/review` results; status line = "MVP-1 candidate for owner acceptance" |
 
-Everything in the tree (27 files): README; rules (NO_SECRETS + README); operating doc; LOG.md; both run notes in docs/ai-reports; 5 agent files; 6 workflow specs; 5 stub READMEs; 4 DEFERRED placeholders; .gitkeep. Scans: secret patterns (whole tree), non-markdown/executable files, "secret"-wording weakening check, DEFERRED integrity.
+## Source Changes
 
-## Correctness Review
+| File | Diff |
+|---|---|
+| `README.md` | 8 lines (status / governance / proven-so-far / table row) |
+| `workflows/quick.md` | +2 (audit/acceptance paragraph) |
+| `workflows/feature.md` | 20 lines (role annotations on all 10 phases) |
+| `learnings/README.md` | +13 (boundary + example) |
+| `docs/ai-workflows/PROJECT_AI_OPERATING_SYSTEM.md` | 10 lines (gate history with explicit names/dates/SHAs) |
+| `docs/ai-reports/mvp1-finalize-review-fixes-v0.1.md` | NEW — in-repo run note |
 
-- Workflows match the accepted intent (one-repo source of truth, 5 product roles, phased workflows, improve loop, local-only) — VERIFIED against the gate chain (`f75d036` → `9f1cbd1` → `16104cf`).
-- Internal consistency of `/task`/`/feature`/`/quick`/`/review`/`/recurse`/improve-loop — largely consistent (shared no-self-approval, escalation paths, spec-not-automation markers), with two exceptions ↓.
-- **[CR-1 / MEDIUM] README status block is stale relative to accepted history** (single deduped finding, three symptoms): line "Current status: MVP-0 — docs-first skeleton only" contradicts the formalized MVP-1 (operating doc §2 says MVP-1 formalized); line "First runnable target: /task … — a future gate" is wrong — `/task` already ran (`9f1cbd1`, recorded in the operating doc gate history); repo-layout table row still lists `workflows/` as "(`task`, `review`, `recurse`)" while the pointer line above it correctly lists six specs. One small README maintenance edit fixes all three.
-- **[CR-2 / MEDIUM] Governance citation not traceable:** README cites "AIKB Project Bridge Protocol v1.2". The accepted global governance doc known to this reviewer is "AI Engineering Bridge Universal V0.1.1" (ai-kb). Whether "v1.2" names the same accepted protocol, an older one, or a different GPT-side document is **NOT VERIFIED** (AIKB reads are outside this gate's routing lock). Risk: governance-name drift across projects. Fix: align the citation with the canonical accepted doc name, or record the mapping.
-- **[CR-3 / MEDIUM] `/quick` has no explicit audit step:** its phases end at improve; `/task` has an explicit `audit` phase and `/feature` has `owner audit/acceptance`. `/quick` only implies audit ("ends with an audit-capable report"). As written it could be read as audit-exempt, which contradicts the no-self-approval invariant. Fix: one line (e.g., "report is still subject to GPT audit; owner acceptance closes the gate").
-- Roles vs seats separation — VERIFIED (operating doc §1 table; no leakage anywhere).
-- Deferrals — consistent everywhere (README boundaries, OS doc, 4 DEFERRED.md, NO_SECRETS future-gates line). No contradictions found.
-
-## Architecture Review
-
-- One-repo source of truth — VERIFIED: clean top-level split (agents/workflows/rules/skills/learnings/configs/scripts + docs/ + deferred dirs), no orphan files.
-- MVP-0/MVP-1 local-only boundary — VERIFIED: 0 non-markdown files (besides .gitkeep), no scripts, no automation; every workflow spec carries an explicit "spec, not automation yet" marker.
-- MVP-2/MVP-3 separation — VERIFIED: placeholders only, each demanding a separate owner-approved gate.
-- Improve loop non-self-approving — VERIFIED: proposes-not-approves, `Promote: no|proposed` only, owner-only promotion, AIKB only via «зафиксируй», gpt-handoff excluded as durable home.
-- **[AR-1 / MEDIUM] Two in-repo learning homes with a fuzzy boundary:** `learnings/` ("product-level session lessons / failure logs, operational") vs `docs/ai-learnings/LOG.md` ("durable project-level lessons"). The split is documented in both READMEs, but the operational/durable boundary has no concrete criterion or example; at MVP-1 scale this risks lessons scattering between two homes. Fix options: add a one-line criterion + example to `learnings/README.md`, or keep only LOG.md until real volume justifies the split.
-- **[AR-2 / LOW] `/feature` phases don't name product roles:** `task.md` maps phases to roles (Creator/Tester/Test-verifier…), `feature.md` phases 1–4 don't say who brainstorms/reviews/plans. Assigning roles makes the spec runnable without interpretation.
-- Agent composability without swarm risk — VERIFIED: roles are passive spec files; "no uncontrolled agent swarm" is a forbidden zone; every run is gate-bounded. Automation seams (workflow specs → future prompt-chains) are obvious without any automation existing now.
-- **[OB-1 / OBSERVATION]** Operating-doc gate history says "this gate" for the MVP-1 entry — wording will read stale after acceptance; cosmetic.
-
-## Security Review
-
-- Secrets/tokens/keys/cookies/vault material — **none found**: whole-tree pattern scan CLEAN (the only matches in history were the known `sk-w` false positive inside the word "task-workflow", excluded with manual confirmation).
-- Realistic fake secrets — none (repo contains no env examples at all; `configs/README.md` mandates env-variable references only).
-- Scripts/executable automation — none: 0 non-markdown files; `scripts/README.md` explicitly bans secret-touching scripts.
-- Cloudflare/fleet/dashboard/tmux/worker implementation — none; 4/4 DEFERRED placeholders intact (`git diff` vs accepted tip: zero).
-- Credential sync / remote bootstrap — not present, explicitly deferred + banned in NO_SECRETS and the operating doc.
-- Weakening language — checked every "secret" mention in the tree: all occurrences are protective (bans, escalation, incident response). The only "later" language is "behind separate future security gates", which is the intended guarded path, not a weakening.
-- **[OB-2 / OBSERVATION]** Enforcement is convention-only: no pre-commit secret scanner exists (scripts are forbidden at this stage by design). A read-only scanner is a natural future automation candidate (MVP-2-adjacent, separate gate).
-- Repo privacy — private (verified via owner-authenticated API at creation; unchanged).
-
-No findings beyond the above. Explicitly: **no BLOCKER and no HIGH findings in any dimension.**
-
-## Deduped Findings
-
-| ID | Severity | Finding | Fix size |
-|---|---|---|---|
-| CR-1 | MEDIUM | README status block stale vs accepted gate history (MVP-0 claim, "/task future", 3-workflow table row) | one README edit |
-| CR-2 | MEDIUM | Governance citation "AIKB Project Bridge Protocol v1.2" not traceable to the known accepted baseline name (NOT VERIFIED) | one line / mapping note |
-| CR-3 | MEDIUM | `/quick` lacks explicit audit step → could read as audit-exempt | one line in quick.md |
-| AR-1 | MEDIUM | Dual in-repo learning homes (`learnings/` vs `docs/ai-learnings/`) with fuzzy boundary | criterion + example, or defer the split |
-| AR-2 | LOW | `/feature` phases lack product-role assignments (unlike `/task`) | small spec edit |
-| OB-1 | OBSERVATION | "this gate" wording in OS-doc gate history will go stale | cosmetic |
-| OB-2 | OBSERVATION | No automated secret scanning (convention-only enforcement — by design at MVP-0/1) | future gate candidate |
-| OB-3 | OBSERVATION | Reviewer lineage bias (author ≈ reviewer); mitigated by adversarial re-read + GPT audit being the real verdict | process note |
-
-Counts: BLOCKER 0 · HIGH 0 · MEDIUM 4 · LOW 1 · OBSERVATION 3.
+`docs/ai-learnings/LOG.md` unchanged. Commit: **`9d96cad326c30d9bd2136108ccc109f73d87fcbf`** (`16104cf..9d96cad main -> main`, post-push 0/0).
 
 ## Verification Evidence
 
-- Inspected commit: `16104cf32aca25d40072d68e1e352c89b01e227b` (= origin/main tip; sync 0/0).
-- Full file list: `git ls-files` → 27 files (enumerated in Review Scope).
-- Secret scan: `grep -rnEi '<token patterns>' --include="*.md" .` → CLEAN (after excluding the documented `task-workflow`/`sk-w` false positive).
-- Executable check: `find` non-md, non-gitkeep → **0 files**.
-- DEFERRED integrity: 4/4 present, unchanged vs accepted tip.
-- Weakening-language check: all "secret" mentions in protective context (grep output reviewed).
-- README staleness: README lines vs operating-doc §2/§5 gate history (quoted in CR-1).
-
-## Source Modification Check
-
-**Source repo was NOT modified.** Only read commands were executed (fetch / ls-files / cat / grep / find / diff). `git status --porcelain` before and after inspection: empty; local = origin 0/0; no commits, no pushes to `pi-setup`.
-
-## Recommended Verdict
-
-**RECOMMEND_ACCEPT_WITH_RISKS** — no BLOCKER/HIGH; 4 MEDIUM + 1 LOW are small, well-scoped polish items (a single docs-only follow-up gate fixes all five); boundaries fully honored. (Final verdict belongs to the GPT audit.)
+- `git status --short` (pre-commit): exactly the 6 allowed paths — nothing outside the allowed write list.
+- `git diff --stat`: 5 files, +35/−19 (plus the new note).
+- Required confirmations, each by command: README no longer says "MVP-0 — docs-first skeleton only" (count 0) and no longer calls `/task` future ("Proven so far" line 25); governance path present (line 15); quick.md explicitly mentions GPT audit / owner acceptance (line 20); feature.md has 8 role annotations; learning boundary concrete ("default home", line 7 of learnings/README.md).
+- Secret scan over all 6 files → CLEAN. Non-md/executable files → 0. DEFERRED folders diff → 0.
 
 ## Done Criteria vs Evidence
 
-| # | Criterion | Evidence |
-|---|---|---|
-| 1 | Read-only inspection | Source Modification Check (status empty, 0/0, no writes) |
-| 2-4 | Correctness / Architecture / Security completed | three sections above, each with explicit findings or VERIFIED marks |
-| 5 | Findings severity-classified + deduped | table (CR-1 dedups 3 symptoms; counts given) |
-| 6 | Source modified? | **No** (evidence above) |
-| 7 | Secrets / automation / infra found? | **No** (scans CLEAN, 0 non-md files, DEFERRED intact) |
-| 8 | Next safe step | below |
-| 9 | Handoff report + summary written | this publish |
+1-5 (CR-1..AR-2 fixed) — table above with per-fix grep/diff evidence ✅; 6 (OB-1) — fixed ✅; 7 (only allowed files) — status list ✅; 8 (no secrets/automation/infra) — scans ✅; 9 (SHA) — `9d96cad…fcbf` ✅; 10 (handoff report + summary) — this publish ✅; 11 (next safe step) — `MVP1_READY_FOR_OWNER_ACCEPTANCE` ✅.
 
 ## Boundaries Honored
 
-No source edits/commits/pushes · no AIKB writes · no InsuranceAIPlatform contact · no infra/automation implementation · no secrets · no paid resources · no delete/reset/force-push · no self-acceptance (recommendation only; verdict = GPT audit).
+Docs-only · only allowed files · no AIKB reads/writes (CR-2 used the request's mapping text) · no InsuranceAIPlatform contact · no automation/scripts/infra · no secrets · no delete/reset/force-push · no self-approval (GPT audit + owner acceptance follow).
 
 ## BLOCKED Reason
 
-N/A because the inspection completed safely.
+N/A because the gate completed successfully.
 
 ## Improve Step
 
-IMPROVE STEP:
-- Lesson candidate: a fresh full-tree re-read by the same author who wrote the files still surfaced 5 real findings (README staleness above all) — status blocks in README rot fastest because gate-completion updates land in the operating doc but not in README.
-- Type: convention
-- Trigger: any gate that completes a milestone (README mentions statuses/targets).
-- Future prevention: when a gate changes project status (MVP level, proven workflows), the gate's allowed-changes list should include the README status block, not only the operating doc.
-- Promote to AIKB: proposed
+IMPROVE STEP: no lesson — clean fix-application run; the review gate already captured the underlying lesson (README status blocks rot fastest; include them in milestone gates' allowed changes), which this gate confirms rather than extends.
 
 ## Next Safe Step
 
-One small docs-only follow-up gate (`/quick` candidate — and its first real run): fix CR-1 (README status block), CR-3 (one audit line in quick.md), AR-2 (role names in feature.md), plus decide CR-2 (governance-name alignment) and AR-1 (learning-homes criterion) with the owner. After that, MVP-1 can be considered review-validated; MVP-2/3 remain DEFERRED.
+**`MVP1_READY_FOR_OWNER_ACCEPTANCE`** — GPT audit of this fix gate, then owner acceptance of MVP-1 as a whole (skeleton + proven `/task` + formalized specs + passed `/review` + applied fixes). After acceptance, natural candidates: first real `/quick` or `/feature` run under the accepted specs; MVP-2 (fleet) and MVP-3 (dashboard/remote) remain DEFERRED behind separate gates.
