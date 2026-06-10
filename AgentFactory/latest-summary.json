@@ -1,17 +1,24 @@
 {
-  "requestId": "REQ-2026-06-10-agentfactory-mvp1-workflows-improve-loop-v0-1",
+  "requestId": "REQ-2026-06-10-agentfactory-first-review-run-v0-1",
   "project": "AgentFactory",
-  "gate": "AGENT_FACTORY_MVP1_WORKFLOWS_IMPROVE_LOOP_GATE",
+  "gate": "AGENT_FACTORY_FIRST_REVIEW_RUN_GATE",
   "status": "READY_FOR_AUDIT",
   "completed": "2026-06-10",
   "completedBy": "claude",
   "sourceRepo": "slavkan777/pi-setup",
   "sourceBranch": "main",
-  "sourceCommitBefore": "9f1cbd15a6bb068fc5c09bb3221130daf5782994",
-  "sourceCommitAfter": "16104cf32aca25d40072d68e1e352c89b01e227b",
-  "filesChanged": ["workflows/feature.md", "workflows/quick.md", "workflows/improve-loop.md", "workflows/recurse.md", "workflows/review.md", "workflows/task.md", "README.md", "docs/ai-workflows/PROJECT_AI_OPERATING_SYSTEM.md", "docs/ai-reports/mvp1-workflows-improve-loop-v0.1.md"],
-  "targetReportPath": "AgentFactory/agent-factory-mvp1-workflows-improve-loop-v0.1/report.md",
+  "sourceCommitInspected": "16104cf32aca25d40072d68e1e352c89b01e227b",
+  "sourceModified": false,
+  "findingCounts": {
+    "blocker": 0,
+    "high": 0,
+    "medium": 4,
+    "low": 1,
+    "observation": 3
+  },
+  "recommendedVerdict": "RECOMMEND_ACCEPT_WITH_RISKS",
+  "targetReportPath": "AgentFactory/agent-factory-first-review-run-v0.1/report.md",
   "latestReportPath": "AgentFactory/latest-report.md",
   "blockedReason": "",
-  "nextSafeStep": "Owner choice: first /review run (inspect-only, 3 dimensions over pi-setup) OR first /quick run. MVP-2/3 stay DEFERRED."
+  "nextSafeStep": "One docs-only follow-up /quick gate: fix CR-1 README staleness, CR-3 quick.md audit line, AR-2 feature.md roles; owner decides CR-2 governance-name alignment and AR-1 learning-homes criterion."
 }
