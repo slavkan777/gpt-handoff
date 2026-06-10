@@ -1,99 +1,88 @@
-REQUEST_ID: REQ-2026-06-10-agentfactory-first-runnable-task-workflow-v0-1
+REQUEST_ID: REQ-2026-06-10-agentfactory-mvp1-workflows-improve-loop-v0-1
 STATUS: READY_FOR_AUDIT
 TASK_TYPE: implementation-docs-only
 PROJECT: AgentFactory
-GATE: AGENT_FACTORY_FIRST_RUNNABLE_TASK_WORKFLOW_GATE
+GATE: AGENT_FACTORY_MVP1_WORKFLOWS_IMPROVE_LOOP_GATE
 COMPLETED: 2026-06-10
 COMPLETED_BY: claude
 
 ## Current State
 
-The first real, bounded AgentFactory `/task` workflow was executed end-to-end in `slavkan777/pi-setup` (local-only MVP-0 loop, docs-only product change). All stop-conditions were checked clean before work: branch `main`, working tree empty, local = origin (`0/0`), base commit `f75d036` (the accepted bootstrap), `rules/NO_SECRETS.md` did not yet exist. Result: no-secrets rule added, README links it, all six phases run and evidenced, commit `9f1cbd1` pushed.
-
-## /task Workflow Execution
-
-### Request
-
-Restated: **Add a docs-only no-secrets rule and link it from README.** Scope: `rules/NO_SECRETS.md` (new) + short README pointer + optional in-repo run note. Nothing else.
-
-### Build
-
-- `rules/NO_SECRETS.md` created with the required minimum policy verbatim (purpose; the five rules incl. no real secrets, no realistic fakes, env-var-names-only for examples, credential-work behind future security gates, stop-and-ask escalation; `Status: mandatory for all future AgentFactory gates`) **plus one marked addition** (see Break): a 2-line incident-response rule (leaked secret = rotate immediately + remove from history; file deletion alone insufficient).
-- `README.md`: short security-boundary pointer added directly after the status line (line 11), wording per the gate's example.
-- `docs/ai-reports/first-runnable-task-workflow-v0.1.md`: in-repo run note recording the phases (allowed optional file).
-
-### Break
-
-Adversarial checks against the result:
-- *Rule too broad/vague?* No — concrete artifact list (tokens, keys, cookies, session dumps, vault material), concrete example policy (env-var names only), concrete escalation (stop and ask for a security gate).
-- *Found gap:* the required minimum had **no incident-response path** (what to do when a secret does leak). Addressed in build with a 2-line addition explicitly marked "addition beyond the minimum".
-- *README pointer exists?* Yes — `grep -n NO_SECRETS README.md` → line 11.
-- *Forbidden file changed?* No — `git status --porcelain` showed exactly the 3 allowed paths.
-- *Secret-looking strings?* Pattern scan returned two hits — **both false positives**: the regex fragment `sk-[a-z]` matched the substring "sk-w" inside the word "ta**sk-w**orkflow" in the run note's slug. Manual inspection confirms no secrets, no realistic fakes.
-- *Implies Cloudflare/fleet is now allowed?* No — the rule itself keeps credential-sync/vault/Cloudflare credentials behind separate future security gates; all four `DEFERRED.md` placeholders untouched.
-
-### Verify
-
-Evidence (commands + results in Verification Evidence below): status scoped to allowed files only; `git diff --stat` README = +2 lines; pointer grep hit; secret scan clean (after false-positive analysis); DEFERRED placeholders intact; post-push local = origin.
-
-### Report
-
-This report + mirrors written to the allowed `gpt-handoff/AgentFactory/` paths (handoff commit in latest-summary).
-
-### Improve
-
-IMPROVE STEP: no lesson — the run was clean; the single gap found (incident-response line) was fixed in-gate and is recorded in the rule and the run note. `docs/ai-learnings/LOG.md` intentionally left unchanged (gate allows touching it only for a real lesson).
+MVP-1 workflow documentation is formalized in `slavkan777/pi-setup` as one consolidated docs-only gate. Stop-conditions were clean before work (branch `main`, empty tree, local=origin 0/0, base `9f1cbd1`, no conflicting workflow files — `feature.md`/`quick.md`/`improve-loop.md` did not exist). AgentFactory moves from "MVP-0 skeleton + one proven `/task`" to "MVP-1-ready workflow docs": all five workflows + the improve loop are specified, mutually consistent, and linked from README and the operating doc. No automation, no infrastructure, no secrets.
 
 ## Source Changes
 
 | File | Change |
 |---|---|
-| `rules/NO_SECRETS.md` | NEW — required policy + marked incident-response addition |
-| `README.md` | +2 lines — security-boundary pointer (line 11) |
-| `docs/ai-reports/first-runnable-task-workflow-v0.1.md` | NEW — in-repo run note (optional allowed file) |
+| `workflows/feature.md` | NEW — `/feature` spec |
+| `workflows/quick.md` | NEW — `/quick` spec |
+| `workflows/improve-loop.md` | NEW — improve-loop spec |
+| `workflows/recurse.md` | UPDATED — explicit Failure Log template added (+18 lines) |
+| `workflows/review.md` | UPDATED — explicit inspect-only rule (+1 line) |
+| `workflows/task.md` | UPDATED — cross-reference to improve-loop (1 line) |
+| `README.md` | UPDATED — workflow index pointer (+2 lines) |
+| `docs/ai-workflows/PROJECT_AI_OPERATING_SYSTEM.md` | UPDATED — MVP-1 marked formalized with file links; gate history section; MVP-2/3 stay DEFERRED |
+| `docs/ai-reports/mvp1-workflows-improve-loop-v0.1.md` | NEW — in-repo run note |
 
-No other files touched. `docs/ai-learnings/LOG.md` unchanged.
+`docs/ai-learnings/LOG.md` intentionally unchanged (no real lesson — see Improve Step).
 
-## Source Commit
+## Workflow Specs Added / Updated
 
-- Before: `f75d0366f3b68816fbf6470ff1eb3b8e9530df76`
-- After: **`9f1cbd15a6bb068fc5c09bb3221130daf5782994`** (`9f1cbd1`) — `docs: add no-secrets rule and link from README`
-- Push: `f75d036..9f1cbd1 main -> main`; post-push local vs origin `0/0`.
+- **`/feature`** — purpose, when-to-use, all 10 required phases (brainstorm → review brainstorm → plan → review plan → build → break → verify → report → improve → owner audit/acceptance), all 5 required rules verbatim in substance: no unrequested features; review between major phases; stop on scope expansion; no self-approval; **GPT audit is still required**.
+- **`/quick`** — purpose, when-to-use, explicit **when-NOT-to-use**, 5 phases (request → build → verify → report → improve/no-lesson), rules: low-risk bounded only; no architecture drift; no secrets/infrastructure; **escalate to `/task`//`/feature` if risk appears**.
+- **`improve-loop`** — purpose (better future sessions **without self-approval**); inputs (report evidence, failure log, reviewer findings, owner decision); outputs (lesson/rule/template/automation candidates); storage exactly per gate: project lessons → `docs/ai-learnings/LOG.md`, durable AIKB promotion **only after «зафиксируй»**, **no durable learnings in gpt-handoff**; rules: Improver proposes/doesn't approve, GPT audits, Slava accepts/promotes, no AIKB writes from AgentFactory gates, `IMPROVE STEP: no lesson` when empty.
+- **`/task`** — already aligned with the proven run (`request -> build -> break -> verify -> report -> audit -> improve`); only a cross-reference added; not over-expanded.
+- **`/review`** — dimensions correctness/architecture/security preserved; dedup + no-source-modification preserved; explicit "**inspect-only** unless another gate explicitly allows changes" added.
+- **`/recurse`** — do-not-repeat rule preserved; the explicit per-attempt **Failure Log template** added exactly as required (ATTEMPT N: Request/Action taken/Result/Evidence/Why failed/Root cause/Do not repeat + REQUIRED CHANGE: New hypothesis/Different approach/New acceptance check).
+
+## Improve Loop
+
+Formalized in `workflows/improve-loop.md` (content above). Key invariants encoded: proposes-not-approves, owner-only promotion, AIKB only via «зафиксируй», gpt-handoff never a durable home, no manufactured lessons.
 
 ## Verification Evidence
 
-- Stop-conditions: `git branch --show-current` = main; `git status --porcelain` = empty; `git rev-list --left-right --count origin/main...HEAD` = 0 0; NO_SECRETS.md absent.
-- `git status --short` (pre-commit) = ` M README.md`, `?? rules/NO_SECRETS.md`, `?? docs/ai-reports/first-runnable-task-workflow-v0.1.md` — exactly the allowed set.
-- `git diff --stat` = `README.md | 2 ++`.
-- `grep -n "NO_SECRETS" README.md` → line 11 pointer.
-- Secret-pattern grep over the 3 changed files → only the two `task-workflow`/`sk-w` false positives; no real or realistic-fake secrets.
-- DEFERRED integrity: 4/4 placeholder files present and unmodified.
+- Stop-conditions: branch=main; `git status --porcelain` empty; sync 0/0; before-SHA `9f1cbd15a6bb068fc5c09bb3221130daf5782994`; no conflicting files.
+- `git status --short` (pre-commit): exactly the 9 allowed paths (5 M + 4 ??) — full list matches the Source Changes table; nothing outside the allowed write list.
+- `git diff --stat`: README +2; OS doc +9/-3; recurse +18; review +1; task 1-line change.
+- Secret scan over all 9 files → **CLEAN** (no token patterns, no realistic fakes).
+- DEFERRED check: `git diff --name-only -- extensions/ fleet/ worker/ dashboard/` → 0 files.
+- Executable scripts check: `find` for `*.sh|*.ps1|*.py` → 0.
+- `docs/ai-learnings/LOG.md` diff → 0 (unchanged).
+- Push: `9f1cbd1..16104cf main -> main`; post-push local vs origin 0/0.
 
 ## Done Criteria vs Evidence
 
 | # | Criterion | Evidence |
 |---|---|---|
-| 1 | pi-setup accessible on main | fetch + branch checks above |
-| 2 | NO_SECRETS.md exists with required policy | file created; required text verbatim + marked addition |
-| 3 | README links the rule | grep line 11 |
-| 4 | All six phases represented in report | sections above |
-| 5 | Only allowed files changed | git status evidence (3 allowed paths) |
-| 6 | No secrets/tokens added | scan + manual false-positive analysis |
-| 7 | No Cloudflare/fleet/dashboard/tmux/worker implementation | DEFERRED untouched; no new files outside the 3 |
-| 8 | Source commit SHA reported | `9f1cbd15a6bb068fc5c09bb3221130daf5782994` |
-| 9 | Handoff report + latest summary written | this publish |
-| 10 | Next safe step stated | below |
+| 1 | feature.md exists with phases | NEW file, 10 phases |
+| 2 | quick.md exists with boundaries | NEW file, when-NOT-to-use + escalation |
+| 3 | improve-loop.md non-self-approving | NEW file, proposes-not-approves + owner-only promotion |
+| 4 | task/review/recurse consistent | minimal consistency updates (diff above) |
+| 5 | README points to specs | +2 lines workflow index |
+| 6 | OS doc reflects MVP-1 + deferrals | MVP-1 marked formalized; MVP-2/3 DEFERRED preserved; roles/seats + no-self-approval intact |
+| 7 | Only allowed files changed | status output = allowed list exactly |
+| 8 | No executable automation/scripts | find → 0 |
+| 9 | No secrets | scan CLEAN |
+| 10 | No Cloudflare/fleet/dashboard/tmux/worker | DEFERRED untouched, no new dirs |
+| 11 | Source SHA reported | `16104cf32aca25d40072d68e1e352c89b01e227b` |
+| 12 | Handoff report + summary written | this publish |
+| 13 | Next safe step stated | below |
 
 ## Boundaries Honored
 
-Docs-only · no automation/agents implementation · no Cloudflare/fleet/dashboard/tmux/worker · no secrets or realistic fakes (scan + manual check) · no delete/reset/force-push · no AIKB writes · no InsuranceAIPlatform contact · no self-approval (this goes to GPT audit + owner acceptance) · only allowed paths in both repos.
+Docs-only · no automation/scripts · no Cloudflare/D1/DO/fleet/dashboard/tmux/worker/remote-launch/vault · no secrets/tokens (scan clean) · no paid resources · no delete/reset/force-push · no unrelated rewrites · no AIKB writes · no InsuranceAIPlatform contact · no self-approval (GPT audit + owner acceptance follow).
 
 ## BLOCKED Reason
 
 N/A because the gate completed successfully.
 
+## Improve Step
+
+IMPROVE STEP: no lesson — clean formalization run. (One reusable observation already recorded in prior gates' reports remains valid: files created via shell heredoc require an explicit read before editor-tool edits in this environment; it did not cause failure or rework here.)
+
 ## Next Safe Step
 
-MVP-0 loop is now proven end-to-end. Two natural candidates (owner's choice):
-1. **`/review` workflow first run** — run the three-dimension review (correctness/architecture/security) against the current pi-setup tree as a bounded inspect gate, proving the second workflow spec; or
-2. **MVP-1 planning gate** — define which workflows become runnable prompt-chains and what the improve-loop cadence is (docs-only planning, no automation yet).
+Owner's choice under the now-formalized specs:
+1. **First `/review` run** — inspect-only three-dimension review (correctness/architecture/security) over the whole `pi-setup` tree, producing a deduped findings report (proves the second workflow); or
+2. **First `/quick` run** — a trivial bounded docs task to prove the lightweight path end-to-end.
+MVP-2 (fleet backend) and MVP-3 (dashboard/remote) remain DEFERRED behind separate future gates.

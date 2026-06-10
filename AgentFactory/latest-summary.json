@@ -1,17 +1,17 @@
 {
-  "requestId": "REQ-2026-06-10-agentfactory-first-runnable-task-workflow-v0-1",
+  "requestId": "REQ-2026-06-10-agentfactory-mvp1-workflows-improve-loop-v0-1",
   "project": "AgentFactory",
-  "gate": "AGENT_FACTORY_FIRST_RUNNABLE_TASK_WORKFLOW_GATE",
+  "gate": "AGENT_FACTORY_MVP1_WORKFLOWS_IMPROVE_LOOP_GATE",
   "status": "READY_FOR_AUDIT",
   "completed": "2026-06-10",
   "completedBy": "claude",
   "sourceRepo": "slavkan777/pi-setup",
   "sourceBranch": "main",
-  "sourceCommitBefore": "f75d0366f3b68816fbf6470ff1eb3b8e9530df76",
-  "sourceCommitAfter": "9f1cbd15a6bb068fc5c09bb3221130daf5782994",
-  "filesChanged": ["rules/NO_SECRETS.md", "README.md", "docs/ai-reports/first-runnable-task-workflow-v0.1.md"],
-  "targetReportPath": "AgentFactory/agent-factory-first-runnable-task-workflow-v0.1/report.md",
+  "sourceCommitBefore": "9f1cbd15a6bb068fc5c09bb3221130daf5782994",
+  "sourceCommitAfter": "16104cf32aca25d40072d68e1e352c89b01e227b",
+  "filesChanged": ["workflows/feature.md", "workflows/quick.md", "workflows/improve-loop.md", "workflows/recurse.md", "workflows/review.md", "workflows/task.md", "README.md", "docs/ai-workflows/PROJECT_AI_OPERATING_SYSTEM.md", "docs/ai-reports/mvp1-workflows-improve-loop-v0.1.md"],
+  "targetReportPath": "AgentFactory/agent-factory-mvp1-workflows-improve-loop-v0.1/report.md",
   "latestReportPath": "AgentFactory/latest-report.md",
   "blockedReason": "",
-  "nextSafeStep": "Owner choice: /review workflow first run (inspect gate over pi-setup) OR MVP-1 planning gate (docs-only)."
+  "nextSafeStep": "Owner choice: first /review run (inspect-only, 3 dimensions over pi-setup) OR first /quick run. MVP-2/3 stay DEFERRED."
 }
