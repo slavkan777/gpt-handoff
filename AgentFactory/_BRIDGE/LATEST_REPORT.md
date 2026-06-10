@@ -1,151 +1,91 @@
-REQUEST_ID: REQ-2026-06-10-agentfactory-context-bootstrap-v0-1
-STATUS: BLOCKED
-TASK_TYPE: inspect-only
+REQUEST_ID: REQ-2026-06-10-agentfactory-repo-create-bootstrap-skeleton-v0-1
+STATUS: READY_FOR_AUDIT
+TASK_TYPE: repo-bootstrap-docs-only
 PROJECT: AgentFactory
-GATE: AGENT_FACTORY_CONTEXT_BOOTSTRAP_GATE
+GATE: AGENT_FACTORY_REPO_CREATE_BOOTSTRAP_SKELETON_V0.1
 COMPLETED: 2026-06-10
 COMPLETED_BY: claude
 
 ## Current State
 
-AgentFactory is registered as a separate project (separate from InsuranceAIPlatform, MCP Holding, and Cloude/AIKB governance work — confirmed: nothing in this gate touched any of them). The expected source/product repo `slavkan777/pi-setup` **does not exist**, so this gate stops at the accessibility check per the gate's stop condition and delivers the planning content only as a clearly marked inferred plan.
+The prior gate ended `BLOCKED: source repo slavkan777/pi-setup not found or not accessible`. This gate explicitly authorized creating that exact repo. Executed: re-verified absence (stop-condition check), created the **private** repo via the GitHub API, initialized `main`, committed the required docs-first MVP-0 skeleton (21 files, exactly the required tree), pushed, and verified the remote state via API. No infrastructure, no secrets, no code — docs only.
 
-## Repo Accessibility Check
+## Repo Creation / Accessibility
 
-Three independent checks, all read-only:
+- Stop-condition re-check before creation: `GET /repos/slavkan777/pi-setup` → **404** (still absent — no exists/scope-mismatch stop condition triggered).
+- Creation: `POST /user/repos` → **HTTP 201**; response: `full_name: slavkan777/pi-setup, private: true`. (First attempt returned 400 — non-ASCII description mangled in inline JSON; resolved by sending a UTF-8 payload file. Lesson below.)
+- Post-push verification: `GET /repos/slavkan777/pi-setup` → **HTTP 200**, `private: True`, `default_branch: main`; `GET /git/trees/main?recursive=1` → **21 files**.
+- Local workspace: `C:/Projects/pi-setup` (git init -b main, remote `origin` → the new repo).
+- Existing stored credential used only for API calls; token value never printed or stored anywhere.
 
-1. Anonymous GitHub API: `GET https://api.github.com/repos/slavkan777/pi-setup` → **HTTP 404**.
-2. Authenticated GitHub API as the owner account (existing stored credential; token never printed): same endpoint → **HTTP 404** `{"message":"Not Found"}` — an owner-authenticated 404 rules out "exists but private", since the owner token sees private repos.
-3. Owner repo enumeration (authenticated): `GET /user/repos?affiliation=owner` → **13 repositories, none** matching `pi`/`agent`/`factory` in the name.
-4. Local workspace search (`C:/Projects/pi-setup`, `C:/Users/DEVELOPER/Claude/GitHub/pi-setup`, `C:/Users/DEVELOPER/Claude/pi-setup`) → no local clone.
+## Bootstrap Commit
 
-Conclusion: the repo is missing, not merely inaccessible. `sourceRepoAccessible: false`.
+- Commit: **`f75d0366f3b68816fbf6470ff1eb3b8e9530df76`** (`f75d036`) — `docs: bootstrap AgentFactory MVP-0 docs-first skeleton`
+- Push: `* [new branch] main -> main` to `https://github.com/slavkan777/pi-setup.git`; branch tracks `origin/main`.
+- Pre-commit secret scan over all files: no secret patterns.
 
-## BLOCKED Reason
+## Files Created
 
-BLOCKED: source repo slavkan777/pi-setup not found or not accessible.
-
-The repo has never been created (owner-authenticated 404 + absent from the owner's repo list). Per the routing lock, repo creation is forbidden in this gate, so the correct outcome is BLOCKED with the next action assigned to the owner.
-
-## Repository Evidence
-
-N/A because the source repository does not exist — no repository files could be inspected. (The accessibility evidence above is API/workspace evidence, not repository-content evidence.)
-
-## Inferred Plan From Provided Context
-
-> Everything below is **INFERRED from the context provided in this ACTIVE_REQUEST (§2)** and from the accepted Bridge Universal baseline. It is NOT repository evidence and must be re-validated against the real repo once it exists.
-
-Core framing: AgentFactory is a **product** (an agent operating system on top of pi.dev), while the Bridge Universal is the **process governance** under which it will be built. The five-agent team (Creator / Cross-reviewer / Tester / Test-verifier / Improver) are AgentFactory *product roles*; they must not be confused with the bridge's three governance seats (Producing / Auditing / Owner). The bridge governs how gates run; AgentFactory implements agent orchestration as software.
-
-## Target Repo / Folder Structure
-
-INFERRED proposal for `slavkan777/pi-setup` (aligned with the bridge's new-project bootstrap standard):
+Exactly the required skeleton (21 files):
 
 ```text
-pi-setup/
-  README.md                              # project intent, separation statement
-  docs/
-    ai-workflows/PROJECT_AI_OPERATING_SYSTEM.md   # bridge bootstrap requirement
-    ai-learnings/LOG.md                            # bridge bootstrap requirement
-    ai-reports/                                    # durable gate reports
-  agents/                                # 5 product-role definitions (prompt/spec files)
-    creator.md  cross-reviewer.md  tester.md  test-verifier.md  improver.md
-  workflows/                             # runnable workflow specs
-    feature.md  task.md  quick.md  recurse.md  review.md
-  configs/                               # pi.dev configs (no secrets, env-referenced)
-  rules/                                 # accepted rules (promoted from learnings)
-  skills/                                # reusable skills
-  learnings/                             # product-level failure logs / session lessons
-  scripts/                               # local install/bootstrap (no credentials)
-  extensions/                            # DEFERRED placeholders (session bridge, compressor, usage logger, ping)
-  fleet/                                 # DEFERRED (daemon) — empty placeholder with DEFERRED.md
-  worker/                                # DEFERRED (Cloudflare Worker + D1 + DO relay)
-  dashboard/                             # DEFERRED
+README.md
+docs/ai-workflows/PROJECT_AI_OPERATING_SYSTEM.md
+docs/ai-learnings/LOG.md
+docs/ai-reports/.gitkeep
+agents/creator.md
+agents/cross-reviewer.md
+agents/tester.md
+agents/test-verifier.md
+agents/improver.md
+workflows/task.md
+workflows/review.md
+workflows/recurse.md
+configs/README.md
+rules/README.md
+skills/README.md
+learnings/README.md
+scripts/README.md
+extensions/DEFERRED.md
+fleet/DEFERRED.md
+worker/DEFERRED.md
+dashboard/DEFERRED.md
 ```
 
-Rule: `BOOTSTRAP_GATE` accepted before any code (bridge standard).
-
-## MVP-0 Local-Only
-
-INFERRED. Smallest governed core, zero infrastructure:
-- repo created + bridge bootstrap files (operating doc with routing lock/forbidden zones, LOG.md, ai-reports/);
-- 5 agent role definitions as prompt files (roles = product artifacts, executed manually via existing Claude/GPT seats);
-- ONE workflow implemented as a documented prompt-chain: `/task` (no brainstorm) — run manually end-to-end through the gpt-handoff bridge;
-- local session logging into the repo (plain markdown);
-- failure-log template reused from the bridge (rework annex), not reinvented.
-No daemon, no Cloudflare, no dashboard, no tmux, no credentials.
-
-## MVP-1 Workflows + Improve Loop
-
-INFERRED:
-- `/feature`, `/quick`, `/recurse`, `/review` formalized as runnable specs with phase gates (review between phases);
-- improve step after every workflow run → `learnings/` entry (conditional, "no lesson" allowed);
-- do-not-repeat rule enforced via the failure log;
-- clean-context-per-subagent convention documented (fresh-context executor per phase where independence matters);
-- promotion path: product learnings → rules/ (owner-approved), mirroring the bridge's LOG → AIKB promotion discipline.
-
-## MVP-2 Fleet Backend Plan
-
-INFERRED, **DEFERRED — plan only, separate future gate + security review**: Cloudflare Worker + D1 state + Durable Object WebSocket relay; fleet daemon on machines; explicit credential strategy reviewed BEFORE any implementation (no auto-sync credentials, no secrets in repo — non-negotiable). No Cloudflare resource may be created until that gate is owner-approved.
-
-## MVP-3 Dashboard + Remote Bootstrap Plan
-
-INFERRED, **DEFERRED — plan only**: dashboard over fleet state, tmux session tracking/wrapper, headless VPS bootstrap, remote launch from browser. Enters only after MVP-2 exists and only via its own gates. Autonomous self-approval remains forbidden at every MVP level.
-
-## First Runnable Slice
-
-INFERRED: **one bounded `/task` workflow executed end-to-end under bridge governance** — ACTIVE_REQUEST in gpt-handoff → Creator (Claude) performs a trivial bounded task inside pi-setup → Tester/Verifier checks → report.md with evidence → GPT audit verdict → owner acceptance → improve-step entry. This proves the whole loop (roles, workflow, bridge, learning) with zero infrastructure. Precondition: the repo exists and BOOTSTRAP_GATE is accepted.
-
-## Risks / Boundaries
-
-1. **Current blocker:** source repo missing — nothing buildable until the owner creates it (repo creation is forbidden to this gate).
-2. **Governance/product mixing:** Agent Factory's roles/workflows resemble the bridge's process vocabulary — keep product roles (Creator/Improver…) strictly inside pi-setup; never edit bridge/AIKB governance from AgentFactory gates (separation honored this gate).
-3. **Fleet/credentials blast radius:** Worker/D1/daemon/credential vault deferred behind explicit gates + security review; no auto-sync credentials ever by default.
-4. **Cost discipline:** Creator-on-Opus is expensive; Opus usage needs explicit per-gate announcement per the working agreement.
-5. **Swarm control:** no uncontrolled multi-agent execution; every agent run stays inside a bounded gate with evidence.
-6. Boundaries honored in this gate: no source repo changes (none exists), no repo creation, no AIKB writes, no InsuranceAIPlatform contact, no Cloudflare/paid resources, no secrets (existing stored credential used only for read-only API checks and never printed).
+Content requirements honored: README states project/purpose/source-of-truth/MVP-0 status/governance (AIKB Project Bridge Protocol v1.2)/boundaries/first runnable target; the operating doc separates **product roles vs governance seats**, defines MVP-0..3 (2-3 deferred) and forbidden zones; `LOG.md` matches the required empty-log format verbatim; each agent file has role/allowed/forbidden/why — `cross-reviewer.md` states the reviewer **cannot modify source files**, `improver.md` states it **cannot touch app code and cannot approve its own lessons**; `task.md` defines `/task` with phases `request -> build -> break -> verify -> report -> audit -> improve` and states it is a **spec, not executable automation yet**; `review.md` defines correctness/architecture/security with dedup and no-source-modification; `recurse.md` contains the Failure Log rule **"Do not repeat fixes that already failed."**; all four `DEFERRED.md` state intentional deferral requiring a separate future gate; no executable scripts (scripts/README.md only).
 
 ## Done Criteria vs Evidence
 
-| # | Criterion | Result |
+| # | Criterion | Evidence |
 |---|---|---|
-| 1 | Repo accessibility check completed | DONE — 4 checks (anon 404, owner-auth 404, repo-list scan, local search) |
-| 2 | Source state identified or BLOCKED | **BLOCKED** correctly (repo missing) |
-| 3 | AgentFactory separate from InsuranceAIPlatform | CONFIRMED — no IAP file/path touched |
-| 4 | Target folder structure proposed | DONE (INFERRED, marked) |
-| 5 | MVP-0/1/2/3 separated | DONE (INFERRED, 2-3 explicitly deferred) |
-| 6 | First runnable slice defined | DONE (INFERRED `/task` end-to-end) |
-| 7 | Local-only vs Cloudflare/fleet separated | DONE (MVP-0/1 local vs MVP-2/3 deferred) |
-| 8 | Risks and blocked zones listed | DONE (6 items) |
-| 9 | Exact next safe step | DONE (below) |
-| 10 | Report at canonical path | DONE — this file |
-| 11 | Latest mirrors updated | DONE — latest-report.md + latest-summary.json (+ optional _BRIDGE mirrors) |
-| 12 | No source code / infra / credentials / Cloudflare / AIKB changes | CONFIRMED — handoff report files only |
+| 1 | Repo exists | API 200, `full_name: slavkan777/pi-setup` |
+| 2 | Default branch `main` | API: `default_branch: main` |
+| 3 | Skeleton files exist | API tree: 21 files; list above matches required tree exactly |
+| 4 | No forbidden infra/secrets | docs-only commit; secret scan clean; no Cloudflare/fleet/dashboard/tmux/scripts |
+| 5 | No InsuranceAIPlatform / unrelated repos touched | only `pi-setup` (created) + `gpt-handoff` (report paths) |
+| 6 | Bootstrap commit SHA reported | `f75d0366f3b68816fbf6470ff1eb3b8e9530df76` |
+| 7 | Report at canonical path | this file |
+| 8 | Latest mirrors updated | latest-report.md + latest-summary.json (+ optional _BRIDGE mirrors) |
+| 9 | Summary JSON has existence/accessibility/SHA | yes (`sourceRepoAccessible: true, sourceRepoCreated: true, bootstrapCommit`) |
+| 10 | Next safe step stated | `AGENT_FACTORY_FIRST_RUNNABLE_TASK_WORKFLOW_GATE` |
 
-## Files Changed
+## Boundaries Honored
 
-Handoff repo (`slavkan777/gpt-handoff`, main) only:
-- `AgentFactory/agent-factory-context-bootstrap-v0.1/report.md` (this report)
-- `AgentFactory/latest-report.md` (mirror)
-- `AgentFactory/latest-summary.json`
-- `AgentFactory/_BRIDGE/LATEST_REPORT.md` (optional mirror)
-- `AgentFactory/_BRIDGE/STATUS.json` (optional indicator)
+No production code · no Cloudflare/D1/DO/fleet/dashboard/tmux/VPS/remote-launch · no secrets/tokens/credentials/PII stored (scan clean; API token used transiently, never printed) · no paid resources · no deployment · no delete/reset/force-push · no AIKB writes · no InsuranceAIPlatform/MCP contact · no self-approval (this report goes to GPT audit + owner acceptance) · repo created = exactly the one authorized, private.
 
-Source repos: none. AIKB: none. InsuranceAIPlatform: none.
+## BLOCKED Reason
 
-## Latest Summary JSON
-
-Written to `AgentFactory/latest-summary.json` (shape per gate §6, `status: BLOCKED`, `sourceRepoAccessible: false`).
+N/A because the gate completed: repo created and skeleton pushed successfully.
 
 ## Improve Step
 
 IMPROVE STEP:
-- Lesson candidate: a bootstrap gate was issued against a source repo that was never created; the gate burned a full cycle to discover this.
-- Type: convention
-- Trigger: GATE with SOURCE_REPO that has never existed (vs temporarily inaccessible).
-- Future prevention: request-creation checklist for GPT — verify source repo existence (1 API call) BEFORE writing a bootstrap ACTIVE_REQUEST, or make "owner creates empty repo" an explicit precondition step inside the gate.
+- Lesson candidate: GitHub `POST /user/repos` returns 400 "Problems parsing JSON" when a non-ASCII (Cyrillic/em-dash) description is passed inline via `curl -d` from Windows bash — encoding mangling, not an API problem. Fix: write the JSON payload to a UTF-8 file via python and send `--data-binary @file`.
+- Type: workaround
+- Trigger: any GitHub API POST with non-ASCII strings from this Windows environment.
+- Future prevention: default to payload-file + `--data-binary` for all non-ASCII API bodies.
 - Promote to AIKB: proposed
 
 ## Next Safe Step
 
-Owner (Slava) creates the empty repo `slavkan777/pi-setup` (private is fine; one click / `gh repo create` — or explicitly authorizes a repo-creation gate). Then re-issue this bootstrap gate: it becomes a grounded inspect + bridge BOOTSTRAP_GATE (operating doc + LOG.md + ai-reports/ skeleton via docs-only gate), after which the first runnable slice (`/task` end-to-end) can be gated.
+`AGENT_FACTORY_FIRST_RUNNABLE_TASK_WORKFLOW_GATE` — execute one bounded `/task` workflow end-to-end local-only (request → build → break → verify → report → audit → improve) on a trivial scoped task inside `pi-setup`, proving the whole loop with zero infrastructure.
