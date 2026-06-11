@@ -1,380 +1,437 @@
-REQUEST_ID: REQ-2026-06-12-twincore-ai-integrator-implementation-plan-review-v0-1
+REQUEST_ID: REQ-2026-06-12-twincore-ai-integrator-tech-design-v0-1
 STATUS: READY_FOR_AUDIT
-TASK_TYPE: analysis-only / review-only / report-only
+TASK_TYPE: technical-design-only / report-only
 PROJECT: TwinCore
-GATE: planning / implementation-plan-review
-ACTIVE_REQUEST_PATH: TwinCore/ai-integrator-implementation-plan-review-v0.1/ACTIVE_REQUEST.md
-TARGET_REPORT_PATH: TwinCore/ai-integrator-implementation-plan-review-v0.1/report.md
+GATE: planning / technical-design
+ACTIVE_REQUEST_PATH: TwinCore/ai-integrator-tech-design-v0.1/ACTIVE_REQUEST.md
+TARGET_REPORT_PATH: TwinCore/ai-integrator-tech-design-v0.1/report.md
 LATEST_REPORT_PATH: TwinCore/latest-report.md
 COMPLETED: 2026-06-12
 COMPLETED_BY: claude
 
-# AI Integrator Implementation Plan v0.1 — Review Report
+# TwinCore AI Integrator — Technical Design Dossier v0.1
 
-Reviewed artifact: `01_PROJECTS/TwinCore/FEATURE_PLANS/TWINCORE_AI_INTEGRATOR_IMPLEMENTATION_PLAN_V0_1.md`
-(ai-kb tip `170a6cf` at review time). Line references below (`plan:NNN`) point to that file.
+> Design notation note: JSON/YAML sketches and signature-level fragments below are **design
+> notation inside this report**, not source code. No implementation files, no solution, no branch,
+> no repo changes were created. Inputs: Implementation Plan v0.1 (`plan:NNN` line refs) and the
+> plan review report (`review §N.N`), both read at ai-kb tip `170a6cf` / gpt-handoff tip `3c17fee`.
 
-## 1. Executive Verdict
+## 1. Executive Summary
 
-**ACCEPT_WITH_LIMITATIONS.**
+This dossier turns the four design-level gaps from the plan review into concrete, implementable
+designs and resolves the supporting agenda items:
 
-The plan is implementable, honestly bounded, and consistent with the accepted architecture
-(deterministic core, LLM for semantic gaps only, human-reviewed mapping, persistent MappingProfile,
-generated typed adapter, zero runtime LLM). The vertical-slice, UI-feature-first structure matches
-the owner's "workbench tool" vision, and the second-provider repeatability milestone is exactly the
-right factory proof.
+1. **Mapping cardinality** is solved with **iteration scopes**: a reviewable `IterationRoot` rule
+   binds a provider array path to the canonical `QuoteOptions[]` collection; rules inside the scope
+   use element-relative paths; arrays crossed *outside* an iteration root require an explicit
+   `ArraySelect` strategy (first / by-predicate / by-index / aggregate).
+2. **TransformKind** is a closed nine-kind set with typed parameters and per-kind validation;
+   enum/code translation is a first-class table, not a string transform.
+3. **MappingProfile lifecycle** is copy-on-write versioning: Draft → Approved (frozen, hashed) →
+   Superseded; edits clone a new draft; generation pins to `(ProfileId, Version, ProfileHash)`.
+4. **ProviderSchema identity** is hash-based: `SourceHash`, `SchemaHash`, and per-field stable
+   `FieldKey = hash(operationKey + direction + path)` — re-import/diff becomes a delta-review,
+   not a remap.
+5. Generator safety, build sandbox, fixtures, UI implications, LLM governance, G0-G4 gate grouping,
+   and an acceptance-evidence model are specified below.
 
-It is not yet ready to hand to an implementation gate as-is. Four design-level gaps must be resolved
-(in a tech design gate or a plan v0.2): **mapping cardinality/array-iteration semantics, approved-
-profile immutability, the generated-package build/test sandbox, and codegen injection safety** —
-plus several smaller consistency fixes listed below. None are blockers for continuing planning.
+One decision is deliberately left to the owner: the UI stack (a recommendation is given in §12).
+Nothing here opens implementation; G0 remains a future, separately authorized gate.
 
-## 2. Current State Restored
+## 2. Current State and Boundaries
 
-- AIKB: TwinCore status `LOGISTICS_CONNECTOR_FACTORY_PLANNING_REGISTERED`, gate `product
-  architecture / MVP planning for Work Item 12695`; workstream `AI Integrator / Integration Mapping
-  Factory`, first MVP slice `Logistics Rate API Connector Factory`, scope `Rate Quoting / Transit
-  Time only`. Implementation is NOT open; the reviewed plan itself states it does not open
-  implementation (plan:24).
-- Prior accepted evidence: planning dossier v0.1 (`REQ-2026-06-12-twincore-logistics-connector-
-  factory-planning-v0-1`, GPT verdict ACCEPT_WITH_LIMITATIONS) and framework audit
-  (`REQ-2026-06-04-twincore-main-review-v0-2`) with still-relevant risks: zero tests, doc/code
-  drift, fragile name-based assembly-scoped DI.
-- This review honors all hard boundaries: no source repo access, no code, no branches, no AIKB
-  writes, no plan modification, no Azure DevOps actions, no secrets. Writes limited to the four
+- AIKB: status `LOGISTICS_CONNECTOR_FACTORY_PLANNING_REGISTERED`, gate `product architecture / MVP
+  planning (Work Item 12695)`; workstream `AI Integrator / Integration Mapping Factory`; first MVP
+  slice `Logistics Rate API Connector Factory`; scope `Rate Quoting / Transit Time only`.
+- Prior evidence chain: planning dossier (ACCEPT_WITH_LIMITATIONS) → implementation plan v0.1 →
+  plan review (ACCEPT_WITH_LIMITATIONS, four design gaps) → this tech design.
+- Boundaries honored by this gate: no `Twincore-framework` access or changes, no branches, no
+  source code or solution skeleton, no AIKB writes, no plan-file edits, no Azure DevOps actions,
+  no `.claude/agents`, no secrets, no implementation gate opened. Writes restricted to the four
   authorized gpt-handoff paths.
 
-## 3. Role-Based Findings
+## 3. Design Decisions
 
-### 3.1 Product Architect Reviewer
+| # | Decision | Status |
+|---|---|---|
+| D1 | Path notation = deterministic JSONPath subset (grammar frozen in §4.5) | Decided here |
+| D2 | Iteration root modeled as a `MappingRule` of `RuleKind=IterationRoot` (one review surface) | Decided here |
+| D3 | `ArraySelect` strategies: First / ByPredicate / ByIndex / Aggregate(Sum,Min,Max) | Decided here |
+| D4 | TransformKind = closed 9-kind enum with typed params; chains capped at 2 per rule in MVP | Decided here |
+| D5 | Profile versioning = copy-on-write; approved versions immutable + content-hashed | Decided here |
+| D6 | Field identity = `FieldKey` path-hash; mapping rules reference FieldKey, not only DB ids | Decided here |
+| D7 | Generated DTOs keep wire names via serializer attributes; C# identifiers are sanitized cosmetics | Decided here |
+| D8 | Code emission through a single escaping/identifier utility (Roslyn SyntaxFactory preferred) | Decided here |
+| D9 | Sandbox restore = offline, pre-staged local package cache; pinned package allowlist | Decided here |
+| D10 | `ProviderEndpoints` + `ProviderExamples` become real tables; `EnumMapTables/Rows` added | Decided here |
+| D11 | Raw sources in content-addressed file store behind `ISourceContentStore` | Decided here |
+| D12 | Repository abstraction from slice 1; in-memory impls in G1, EF required from G2 start | Decided here |
+| D13 | Integration status stepper = derived state, computed from artifact existence | Decided here |
+| D14 | UI stack: recommend Blazor Server behind a clean API layer | Recommended — owner decides |
+| D15 | LLM suggestion cache required; prompt/model hashes audited; budget guard config | Decided here |
+| D16 | Implementation grouped into gates G0-G4, each one molecular Claude gate | Decided here (process) |
+| D17 | Multi-package requests, schema-diff UI, SOAP implementation, `ManualCode` transform codegen | Explicitly deferred |
 
-- ✅ Feature map (plan:65-103) covers the full product loop: import → schema → mapping → validation
-  → generation → test → demo → repeatability. The pipeline (plan:48-56) matches the accepted ADR.
-- ⚠️ **Owner-visible value lands late.** The first "wow" demo (generated adapter returning quotes)
-  is M9 of 12. Define explicit owner demo checkpoints (recommended: after M4 mapping workbench and
-  after M9 quote demo) so Igor sees progress twice before the full loop exists.
-- ⚠️ **Provider schema re-import / versioning loop is absent.** Storage carries `Version` fields
-  (plan:418, 436), but no feature handles "provider uploaded spec v2 → diff → re-review only the
-  delta". Acceptable to defer the feature, but field identity must be diff-stable from day one
-  (path-based hashes, not only auto-increment ids) or the deferral becomes a rewrite.
-- 🔧 Pick one product display name for the UI shell (AI Integrator vs Connector Factory) before M1;
-  three working names in AIKB are fine, three names in a demo UI are not.
+## 4. Mapping Semantics Design
 
-### 3.2 UX / Workflow Reviewer
+### 4.1 Scopes and the iteration root
 
-- ✅ Table/selectors-first Workbench, drag-and-drop deferred (plan:221, 786-788) — correct
-  prioritization. Wizard with explicitly disabled future options (plan:131) is honest UX.
-- ⚠️ **No search/filter in Provider Schema Viewer or Workbench** (plan:160-177, 217-233). Mock
-  specs are small; a real FedEx-class spec has hundreds of fields. Add field search + "show only
-  unmapped required / needs-review / conflicts" filters to F4/F7 acceptance — cheap now, painful later.
-- ⚠️ **No integration status stepper.** `IntegrationStatus` exists in the domain (plan:135) but no
-  UI surfaces "draft → source imported → mapped → validated → generated → tested". A thin status
-  indicator in the integrations list gives users orientation for free.
-- 🔧 Specify empty/error states for failed imports (partial parse of a broken spec: reject whole vs
-  import-with-warnings). F3 has a validation panel (plan:147); decide the partial-failure behavior.
+A `MappingProfile` contains two rule sets: **RequestMapping** (canonical → provider) and
+**ResponseMapping** (provider → canonical). Every rule belongs to a **scope**:
 
-### 3.3 Backend / .NET Architecture Reviewer
+- **Root scope** — the message root. Paths are absolute (`$.`-prefixed).
+- **Iteration scope** — declared by an `IterationRoot` rule:
+  `sourceCollectionPath` (provider array) → `targetCollection` (canonical collection).
+  The mapper emits **one target item per source element**; rules inside the scope use paths
+  **relative to the current element**.
 
-- ✅ Conceptual API plan (plan:474-522) is clean and REST-sensible; explicit generated-provider
-  registration mechanism (plan:315) correctly avoids the framework's fragile convention-scan DI.
-- ⚠️ **Service sprawl risk.** Mapping alone names four services (plan:225) plus suggestion services
-  (plan:203). Consolidate around aggregates (MappingProfile as the aggregate, one application
-  service + validators) at tech design; otherwise the tool reproduces the anemic-service pattern
-  the framework audit criticized.
-- ⚠️ **Undecided: does the factory tool itself use TwinCore framework or plain ASP.NET Core?** The
-  ADR fixes only that *generated adapters* must be contract-compatible with TwinCore-based apps.
-  Given audit findings (zero tests, DI landmines), recommend the tool be plain ASP.NET Core with
-  its own conventions; record this as an explicit tech-design decision either way.
-- ⚠️ **UI stack is unspecified** (Blazor / Razor / SPA). This is the biggest unstated effort
-  variable in the plan. Decide at tech design; for a .NET-shop internal workbench, a server-rendered
-  .NET UI minimizes toolchain cost for M1-M9.
-- ⚠️ **`GeneratedPackageBuildService` (plan:297) hides real complexity**: compiling and running
-  tests on generated artifacts means temp-project orchestration, SDK invocation, timeouts, output
-  capture, and isolation. This deserves its own design section before M8, not a one-line service name.
+MVP constraints (validated): ResponseMapping MUST contain exactly one `IterationRoot` targeting
+`QuoteOptions[]` (its absence = `Required missing`; more than one for the same target = `Conflict`).
+Nested iteration scopes are supported by the model but restricted to depth 1 in MVP UI.
+RequestMapping in MVP is scalar (single package per canonical model); multi-package request
+iteration is deferred (D17).
 
-### 3.4 Domain Modeling Reviewer
+### 4.2 One response → N quote options (worked example, FedEx-shaped)
 
-- ✅ Domain object list (plan:377-396) is coherent and matches the dossier's canonical model; status
-  enum extension with `Approved/Rejected` (plan:388) is a sensible refinement of the six statuses.
-- ❌ **The deepest gap in the plan: mapping cardinality / array iteration semantics.**
-  `MappingTransform` is "optional transformation rule" (plan:390) and rules are flat
-  source→target pairs (plan:442). But a rate response is a LIST: `rateReplyDetails[]` must become
-  N `ShipmentQuoteOption`s, and within each, the correct entry of a charges array must be selected.
-  Without an explicit **iteration root** concept ("one QuoteOption per element of path X") and an
-  **array selection strategy** (first / filter-by-type / aggregate), the response mapper cannot be
-  generated. This must be specified before any generator design; it also changes the Workbench UI
-  (the user must see/confirm the iteration root).
-- ⚠️ **Transform kinds are unenumerated.** Recommend fixing the MVP set explicitly: direct copy,
-  rename, type convert, unit convert, enum/code translation table, date/format parse, array select,
-  constant/default. Enum translation (provider service codes → canonical taxonomy) was first-class
-  in the accepted dossier and must not collapse into a generic "transform" string.
-- ⚠️ **Approved-profile immutability is unspecified.** Storage has `Version/ApprovedAt/ApprovedBy`
-  (plan:436), but F7/F8 never say "an approved MappingProfile version is frozen; edits create a new
-  draft version; generation pins to an approved version". Without this, the audit trail and the
-  generator determinism rule (plan:285) are both soft.
-
-### 3.5 Data / Storage Reviewer
-
-- ✅ Twelve-table logical model (plan:398-472) is proportionate; compute-on-demand validation
-  (plan:247) and "no DB if in-memory is faster" for slice 1 (plan:713) are good lean calls.
-- ❌ **Internal inconsistency:** F4 storage names `ProviderEndpoints` and `ProviderExamples`
-  (plan:171) and the domain has `ProviderExamplePayload` (plan:169), but §6 defines neither table
-  (plan:398-472). Either add both tables or fold endpoints/examples into `ProviderSchemas`/
-  `ProviderFields` explicitly.
-- ⚠️ `RawContentRef` (plan:412) — blob storage location, size limits, and retention policy are
-  undefined. Low risk (specs, not PII), but decide at tech design.
-- 🔧 If slice 1 is in-memory, mandate a repository abstraction from day one so the in-memory →
-  EF transition (M2+) does not rewrite domain services.
-
-### 3.6 Generator Pipeline Reviewer
-
-- ✅ Determinism rule "same schema + same profile + same generator version = same output"
-  (plan:285) and generator-version stamping (plan:587) are exactly right; snapshot/diff tests
-  (plan:583-588) support partial regeneration claims.
-- ❌ **Codegen injection safety is absent.** Provider field names are untrusted input that flows
-  into generated C# identifiers and string literals. A hostile or merely weird spec (C# keywords,
-  unicode tricks, quotes in descriptions) must produce safe, compilable code: identifier
-  escaping/normalization, literal escaping, reserved-word handling. Add to generator design + tests.
-- ⚠️ **Package output format undefined**: zip of a compilable project folder? NuGet package? Where
-  do artifacts live beyond "path/blob" (plan:454)? Recommend MVP = downloadable zip of a buildable
-  project + stored content hashes (already present, plan:454) for drift detection.
-- 🔧 Generated files need "GENERATED — DO NOT EDIT" headers and a regeneration-drift check via the
-  existing `ContentHash` (detect hand-edits before overwrite).
-
-### 3.7 Testing / QA Reviewer
-
-- ✅ Test strategy (plan:557-618) is the strongest section: importer, suggestion, validation,
-  snapshot, generated-adapter, runtime, negative, and repeatability tests all present — a direct
-  answer to the framework audit's zero-test finding.
-- ❌ **Multi-option fixtures are missing.** Tests say "provider response maps to canonical quote"
-  (plan:593) and "quote returns at least one option" (plan:321) — singular. The defining rate-API
-  shape is N options per response. Golden fixtures must contain ≥2 service options and ≥2 charge
-  entries, asserting ≥2 normalized QuoteOptions with the correct charge selected.
-- ⚠️ **The mock fixture itself is a key unplanned artifact.** "Mock OpenAPI" appears throughout but
-  is never designed. Build it deliberately FedEx-shaped (nested arrays of rated details, charge
-  lists, alerts) so M4-M10 hit realistic complexity, plus a deliberately messy second fixture for
-  the LLM assistant demo (M11) — deterministic-friendly mocks will make F14 look useless.
-- ⚠️ Acceptance matrix (plan:756-774) lacks an evidence column. Add per-row evidence tuples
-  (command + exit code / artifact path / log) so milestone acceptance is verifiable, not narrative.
-- 🔧 Add determinism tests at import level too: import same spec twice → identical ProviderSchema
-  content hash (plan:175 implies it; make it a hash assertion).
-
-### 3.8 Security / Secrets / Compliance Reviewer
-
-- ✅ No real credentials in MVP (plan:131), sanitized logs as a named service and test
-  (plan:297, 303), no secrets in fixtures (plan:753), oversized-input rejection (plan:155).
-- ❌ **Codegen injection** (see 3.6) is also a security finding: generated code is compiled and
-  executed (F11). With mock-only inputs the blast radius is local, but the test harness will run
-  attacker-shaped input the moment a real spec is imported. Sanitize identifiers/literals + add a
-  hostile-spec negative test.
-- ⚠️ **LLM prompt scrubbing needs a definition.** F14 tests "sensitive data not included in prompt
-  context" (plan:355) — define what is scrubbed: example values matching secret patterns (real
-  specs embed sample tokens/keys in `example` fields), URLs with credentials, anything from
-  `securitySchemes` beyond scheme type.
-- ⚠️ **Future URL import = SSRF surface** (plan:147 placeholder). Fine as placeholder; when
-  activated, require scheme/host validation and no internal-network fetches. Record now so it does
-  not ship naively later.
-- 🔧 Upload handling: content-type/extension validation and parse-only treatment of uploads are
-  implied but unstated — one line in tech design closes it.
-
-### 3.9 LLM Governance Reviewer
-
-- ✅ Strong: no LLM in first suggestion pass (plan:207), every LLM suggestion `Needs review`, never
-  auto-approved (plan:347), generation blocked while unreviewed suggestions exist (plan:579), zero
-  runtime LLM with an explicit test (plan:321, 602), assistant deferred to M11 after the
-  deterministic factory is proven.
-- ⚠️ **Suggestion caching is "optional" (plan:211) — make it required** per ProviderSchema version:
-  it is the main cost-control lever and was part of the accepted dossier's LLM-minimization answer.
-- ⚠️ **LLM call auditability:** `LlmSuggestion`/`SuggestionProvenance` (plan:350-352) should also
-  record model id, prompt template version, and prompt content hash — otherwise "why did AI suggest
-  this?" is unanswerable during review, which undercuts the governance story.
-- 🔧 Minimize prompt context structurally: send only unresolved fields + their subtree, never the
-  whole spec. Add a budget guard (max calls per schema version) as configuration.
-
-### 3.10 Delivery / Milestone Reviewer
-
-- ✅ M1-M12 (plan:620-692) are coherent, each with a DONE line; first slice (plan:694-754) is
-  genuinely small and demoable.
-- ❌ **M0 is missing.** The plan starts at "M1 — UI shell" but nothing creates the workspace:
-  feature branch, solution skeleton, test harness, CI hook, fixture assets. That setup is itself a
-  gated action (branch creation is currently forbidden) and must be the first implementation gate.
-- ⚠️ **12 sequential milestones = 12 micro-gates** if mapped 1:1 to Claude prompts — against the
-  owner's molecular mega-gate preference. Group into 4 implementation gates with internal phase
-  locks: G0=setup(M0), G1=M1-M3 (import+browse), G2=M4-M5 (mapping+gate), G3=M6-M9
-  (generate+test+demo), G4=M10-M12 (repeatability+LLM+SOAP slot).
-- 🔧 No effort sizing anywhere — correct for v0.1 (no invented numbers), but sizing must happen at
-  tech design once the UI stack is chosen, or G1 cannot be scoped honestly.
-
-## 4. Plan Strengths
-
-1. Vertical-slice discipline: every feature names UI + backend + domain + storage + tests + DONE.
-2. Deterministic-first ordering with LLM late (M11) — the architecture promise is enforced by the
-   milestone order itself, not just by prose.
-3. Mock-first carrier strategy kills the sandbox-blocker risk for the whole MVP.
-4. Second-provider repeatability as a mandatory, named milestone — the factory-vs-hardcoded-demo
-   proof is in the plan, not in good intentions.
-5. Coverage gate with negative tests (invalid profile cannot generate) — quality is structural.
-6. Explicit DI registration and own test harness for generated output — directly responds to the
-   framework audit's two biggest risks.
-7. Honest SOAP placeholder with "no false implementation claim" (plan:373).
-8. Acceptance matrix exists at all (plan:756-774) — most plans this early have none.
-
-## 5. Gaps in the Implementation Plan
-
-Ranked by severity:
-
-1. **Mapping cardinality / array iteration semantics undefined** (3.4) — blocks generator design.
-2. **Codegen injection safety absent** (3.6/3.8) — security + correctness.
-3. **Generated-package build/test sandbox undesigned** (3.3) — M8's hidden iceberg.
-4. **Approved-profile immutability/versioning unspecified** (3.4) — audit trail + determinism soft.
-5. **M0 setup milestone missing** (3.10).
-6. Storage inconsistency: `ProviderEndpoints`/`ProviderExamples` named but not defined (3.5).
-7. Multi-option golden fixtures missing; mock fixture itself unplanned (3.7).
-8. Transform kinds unenumerated; enum translation demoted to generic transform (3.4).
-9. No search/filter/status-stepper UX for real-spec scale (3.2).
-10. LLM suggestion audit fields and required caching (3.9).
-11. Tool's own stack decisions open: TwinCore-framework-or-plain, UI technology (3.3).
-12. ProviderSchema re-import/diff loop absent; field identity stability undecided (3.1).
-
-## 6. Recommended Additions
-
-1. **"Mapping semantics" section in plan v0.2 or tech design**: iteration root, array selection
-   strategies, enumerated TransformKind set, profile draft/approved versioning with frozen approved
-   versions.
-2. **M0 — Workspace setup milestone/gate**: feature branch, solution skeleton, test harness, CI,
-   fixture assets. First implementation gate; explicitly authorized branch creation.
-3. **Designed mock fixtures as artifacts**: one FedEx-shaped realistic spec (arrays, nested
-   charges, alerts), one messy/incomplete spec for the LLM assistant demo, plus golden multi-option
-   response fixtures.
-4. **Generator safety subsection**: identifier/literal sanitization, reserved words, hostile-spec
-   negative test, "GENERATED — DO NOT EDIT" headers, drift detection via ContentHash.
-5. **Build-sandbox design note** for F11/M8: temp project layout, SDK invocation, timeout, output
-   capture, isolation.
-6. **Evidence column in the acceptance matrix** (command+exit / artifact / log per row).
-7. **UX minimums for scale**: field search/filter, "unmapped required only" view, integration
-   status stepper.
-8. **LLM governance hardening**: required suggestion cache per schema version, model/prompt-hash
-   audit fields, prompt context minimization, call budget config.
-9. **Storage fixes**: add or explicitly fold `ProviderEndpoints`/`ProviderExamples`; blob location
-   + retention for `RawContentRef`; repository abstraction for the in-memory slice.
-
-## 7. Recommended Removals or Deferrals
-
-Nothing in the plan needs deletion. Confirm/sharpen these deferrals:
-
-1. **ProviderSchema re-import/diff** — defer the feature, but adopt diff-stable field identity now.
-2. **`GenerationPlans` persistence** (plan:444-448) — MVP can compute plans on demand; persist only
-   `GenerationRuns`/artifacts. Optional simplification, not required.
-3. **Feature-flag machinery in F1** (plan:115) — static config is enough for MVP; do not build a
-   flag system.
-4. **URL import** — stays a placeholder; activate only with SSRF guards (3.8).
-5. **Drag-and-drop, real sandbox, SOAP implementation, docs-only LLM parsing** — already correctly
-   deferred; keep them out of G1-G3 scope statements explicitly.
-
-## 8. First Slice Review
-
-Verdict on plan:694-754: **right size, right content, two adjustments.**
-
-- ✅ Shell + wizard + paste/upload + schema viewer + in-memory schema is a genuine end-to-end thread
-  with no generator/LLM/DB — small enough for one bounded implementation gate after M0.
-- 🔧 **Add the designed FedEx-shaped fixture to the slice DONE list** — "system shows endpoint and
-  field tree" should be proven against the realistic fixture, not a toy, or the schema viewer's
-  tree/array handling will be revisited in M4.
-- 🔧 **Mandate the repository abstraction inside the slice** ("no database required" is fine; "no
-  persistence seam" is not — the M2+ transition must not rewrite services).
-- Optional cheap win: the integration status stepper (even static) in the slice shell.
-
-## 9. Proposed Refined Milestone Sequence
-
-```text
-G0 (setup gate)        M0: branch + solution skeleton + CI + test harness + fixtures
-G1 (import gate)       M1 shell → M2 schema import → M3 internal model browser
-                       [Owner demo checkpoint #1: import & browse]
-G2 (mapping gate)      M4 workbench → M5 validation/coverage gate
-                       [Owner demo checkpoint #2: reviewed, gated MappingProfile]
-G3 (generation gate)   M6 generation review → M7 generator → M8 test runner → M9 quote demo
-                       [Owner demo checkpoint #3: generated adapter returns normalized quotes]
-G4 (factory gate)      M10 second provider → M11 LLM assistant (messy fixture) → M12 SOAP slot
-                       [Owner demo checkpoint #4: factory proof + AI assist]
+```yaml
+ResponseMapping:
+  - kind: IterationRoot
+    source: $.output.rateReplyDetails[*]
+    target: QuoteOptions[]
+  - source: serviceType                # relative to rateReplyDetails element
+    target: QuoteOption.ProviderServiceCode
+    transform: DirectCopy
+  - source: serviceName
+    target: QuoteOption.ServiceName
+    transform: DirectCopy
+  - source: ratedShipmentDetails[?(@.rateType=='ACCOUNT')].totalNetCharge.amount
+    target: QuoteOption.Price.Amount
+    transform: [ArraySelect(ByPredicate), TypeConvert(decimal)]
+  - source: ratedShipmentDetails[?(@.rateType=='ACCOUNT')].totalNetCharge.currency
+    target: QuoteOption.Price.Currency
+    transform: [ArraySelect(ByPredicate), DirectCopy]
+  - source: commit.dateDetail.dayFormat
+    target: QuoteOption.EstimatedDeliveryDate
+    transform: DateParse("yyyy-MM-dd'T'HH:mm:ss", DateOnly)
+  - source: $.output.alerts[*].message  # absolute path = root scope, evaluated once
+    target: QuoteResult.Warnings        # design rule: root-level alerts map to the result
+    transform: ArrayMapToList           # envelope (once), not into each QuoteOption
 ```
 
-Mapping semantics (iteration root, transforms) must be settled in tech design before G2; build
-sandbox design before G3. Each G-gate = one molecular Claude gate with internal phase locks, stop
-conditions, and a per-milestone evidence report — 4 gates instead of 12 micro-prompts.
+Golden assertion: a fixture response with 2 `rateReplyDetails` elements, each containing both an
+`ACCOUNT` and a `LIST` charge entry, must produce exactly 2 `QuoteOption`s whose `Price.Amount`
+equals the ACCOUNT entry's amount (not LIST), with root alerts mapped once to result-level warnings.
 
-## 10. Acceptance Criteria Improvements
+### 4.3 Arrays crossed outside an iteration root: ArraySelect
 
-Strengthen the matrix (plan:756-774) with:
+When a rule's source path traverses an array that is not its scope's iteration root, the rule MUST
+carry an `ArraySelect` strategy (validation error otherwise — never an implicit `[0]`):
 
-1. **Evidence tuple per row**: command + exit code / artifact path / log excerpt — no narrative-only
-   acceptance.
-2. **Multi-option assertion**: golden fixture with ≥2 service options and ≥2 charge entries →
-   ≥2 QuoteOptions, correct charge entry selected per option.
-3. **Determinism hashes**: same spec imported twice → identical ProviderSchema hash; same profile
-   generated twice → identical artifact ContentHashes.
-4. **Hostile-spec safety**: spec containing C# keywords / quotes / unicode in field names →
-   generation succeeds, package compiles, no template injection.
-5. **Approved-version pinning**: editing an approved profile creates a new draft version; generation
-   from the approved version remains reproducible; negative test that drafts cannot generate.
-6. **Required-field waiver trail**: ignoring/waiving a REQUIRED field demands a recorded reason +
-   reviewer identity (plan:231 hints at waiver policy — make it a tested rule).
-7. **Zero-LLM runtime, verified structurally**: no LLM service registered in the runtime DI scope +
-   no outbound LLM traffic in demo run logs (not just "no call happened to occur").
-8. **Repeatability without core change, verified by diff**: G4 acceptance includes showing the
-   factory-core diff between provider A and provider B integrations is empty.
+| Strategy | Params | Semantics | Failure behavior |
+|---|---|---|---|
+| `First` | — | first element | empty array → treat as missing source |
+| `ByPredicate` | discriminator path, comparison value | first element where `elem.path == value` | no match → missing source; >1 match → first + warning |
+| `ByIndex` | n | element at index | out of range → missing source |
+| `Aggregate` | Sum / Min / Max | numeric fold over elements | empty → missing source |
 
-## 11. Risks and Mitigations
+Predicate comparison values are constants stored in the rule (human-confirmed in the Workbench;
+suggested by the deterministic engine from example payloads, or by the LLM assistant). "Missing
+source" then follows the rule's requiredness policy: required target → validation blocker at
+mapping time, runtime warning at execution time; optional target → null + optional `Default`.
 
-Plan's own risk list (plan:776-830) is good; confirmed + additions:
+### 4.4 Workbench review surface
 
-| Risk | Status | Mitigation |
+The iteration root is a reviewable row like any rule (status, provenance, accept/edit). The
+Workbench shows the active scope when editing element-relative rules and previews live results
+against the example payload (count of produced options + per-field sample values) so the human
+approves semantics, not syntax.
+
+### 4.5 Path notation (frozen grammar v1)
+
+JSONPath subset, deterministic, no scripting:
+`$.name`, `.name` (relative), `name.sub`, `arr[*]` (iterate), `arr[0]` (index),
+`arr[?(@.field=='constant')]` (string-equality predicate only). Anything else is rejected at
+profile validation. Extensions require a design revision, not ad-hoc parsing.
+
+## 5. TransformKind Design
+
+Closed enum; each rule = source selector (+ optional ArraySelect) + transform chain (≤2 in MVP) +
+target. Optional `defaultValue` parameter exists on every rule for null/missing source.
+
+| Kind | Params | Validation | Codegen |
+|---|---|---|---|
+| `DirectCopy` | — | source/target types compatible | assignment |
+| `Rename` | — | same as DirectCopy (names differ; reporting distinction only) | assignment |
+| `TypeConvert` | targetType, failurePolicy (Fail/Null/Default) | conversion pair supported (string↔decimal/int/bool, number→string) | invariant-culture parse/convert helper |
+| `UnitConvert` | fromUnit, toUnit | units in versioned factor table (mass: kg/lb/oz/g; length: cm/in/mm/m) | constant-factor multiply, factors baked into generated code |
+| `EnumMap` | enumMapTableRef, unmappedPolicy (PassthroughWarn/Fail/Default) | table exists, rows reviewed | generated switch/dictionary from frozen table rows |
+| `DateParse` | formatString, outputKind (DateOnly/DateTimeUtc) | format non-empty; sample value parses against example payload | `DateTime.ParseExact`, invariant culture |
+| `ArraySelect` | strategy + params (§4.3) | only on array-crossing paths | LINQ select per strategy |
+| `Constant` | value, type | type matches target; no source path | literal assignment (escaped) |
+| `ManualCode` | placeholder text | **blocks generation in MVP** unless rule is waived | none (post-MVP escape hatch) |
+
+Enum/code translation is first-class data: `EnumMapTable` (e.g. provider service codes → canonical
+service taxonomy) with reviewable rows, scoped to the profile version and frozen with it.
+Unit factors and conversion helpers are generator constants (versioned with the generator), never
+runtime config — preserving the determinism rule (plan:285).
+
+## 6. MappingProfile Lifecycle and Versioning
+
+States: `Draft → Approved → Superseded` (+ terminal `Rejected` for abandoned drafts).
+
+- **Draft**: editable; rules carry mapping statuses (Auto-mapped / Needs review / Manual / Ignored
+  / Required missing / Conflict); validation runs on demand.
+- **Approve** (allowed only when the coverage gate is green): profile content becomes **immutable**;
+  monotonic `Version` (per integration project) assigned; `ApprovedBy/ApprovedAt` recorded;
+  `ProfileHash` = SHA-256 over canonical-JSON serialization (sorted keys, stable field order) of
+  rules + transforms + enum tables + iteration roots.
+- **Edit after approval**: the system clones the approved version into a new Draft
+  (`ParentVersionId` set); the approved version is untouched. Approved → `Superseded` only when a
+  newer version is approved; superseded versions are kept for audit and remain regenerable.
+- **Generation pinning**: `GenerationPlan`/`GenerationRun` reference
+  `(MappingProfileId, Version, ProfileHash)`. Regenerating an approved version is reproducible
+  byte-for-byte (with the same generator version); drafts can never generate (negative test).
+- **Waivers**: ignoring/waiving a REQUIRED canonical field demands a recorded reason + reviewer
+  identity, stored on the rule; waivers freeze with the version.
+- Per-rule audit: provenance (Deterministic / LLM / Human), reviewedBy/At, decision history
+  (append-only `MappingRuleHistory`, optional in storage but recommended from G2).
+
+## 7. ProviderSchema Identity / Re-import Readiness
+
+- `SourceHash` — SHA-256 of raw uploaded bytes (exact, no normalization); duplicate-upload detection.
+- `SchemaHash` — SHA-256 of the canonically serialized ProviderSchema tree (sorted keys); the
+  import-determinism acceptance assertion: importing the same source twice yields equal SchemaHash.
+- `OperationKey` — `{HTTPMethod} {pathTemplate}` (e.g. `POST /rates/quotes`).
+- `FieldKey` — SHA-256 over `(OperationKey | Direction | canonical JSONPath)`. Stable across
+  re-imports and databases; **MappingRules reference FieldKey** (plus DB FK for joins), so a future
+  re-import maps existing rules onto the new schema version without manual rebinding.
+- Re-import flow (designed now, UI deferred — D17): import v2 → new ProviderSchema row (version+1)
+  → set-diff by FieldKey: `added` (unmapped, suggest), `removed` (referencing rules flagged
+  `Broken/Needs review`), `typeChanged` (flag for re-review), `unchanged` (statuses carried over)
+  → delta re-review in Workbench → new profile draft. MVP ships the identity + hashes only; the
+  diff feature lands post-MVP without storage migration.
+
+## 8. Storage Model Refinements
+
+Additions/changes to the plan's §6 table set (plan:398-472):
+
+| Table | Status | Key fields |
 |---|---|---|
-| Scope creep to TMS | In plan | Keep; reinforce via G-gate scope statements |
-| UI polish too early | In plan | Keep; table-first confirmed correct |
-| Real sandbox blockers | In plan | Keep; mock-first confirmed |
-| LLM overuse | In plan | Keep; add required cache + budget guard (3.9) |
-| Hardcoded demo | In plan | Keep; strengthen with core-diff-empty acceptance (10.8) |
-| Weak tests | In plan | Keep; add multi-option + hostile-spec + hash tests |
-| TwinCore DI/docs drift | In plan | Keep; explicit DI already planned |
-| SOAP derail | In plan | Keep; slot-only confirmed |
-| Mapping ambiguity | In plan | **Partially mitigated** — statuses exist, but cardinality gap (5.1) must close or this risk lands in the generator |
-| **NEW: codegen injection** | Missing | Identifier/literal sanitization + hostile-spec tests (6.4) |
-| **NEW: build-sandbox complexity** | Missing | Design note before G3; timeouts/isolation (6.5) |
-| **NEW: too-clean mock fixture → false confidence** | Missing | FedEx-shaped + messy fixtures as designed artifacts (6.3) |
-| **NEW: milestone fragmentation overhead** | Missing | 4 molecular G-gates instead of 12 micro-gates (§9) |
-| **NEW: stack indecision late-binding** | Missing | UI stack + tool-framework decision fixed at tech design, before G0 |
+| `ProviderEndpoints` | **added** (fixes plan:171 vs §6 inconsistency) | Id, ProviderSchemaId, OperationKey, Method, PathTemplate, Summary, IsRateCandidate |
+| `ProviderExamples` | **added** | Id, ProviderSchemaId, EndpointId, Direction, Name, ContentRef, ContentHash, Origin (SpecExample/ManualUpload) |
+| `EnumMapTables` / `EnumMapRows` | **added** (for `EnumMap`) | TableId, ProfileVersionId, Name; RowId, SourceValue, TargetValue, Status, ReviewedBy/At |
+| `MappingProfiles` | extended | + State, ProfileHash, ParentVersionId, WaiverCount |
+| `MappingRules` | extended | + RuleKind (Field/IterationRoot), SourceFieldKey, TargetFieldKey, ScopeRuleId, TransformKind, TransformParams (JSON), ArraySelectStrategy/Params, DefaultValue, WaiverReason |
+| `ProviderFields` | extended | + FieldKey, ParentFieldId (tree), IsArray, ExampleRef |
+| `ProviderSchemas` | extended | + SourceHash, SchemaHash, SchemaVersion |
+| `LlmSuggestions` | extended (F14) | + ModelId, PromptTemplateVersion, PromptContentHash, ResponseHash |
 
-## 12. What Should Be Updated in AIKB Later (if Slava accepts this review)
+- **RawContentRef**: content-addressed file store under the app data root (`sources/{sha256}`),
+  behind `ISourceContentStore` (file impl in MVP, blob-storage impl later). Upload caps enforced
+  (size limit + content-type check); retention = lifetime of the integration project (specs are
+  small and non-PII); store path never derived from user-provided names.
+- **Repository abstraction** (slice 1): per-aggregate repository interfaces
+  (`IIntegrationProjectRepository`, `IProviderSchemaRepository`, `IMappingProfileRepository`, …);
+  G1 ships in-memory implementations; **EF Core implementations are a G2 entry condition** (mapping
+  must persist). Domain/services depend on interfaces only — the swap is additive, not a rewrite.
 
-For Architect GPT after acceptance (not performed by this review):
+## 9. Generator Safety Design
 
-1. Plan v0.2 amendments or a linked tech-design mandate covering: mapping cardinality/iteration
-   root + TransformKind set; approved-profile versioning; M0 setup milestone; G0-G4 gate grouping;
-   storage table fixes (`ProviderEndpoints`/`ProviderExamples`); generator safety section; build
-   sandbox note; fixture artifacts; acceptance matrix evidence column; LLM cache/audit hardening.
-2. `TASK_LEDGER.md`: entry for this review gate with verdict and evidence paths.
-3. `CURRENT_STATE.md`: point latest evidence at this review report; next safe step = Igor
-   validation and/or tech design gate.
-4. Optional: refresh `TwinCore/latest-summary.json` in gpt-handoff — it was outside this request's
-   write scope and still describes the previous (dossier) report.
+Untrusted input = every provider-derived string (field names, descriptions, enum values, operation
+ids). Two-track defense:
 
-## 13. What Should NOT Be Done Yet
+1. **Wire fidelity without identifier risk (D7):** generated DTO properties carry serializer
+   attributes with the exact original name (`[JsonPropertyName("svc-cd")]`-style); C# identifiers
+   are sanitized derivatives used only for code readability. Serialization never depends on
+   identifier sanitization.
+2. **Single emission utility (D8):** all code text passes through one identifier-sanitizer and one
+   literal-escaper (Roslyn `SyntaxFactory`/`Literal()` preferred — escaping by construction).
+   String concatenation/interpolation of raw provider strings into templates is banned by
+   convention and by a generator unit test that scans emitted code paths.
 
-- No implementation, no feature branch (M0 is a *future* gate), no solution skeleton.
-- No code generation experiments against the plan, no `.claude/agents` files.
-- No final UI-stack or tool-framework decision without Igor (tech design gate input).
-- No real carrier sandbox accounts, no provider credentials, no LLM provider selection/spend.
-- No AIKB writes from this review (GPT applies §12 only after Slava's acceptance).
-- No edits to the reviewed plan file itself.
+Identifier pipeline: Unicode NFC → transliterate/strip to `[A-Za-z0-9_]` → ensure first char is a
+letter → PascalCase → C# keyword check (`class` → `@class`) → deterministic collision dedupe
+(ordinal numeric suffix) → length cap. Same input always yields the same identifier (determinism).
 
-## 14. Final Recommendation
+Additional measures: descriptions sanitized before XML-doc emission (strip `*/`, control chars);
+artifact file names derived only from sanitized identifiers; output paths confined to the artifact
+store root (no traversal); generated file headers
+`// <auto-generated> AI Integrator | profile {id} v{version} {profileHash} | generator {version} — DO NOT EDIT`;
+`ContentHash` stored per artifact and checked before any overwrite — mismatch = hand-edit drift →
+refuse to overwrite without an explicit force flag.
 
-**ACCEPT_WITH_LIMITATIONS** — adopt the plan as the working implementation blueprint, with the
-§5/§6 items folded into either a plan v0.2 or (recommended) the upcoming **tech design gate**, which
-should open with the four design-level gaps as its mandatory agenda: mapping cardinality semantics,
-approved-profile versioning, build-sandbox design, and generator injection safety. Keep Igor
-validation as the first next gate — this review sharpens the plan but does not substitute owner
-validation of the product framing.
+**Hostile-spec fixture** (mandatory negative test): field names with C# keywords, quotes/backslashes,
+emoji + combining unicode, 300-char names, names colliding after sanitization, `../../` in operation
+ids, script-like description content. Acceptance: generation succeeds, package compiles, wire names
+intact, no path escapes.
+
+## 10. Build/Test Sandbox Design
+
+Purpose: compile and test generated packages (F11/M8) without hidden complexity or network trust.
+
+- **Layout**: `{workRoot}/{generationRunId}/src/…` — one temp folder per run; concurrent runs
+  isolated by folder; cleanup policy keeps the last N runs' artifacts, always deletes `bin/obj`.
+- **Dependencies**: generated csproj references only packages from a **pinned allowlist** staged in
+  a local offline package source; `dotnet restore --source {localFeed}`; no network restore, no
+  packages influenced by spec content. SDK version recorded per run.
+- **Invocation**: `dotnet build` then `dotnet test --logger trx`, each via a process wrapper with:
+  configurable timeouts (defaults: build 120s, test 120s), stdout/stderr capture, kill-on-timeout,
+  non-zero exit → failed run with captured output.
+- **Environment hygiene**: child process gets a minimal whitelisted environment (no inherited
+  secret-bearing variables); working directory = run folder; no elevated privileges.
+- **Sanitized logs**: absolute paths rewritten to run-relative, machine/user names stripped before
+  persisting `IntegrationLogs`/`TestRunResults`; raw logs are not stored.
+- **Residual risk, stated honestly**: the sandbox executes code generated from our own templates +
+  sanitized inputs (§9); it is an internal dev tool boundary, not a multi-tenant security boundary.
+  Hardening beyond process isolation (containers) is deliberately out of MVP scope and noted for a
+  future gate if the tool ever runs server-side for untrusted users.
+
+## 11. Fixture Strategy
+
+Fixtures are designed artifacts, versioned and hashed, committed at G0:
+
+1. **`MockCarrierA` — realistic, FedEx-shaped** (names neutralized): `POST /rates/quotes`;
+   request with shipper/recipient address objects + packages array (MVP maps `[0]`); response with
+   `output.rateReplyDetails[*]` (each: serviceType, serviceName, `commit.dateDetail`,
+   `ratedShipmentDetails[*]` containing both ACCOUNT and LIST charge entries with
+   `totalNetCharge {amount, currency}`), root-level `alerts[*]`.
+2. **Golden set for A**: request fixture + response fixture (≥2 service options × ≥2 charge entries)
+   + **expected canonical output JSON** (exactly N QuoteOptions, ACCOUNT amounts, parsed dates,
+   alerts→warnings) — the diff-able assertion artifact; plus an unavailable-service variant and an
+   error-envelope variant (→ warnings path).
+3. **`MockCarrierB` — structurally different**: flat response list (no nesting), different units
+   (lb/in vs kg/cm → exercises `UnitConvert`), different service-code vocabulary (exercises
+   `EnumMap`), ISO-string dates, currency at root. Proves factory generality in G4 without touching
+   factory core.
+4. **`MockCarrierMessy` — for the LLM assistant (M11/G4)**: deliberately incomplete spec — loose
+   inline types, cryptic names (`svcCd`, `amt1`, `dlvDt`), no examples, prose-only descriptions —
+   designed so deterministic suggestion fails and the assistant has a real gap to fill.
+5. **`MockCarrierHostile`** — §9 negative fixture.
+
+## 12. UI/UX Technical Implications
+
+- **Schema viewer at real-spec scale**: ProviderFields is already an indexed table — search by
+  name/path substring, filters by direction/required/mapped-status; tree view for browsing + flat
+  filtered list (path column) for search results; lazy-load children for large trees.
+- **Workbench filters**: default working view = `Needs review + Required missing + Conflict`;
+  "unmapped required only" toggle; status-count chips doubling as filter buttons (same counts feed
+  the coverage gate panel).
+- **Integration status stepper (D13)**: `Draft → SourceImported → SchemaReady → MappingInReview →
+  MappingApproved → Generated → Tested → DemoReady` — **derived** from artifact existence
+  (source row, schema row, draft profile, approved version, generation run, passing test run, demo
+  run), never hand-set; shown in the integrations list and as a wizard breadcrumb.
+- **Import error behavior**: hard parse failure → reject with error list (location/JSON-pointer);
+  recoverable issues (unresolved `$ref`, missing examples, loose types) → **import-with-warnings**:
+  what parses is imported, gaps flagged `Incomplete` on the affected fields, warnings panel lists
+  them; an `Incomplete` field used by a required mapping becomes a validation blocker downstream.
+- **UI stack (D14, recommendation pending owner)**: **Blazor Server** for the MVP workbench —
+  single .NET toolchain, no duplicated client models, fast iteration for an internal tool, SignalR
+  progress updates for free — with the conceptual API layer (plan:474-522) kept clean so a future
+  SPA can replace the UI without backend rework. If the owner prefers React (per other projects),
+  the API-first structure makes that a UI-substitution, not a redesign. G0 cannot start until this
+  is final.
+
+## 13. LLM Governance Design
+
+- **Suggestion cache (required)**: key = `(SchemaHash, promptTemplateVersion, modelId,
+  unresolvedFieldKeySetHash)` → cached suggestions; re-running the assistant on an unchanged schema
+  is a cache hit, not a new spend; invalidated by schema/template/model change.
+- **Prompt minimization**: prompt contains only (a) unresolved canonical fields (name, type,
+  description, requiredness) and (b) the candidate provider subtree (paths, types, sanitized
+  example values) — never the full spec. A scrubber removes example values matching secret
+  patterns, anything under auth/security sections, and URLs with embedded credentials.
+- **Auditability**: every `LlmSuggestion` stores ModelId, PromptTemplateVersion, PromptContentHash,
+  ResponseHash, timestamp, confidence, rationale — "why did AI suggest this" is answerable at
+  review time and reproducible later.
+- **Budget guard**: configuration caps (`MaxLlmCallsPerSchemaVersion`, `MaxPromptBytes`); exceeding
+  caps disables the assistant with an explicit message (deterministic flow unaffected).
+- **Boundary invariants** (tested): every LLM suggestion enters as `Needs review` with provenance
+  LLM; never auto-approved; generation blocked while unreviewed LLM suggestions exist; the
+  **generated package has zero LLM references** — structural assertions: generated csproj package
+  list contains no LLM SDK, runtime demo DI scope registers no LLM client, demo-run logs show no
+  LLM traffic. Provider/model choice stays an owner decision behind an `ILlmClient` port.
+
+## 14. Gate Grouping G0-G4
+
+Each gate = one molecular Claude implementation gate (own ACTIVE_REQUEST, internal phase locks per
+milestone, stop conditions, evidence report). Sequential; no gate opens without the previous gate's
+acceptance plus explicit authorization.
+
+| Gate | Content (plan milestones) | Entry conditions | Exit = owner demo checkpoint |
+|---|---|---|---|
+| **G0 — setup** | M0 (new): feature branch `feature/12695-ai-integrator-poc`, solution skeleton (src/tests/fixtures layout), CI build+test hook, fixture assets (§11) committed + hashed | tech design accepted; UI stack decided; branch creation explicitly authorized | CI green on empty skeleton; fixtures present with recorded hashes |
+| **G1 — import + browse** | M1 shell, M2 schema import, M3 internal model browser | G0 accepted | Demo #1: paste MockCarrierA spec → browse field tree + canonical model; in-memory persistence acceptable |
+| **G2 — mapping + validation** | M4 Workbench (rules, iteration root, EnumMap tables, ArraySelect), M5 coverage gate + profile approve/freeze (§6) | G1 accepted; EF persistence ready at entry | Demo #2: reviewed, approved, frozen MappingProfile with green coverage gate |
+| **G3 — generation + tests + demo** | M6 generation review, M7 generator (§9), M8 sandbox + test runner (§10), M9 quote demo | G2 accepted | Demo #3: generated MockCarrierA adapter compiles, tests pass, returns N≥2 normalized quotes |
+| **G4 — factory proof** | M10 second provider (MockCarrierB), M11 LLM assistant (MockCarrierMessy, §13), M12 SOAP/WSDL importer interface slot | G3 accepted | Demo #4: two providers in one quote response; factory-core diff empty; AI assist with human review |
+
+## 15. Acceptance Evidence Model
+
+Standard evidence tuple per milestone, mandatory in every implementation report:
+`{command + exit code}` and/or `{artifact path + content hash}` and/or `{log excerpt (sanitized)}`.
+Named cross-gate assertions:
+
+| Assertion | Evidence |
+|---|---|
+| ImportDeterminism | import same source twice → equal `SchemaHash` (hashes printed) |
+| MultiOption | golden response → expected canonical JSON, diff empty, N≥2 options |
+| ChargeSelection | `Price.Amount` equals ACCOUNT entry value, not LIST (golden diff) |
+| GenDeterminism | generate approved version twice → identical artifact `ContentHash` set |
+| HostileSpec | hostile fixture → generation exit 0 + `dotnet build` exit 0 |
+| ProfilePinning | new draft edits do not change approved-version regeneration hashes |
+| WaiverTrail | waived required field carries reason + reviewer in frozen version |
+| ZeroLLM | no LLM package in generated csproj; no LLM registration in runtime DI; demo logs clean |
+| PartialFailure | provider A forced-fail → B options + A warning entry returned |
+| Repeatability | provider B onboarding leaves factory-core paths diff-empty (`git diff` scoped to core dirs) |
+| SandboxBounds | build/test respect timeouts; logs sanitized (no absolute paths/usernames) |
+
+## 16. Updated Risks and Mitigations
+
+| Risk | Change vs plan/review | Mitigation |
+|---|---|---|
+| Mapping cardinality gap | **Closed by design** (§4) | implement as specified; golden multi-option assertions |
+| Codegen injection | **Closed by design** (§9) | single emitter + hostile fixture in G3 |
+| Build sandbox complexity | **Bounded** (§10) | offline allowlist restore; timeouts; stated residual risk |
+| Profile mutability | **Closed by design** (§6) | copy-on-write + pinning assertions |
+| JSONPath subset creep | new | grammar v1 frozen (§4.5); extensions need design revision |
+| EnumMap table sprawl | new | tables scoped to profile version; frozen on approve |
+| UI stack indecision | carried | D14 recommendation; G0 blocked until owner decides |
+| Offline package cache setup cost | new | one-time G0 task; pinned allowlist documented |
+| Fixture maintenance | carried | fixtures are hashed artifacts; changes reviewed like code |
+| Blazor choice misfit (if SPA preferred later) | new | API-first layering keeps UI replaceable |
+
+## 17. What AIKB Should Update Later (if Slava accepts)
+
+For Architect GPT after acceptance (not performed here):
+
+1. Record this dossier as the accepted technical design baseline (ledger entry + CURRENT_STATE
+   evidence pointer + status, e.g. `TECH_DESIGN_BASELINE_REGISTERED`).
+2. Either amend the implementation plan to v0.2 absorbing §4-§15, or link this dossier as the
+   plan's normative technical annex (recommended — avoids re-writing an accepted artifact).
+3. New ADRs: mapping semantics + TransformKind set (§4-§5); profile lifecycle (§6); UI stack
+   (after owner decision, D14).
+4. Next-gate pointer: G0 setup gate as the first implementation gate (entry conditions in §14);
+   Igor validation remains open in parallel as the product-level gate.
+5. Optional bridge hygiene: refresh `TwinCore/latest-summary.json` (still describes the first
+   planning dossier; outside this request's write scope).
+
+## 18. What Must NOT Be Done Yet
+
+- No feature branch, no solution skeleton, no CI setup (all G0, not yet authorized).
+- No source code, no generator prototyping, no fixture files on disk (fixture *specs* are designed
+  here; the files are G0 artifacts).
+- No final UI stack commitment without the owner (D14 is a recommendation).
+- No LLM provider/model selection or spend; no real carrier sandboxes or credentials.
+- No AIKB writes from this gate; no edits to the implementation plan file.
+- No Azure DevOps actions of any kind.
+
+## 19. Final Recommendation
+
+Adopt this dossier as the technical contract for implementation. With §4-§10 specified, the four
+review gaps are closed on paper; the remaining pre-implementation blockers are exactly two:
+**(1) owner decision on the UI stack (D14)** and **(2) Igor's product validation** (still the first
+product gate — this design does not substitute it). After both: open **G0 — setup gate** as the
+first, separately authorized implementation gate per §14.
 
 Report written only to the four authorized paths (gate report, `latest-report.md`,
 `_BRIDGE/LATEST_REPORT.md`, `_BRIDGE/STATUS.json`). Nothing else touched.
