@@ -2,7 +2,7 @@
   "bridge": "gpt-handoff/TwinCore/_BRIDGE",
   "scope": "project",
   "project": "TwinCore",
-  "state": "REQUEST_READY",
+  "state": "REPORT_READY",
   "activeRequestId": "REQ-2026-06-12-twincore-framework-ai-integrator-readiness-v0-1",
   "activeRequestType": "framework-readiness-analysis",
   "gate": "planning / framework-readiness-analysis",
@@ -10,10 +10,12 @@
   "targetReportPath": "TwinCore/twincore-framework-ai-integrator-readiness-v0.1/report.md",
   "compatibilityReportPath": "TwinCore/latest-report.md",
   "bridgeLatestReportPath": "TwinCore/_BRIDGE/LATEST_REPORT.md",
-  "lastReportId": "REQ-2026-06-12-twincore-ai-integrator-tech-design-v0-1",
+  "lastReportId": "REQ-2026-06-12-twincore-framework-ai-integrator-readiness-v0-1",
   "lastReportStatus": "READY_FOR_AUDIT",
+  "lastReportVerdict": "FRAMEWORK_NOT_A_BLOCKER_WITH_SPLIT_HOSTING",
+  "frameworkEvidenceCommit": "8f935f08979f9244daec9f0a1b55e028dbe4c7d9",
   "supersedes": "REQ-2026-06-12-twincore-ai-integrator-tech-design-v0-1",
-  "nextActor": "Claude",
+  "nextActor": "GPT",
   "updated": "2026-06-12",
-  "updatedBy": "architect-gpt"
+  "updatedBy": "claude"
 }
