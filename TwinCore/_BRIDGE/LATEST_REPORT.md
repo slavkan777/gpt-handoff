@@ -1,236 +1,491 @@
-REQUEST_ID: REQ-2026-06-04-twincore-main-review-v0-2
+REQUEST_ID: REQ-2026-06-12-twincore-logistics-connector-factory-planning-v0-1
 STATUS: READY_FOR_AUDIT
-TASK_TYPE: project-audit
+TASK_TYPE: project-planning
 PROJECT: TwinCore
-GATE: audit
-TARGET_REPORT_PATH: TwinCore/_BRIDGE/LATEST_REPORT.md
-PROJECT_REPORT_PATH: TwinCore/main-review-v0.2/report.md
-COMPLETED: 2026-06-04
+GATE: planning / product architecture
+ACTIVE_REQUEST_PATH: TwinCore/logistics-connector-factory-planning-v0.1/ACTIVE_REQUEST.md
+TARGET_REPORT_PATH: TwinCore/logistics-connector-factory-planning-v0.1/report.md
+LATEST_REPORT_PATH: TwinCore/latest-report.md
+COMPLETED: 2026-06-12
 COMPLETED_BY: claude
 
-> Routing note: this report supersedes the v0-1 draft published to the global bridge
-> (`_BRIDGE/LATEST_REPORT.md`, `TwinCoreFramework/…`), which are now stale/fallback only.
-> Authoritative location for this audit is the project-specific TwinCore bridge paths above.
-> The underlying read-only review is unchanged — only the publish destination moved.
+# TwinCore Logistics Connector Factory — MVP Planning Dossier v0.1
 
-## Current State
+> Routing note: the request was relayed by Slava in-session. At execution time the gate-specific
+> `ACTIVE_REQUEST.md` was not yet present in the bridge (checked against handoff repo tip `796ac38`);
+> REQUEST_ID / PROJECT / GATE were verified against the relayed request text. No conflicting open
+> request exists — the previous TwinCore request (`REQ-2026-06-04-twincore-main-review-v0-2`) is
+> completed (`_BRIDGE/STATUS.json` state `REPORT_READY`). Writing the ACTIVE_REQUEST file itself is
+> outside this task's write scope; left for Architect GPT to backfill.
+>
+> This is a PLANNING document. No code was written, no source repo touched, no AIKB updated.
 
-Read-only senior .NET review of the TwinCore framework `main` branch, completed against
-the exact tip of `origin/main` (commit `f6c0c84` "add CLAUDE.md") of the Azure DevOps repo
-`Twincore-framework`. The review was performed on a detached, read-only checkout of `main`;
-no source, branch, or remote of the framework repository was modified.
+## 1. Current State Restored From AIKB
 
-Two axes were evaluated as requested:
-- **Axis A — AI / LLM usability** (is the platform genuinely convenient for AI-assisted development?)
-- **Axis B — .NET architecture quality** (clean? MVP-fit? scalable toward modular monolith / microservices?)
+Read before planning (fresh clones of `slavkan777/ai-kb` and `slavkan777/gpt-handoff`, same-day):
+all nine `00_CONTROL_CENTER` bootstrap/protocol files from the request's READ FIRST list, the four
+`01_PROJECTS/TwinCore/` files (`PROJECT_PROFILE.md`, `CURRENT_STATE.md`, `TASK_LEDGER.md`,
+`CONTEXT_PACK/LATEST_CHAT_HANDOFF.md`), and the three TwinCore evidence paths
+(`TwinCore/_BRIDGE/LATEST_REPORT.md`, `TwinCore/latest-report.md`, `TwinCore/main-review-v0.2/report.md`).
 
-Headline: the framework is a competent, conventional **layered .NET 8 framework that an AI can
-use to scaffold CRUD features quickly** — but it is **"AI-documented", not yet "AI-native"**, and
-the codebase shows clear signs of being **harvested from older client projects** (dead code,
-half-wired features, zero tests, doc-vs-code drift). It is MVP-ready for an API+admin product;
-it is **not** yet a clean, test-guarded, plug-in-modular platform.
+Official TwinCore state being respected:
 
-## Boundaries Honored
+- **Status:** `REVIEW_CONTEXT_REGISTERED`; **current gate:** audit / Igor-facing architecture discussion.
+- **Source repo:** Azure DevOps `Twincore-framework`; reviewed branch `main`; reviewed commit `f6c0c84`.
+- **Accepted conclusion:** TwinCore is a conventional layered .NET 8 framework with useful AI/LLM-oriented
+  documentation and a good MVP foundation; reviewed `main` is **not yet proven** AI-native / agentic /
+  meta-driven. This dossier does not change, and does not depend on changing, that conclusion.
+- **Standing audit findings that matter for this plan** (from `main-review-v0.2/report.md`):
+  zero automated tests; doc↔code drift; fragile name-based, assembly-scoped DI discovery
+  (silent non-registration risk for new assemblies); dead/half-wired components; `Extensions/`
+  opt-in module seam is the healthiest extension point.
+- **Boundaries in force:** no source changes, no commit/push/PR, no Azure DevOps writes, no
+  cleanup/delete/archive, no AIKB writes without explicit `зафиксируй`, global `_BRIDGE` not authoritative.
 
-- **No write to the framework repo.** No commit, no push, no branch creation, no source edit on
-  the TwinCore (`Twincore-framework`) repository. Verified: the only working branch (`slava/11338`)
-  was never checked out or altered; review used a throwaway detached worktree of `main` that was
-  removed afterward.
-- **No AIKB update** (request says `after-approval`; nothing was written to the durable knowledge base).
-- **Read-only tooling only**: git tree/show/log, file reads, content search. No build, no migration,
-  no database connection, no app run.
-- **Sanitization for the public buffer**: this report contains assessment + repo-relative
-  `path:line` anchors + minimal (≤3-line) fragments to substantiate concrete defects. No whole-file
-  source dumps, no secrets (none exist in the code), no absolute machine paths, no credentials, no PII.
+## 2. New Workstream Interpretation
 
-## AIKB Routing Rule Read
+**Logistics Connector Factory is a new workstream inside the existing TwinCore project context** —
+not a new AIKB project, not a replacement of the review/discussion track, and **not yet durable AIKB
+state** (it becomes durable only when Slava says `зафиксируй`).
 
-Per the request's "READ THIS FIRST" instruction, before inspecting the framework I read the AIKB
-bridge-routing rule (durable memory — read-only, not modified):
+Provenance of the idea, kept honest:
 
-- `slavkan777/ai-kb/00_CONTROL_CENTER/START_HERE.md` — bootstrap order + GPT hard rules.
-- `slavkan777/ai-kb/00_CONTROL_CENTER/PROJECT_BRIDGE_PROTOCOL.md` — per-project bridge rule.
+- Igor raised it in a call with Slava on 2026-06-11: pain of many provider integrations, NSwag output
+  "not production ready", legacy SOAP providers, the wish for a small tool that turns a spec + docs
+  into a client built "by our rules", and a shipment-portal demo dream. Igor's three explicit research
+  questions: *what already exists on the market; how those tools work; where LLM calls can be minimized.*
+- The call was cut short exactly at the field-mapping application topic. The **canonical model and the
+  Mapping Workbench concept in this dossier are an elaboration by Slava + Architect GPT on top of that
+  call** — they are consistent with where Igor was heading, but Igor has not yet confirmed them.
+  Section 18 exists to close that loop.
+- INFER (from audit evidence, not from the call): the framework's ruleset file is internally named
+  "Allfreight Analyser Ruleset" — TwinCore was partly extracted from a freight-domain product, so
+  carrier-integration pain is likely first-hand for Igor, and prior logistics artifacts may exist.
+- The work-item ticket for this task could not be read in the current environment (work-item read
+  access unavailable); if the ticket contains requirements beyond the call, they are not reflected here.
 
-Compliance for this task:
-- **Project-specific bridge is authoritative.** This report is published to the TwinCore project
-  paths (`TwinCore/_BRIDGE/LATEST_REPORT.md`, `TwinCore/latest-report.md`,
-  `TwinCore/main-review-v0.2/report.md`). The global `_BRIDGE/` is treated as fallback/router only;
-  the earlier v0-1 draft left there is stale and is NOT authoritative project evidence.
-- **Identity matches exactly** — `REQUEST_ID: REQ-2026-06-04-twincore-main-review-v0-2`,
-  `PROJECT: TwinCore`, `GATE: audit`, `TARGET_REPORT_PATH` / `PROJECT_REPORT_PATH` are echoed
-  verbatim in this report's header.
-- **AIKB is durable memory, not transport** — no AIKB file was written
-  (`AIKB_UPDATE_REQUIRED: after-approval`); a `CURRENT_STATE` / `TASK_LEDGER` update happens only
-  after GPT audit + Slava acceptance.
-- **Gate separation respected** — this is the `audit` gate only; implementation / commit / push on
-  the framework remain separate, unopened gates.
+## 3. Product Goal
 
-## What I Inspected
+**Owner-friendly:** a factory that turns any carrier's API documentation into a working, verified
+connector for our own logistics platform — in days instead of weeks — where parsing and code
+generation are deterministic machinery, the LLM only helps understand the provider's semantics, and
+a human approves every field mapping before anything is generated.
 
-- **Repo shape**: full `main` file tree (724 tracked files; **333 `.cs`**, 5 `.md`, **27 projects**,
-  ~300+ vendored bootstrap/jquery assets committed under `TwinCore.Admin/wwwroot/lib/`).
-- **All AI-facing docs**: root `README.md`, `Src/README.md`, `Src/ARCHITECTURE.md`, `Src/CLAUDE.md`,
-  `Src/how-to-add-new-entity.md`, `Src/repomix.config.json`, `Src/.repomixignore`.
-  (No `Src/Docs/` or `Src/Docs/Plans/` directory exists on `main`; no `.claude/` directory; no
-  architect/developer/validator agent definitions present in the repo.)
-- **Build / quality config**: `Src/Directory.Build.props`, `Src/Directory.Build.targets`,
-  `Src/TwinCore.ruleset`, `Src/Stylecop.json`, `Src/TwinCore.sln`, sample `.csproj` files.
-- **Architecture spine (read in full)**: DI convention engine, app bootstrap (`BuildDefaultAppServices`),
-  `AppDbContext`, domain base types (`BaseEntity<T>`, `AggregateRoot`), `IRepository`/`Repository`,
-  `ServiceResponse` + `ErrorResponseType`, `AppServiceBase`/`ServiceBase`, `AppMapProfile`,
-  `ApiControllerBase`, `CrudController`, `Program.cs`, `GlobalExceptionHandler`, and the **only**
-  reference feature (`Dictionary*`).
-- **Quantified sweeps**: tests, `BuildServiceProvider` misuse, sync-over-async, TODO density,
-  exception-handler wiring, empty catch blocks.
+Короткая версия для разговора с Игорем (UA):
 
-## Short Verdict
+> Це не «згенерувати клієнта зі Swagger». Це фабрика конекторів: на вході — будь-який опис API
+> перевізника (OpenAPI, схеми, документація, пізніше SOAP), на виході — перевірений C#-адаптер,
+> який кладе відповіді провайдера в **нашу канонічну логістичну модель**. Парсинг і генерація —
+> детерміновані, LLM — тільки там, де треба «зрозуміти сенс», людина затверджує мапінг на
+> спеціальному екрані (Mapping Workbench). Перший MVP — тільки Rate Quoting / Transit Time.
 
-| Question | Verdict |
+The product value chain: provider-specific API chaos → canonical TwinCore logistics model →
+semi-automatic mapping → human approval → generated, verified adapter.
+
+**What this is NOT (positioning):**
+
+- **Not a ShipEngine/EasyPost/Shippo clone.** Those are shipping *aggregators*: they sell one
+  unified API in front of many carriers and take a margin on every shipment; integrating them means
+  adopting *their* model and their pricing, and still writing one integration. We are building the
+  **factory that builds our own connectors** into **our own canonical model** — an internal
+  capability of the logistics platform, not a reselling middleman. An aggregator is, for us, just
+  one more provider the factory can connect (one input format among many), not a competitor category
+  we copy.
+- **Not "Swagger → C# client" either.** Spec-to-client generators end where our value begins: at the
+  semantic mapping of provider fields onto our domain model, reviewed by a human and verified by
+  generated tests (§4, §10).
+
+## 4. Problem Statement
+
+A serious e-commerce / logistics platform needs tens of external integrations: payment providers per
+country (global + local players), carriers (FedEx/UPS/USPS-class and local ones), and aggregators.
+Every integration today means: a developer downloads documentation, deciphers it, writes a C# client
+by hand, maps provider fields onto the platform's own entities, and tests against a sandbox.
+
+Why this is expensive and stays expensive:
+
+- **Heterogeneity.** Modern providers expose OpenAPI; older ones expose SOAP only; some expose
+  REST + SOAP mixed, where individual features exist only on the SOAP side. Docs quality varies from
+  machine-readable specs to PDF prose.
+- **Existing generators stop too early.** NSwag-class tools produce DTOs and a mechanical client from
+  a spec, but the output is not production-ready: no company conventions (DI, resilience, error
+  handling, logging), no tests, and — the key gap — **no mapping to our own domain model**. For
+  SOAP-only or docs-only providers they produce nothing usable at all.
+- **The real cost center is semantics, not HTTP plumbing.** Which of the provider's five "charge"
+  fields is *the* price? What does service code `FEDEX_GROUND` mean in our service taxonomy? Which
+  date field is the delivery estimate? That semantic mapping work is what burns developer days, and
+  it is exactly the part no spec-to-client generator addresses.
+- **Multiplication.** Per-country provider sets multiply the integration count; every provider API
+  version bump re-opens the work.
+
+## 5. MVP Scope
+
+**One vertical only: Rate Quoting / Transit Time.**
+
+User inputs: origin address, destination address, package info (weight/dimensions/declared value).
+Carrier returns (normalized): price, currency, service type/code, service name, transit time,
+estimated delivery date, warnings/errors, optionally taxes/fees.
+
+In scope for MVP:
+
+1. Provider schema ingestion: OpenAPI / Swagger / JSON Schema + example payloads (see §9 tiers).
+2. Rate-endpoint detection assistance and request/response schema tree extraction.
+3. Canonical logistics model (quote-centric subset, §8) shipped as a versioned contract package.
+4. Mapping Workbench flow with the six mapping statuses and human approval (§10).
+5. Deterministic generation: typed DTOs, typed client, adapter implementing the canonical port,
+   mapping profile artifact, test skeleton (§11).
+6. Mock-first verification; sandbox verification where a free sandbox is available (§17).
+7. One reference carrier end-to-end, then a second carrier as the repeatability proof (§17-A5).
+
+Guardrail: **two carriers fully working beat five half-integrated.** MVP optimizes for proving the
+factory loop, not for carrier count.
+
+## 6. Explicit Non-Scope
+
+Not in this MVP (deliberately): tracking, label purchase/printing, shipment creation/booking,
+pickup scheduling, returns, customs/duties documentation, payments and payment-provider connectors
+(the same factory idea may serve them later, but MVP is carriers/rate only), full TMS functionality,
+order intake/lifecycle design, address validation as a service, carrier billing/reconciliation,
+multi-tenant concerns, Azure deployment planning, production hardening claims, UI design beyond the
+functional Workbench described in §10 (no mockups in this gate), full WSDL/SOAP automation (phase 2;
+manual-assisted path only), any marketplace/aggregator-reselling positioning.
+
+## 7. First User Scenario
+
+Two personas; the **integration engineer is the primary MVP user**, the portal end-user is the
+demo payoff.
+
+**Integration engineer (Workbench user):**
+
+1. Creates carrier "X" in the factory; uploads/points to its Rate API spec (or pastes docs/examples).
+2. The deterministic parser builds the provider schema tree; the LLM suggests which endpoint is the
+   rate-quoting one and annotates candidate price/service/transit fields; engineer confirms endpoint.
+3. Workbench shows provider schema vs canonical model; deterministic auto-match fills the obvious
+   pairs; LLM proposes the semantic ones (each with a rationale); engineer reviews each rule —
+   accept / edit / manual / ignore — until the coverage gate is green (§10).
+4. Engineer approves the MappingProfile; the generator emits DTOs + client + adapter + tests; compile
+   and mapping-coverage checks run; the mock verification executes golden sample payloads.
+5. Carrier "X" becomes available to the platform as a rate provider.
+
+**Portal end-user (demo):** enters two addresses (e.g., Khmelnytskyi → Kyiv), a 1 kg parcel, and gets
+a list of quote options across connected carriers — service name, price, currency, transit days,
+estimated delivery date — sortable by price or speed; express options cost more, slow options cost
+less. One carrier failing produces a warning entry, not an empty screen.
+
+## 8. Canonical Logistics Model
+
+Quote-centric minimal model. Principle: **business entities are thin and stable; integration
+metadata entities carry the factory's complexity; raw payloads are audit-only.**
+
+Core business entities (MVP-required):
+
+| Entity | Key fields | Why it exists |
+|---|---|---|
+| `Address` | Country, City, PostalCode, Street, Region/State, Residential/Commercial flag | Both quote inputs; residential flag changes pricing at major carriers |
+| `Package` | Weight + WeightUnit, L/W/H + DimensionUnit, DeclaredValue | Quote input; explicit units force deterministic unit-conversion rules instead of silent assumptions |
+| `Carrier` | Id, Name, Code, IntegrationType (generated-adapter / aggregator / manual), IsActive | Registry of connected providers; toggling without redeploy |
+| `ShipmentQuoteRequest` | OriginAddress, DestinationAddress, Package, RequestedDate, Currency, ServicePreferences | The canonical input every adapter receives — the request-side mapping target |
+| `ShipmentQuoteOption` | CarrierId, ProviderServiceCode, ServiceName, Price (Amount+Currency as Money), EstimatedTransitDays, EstimatedDeliveryDate, IsAvailable, Warnings, ProviderRawReference | The canonical output — the response-side mapping target; `ProviderRawReference` links to audit storage without polluting the business object |
+
+Thin references (present, not designed in MVP):
+
+| Entity | MVP treatment |
 |---|---|
-| AI-friendly, or normal framework + AI docs? | **Mostly normal framework + a recent, good-faith AI-docs layer.** Real, usable conventions, but doc↔code drift will actively mislead an LLM. |
-| Can AI quickly generate features via its conventions? | **Yes for the happy path** (new entity → EF config → service → controller). The `how-to-add-new-entity.md` checklist + `Dictionary` example are genuinely followable. **But** it will hit landmines on documented-but-nonexistent APIs and dead/half-wired code. |
-| Clean / understandable / MVP-fit? | **MVP-fit: yes.** **Clean: partially** — sensible layering, but accumulated cruft, zero tests, DI anti-patterns. |
-| Scalable to modular monolith / microservices? | **Foundations only.** The `Extensions/` seam is good; service discovery and the generic repository are hardwired in ways that block true plug-in modularity without rework. |
-| Hidden magic / ABP-lite risk? | **Moderate, not severe.** Two reflection conventions (DI by name, EF config scan). Simple to read, but their *limits* are undocumented. Bigger risk is **drift + dead code**, not magic. |
+| `Order` (Id, Number, CustomerId) | Anchor only, so a quote can belong to a real platform flow; order lifecycle out of scope |
+| `Shipment` (Id, OrderId, addresses, PackageId, SelectedCarrierId, SelectedServiceCode, Status) | Records "user picked this option"; full shipment lifecycle (booking/tracking) out of scope |
 
-## Evidence Summary
+Integration/mapping metadata (the factory's own model):
 
-Architecture confirmed (representative anchors):
-- **Layering**: `Program.cs` → `services.BuildDefaultAppServices()` (`Src/TwinCore.Api/Infrastructure/Extensions/AppServicesExtensions.cs:25`); request flow Controller → Service → Repository/UoW → Domain matches docs.
-- **DI by naming convention**: `Src/TwinCore.Services.Core/DI/ServiceCollectionExtensions.cs:19-30` — scans `assembly.ExportedTypes`, matches interface `i.Name == "I"+type.Name`, registers `TryAddTransient`.
-- **EF config auto-discovery**: `Src/DataAccess/TwinCore.DB.EF/AppDbContext.cs:22-31` — scans for `AppEntityTypeConfiguration<>` and applies via `Activator.CreateInstance`.
-- **Reusable infrastructure that is genuinely useful**: `ServiceResponse`/`ServiceResponse<T>` result pattern (`Src/TwinCore.Core/ServiceResponse/ServiceResponse.cs`), generic `AppServiceBase<TEntity,TID>` with Lookup/Paged/CRUD helpers (`Src/TwinCore.Services.Core/BasedServices/AppServiceBase.cs`), `Repository<T>` with soft-delete + audit stamping (`Src/DataAccess/TwinCore.DB.EF/Repositories/Base/Repository.cs`), modular `Extensions/` (17 opt-in projects), Guard/`Throw` helpers, `MaxStringLengthConvention`.
+| Entity | Why it exists |
+|---|---|
+| `ProviderSchema` | Versioned snapshot of the parsed provider schema tree (format-agnostic, §9); mapping rules reference it; schema change ⇒ new version ⇒ re-review delta |
+| `CarrierEndpoint` | Which provider endpoint serves rate quoting + protocol/auth profile reference (no secrets stored) |
+| `MappingProfile` | Versioned, approvable set of rules for (carrier, endpoint, schema version); the unit of human approval and the generator's input |
+| `MappingRule` | One field-level rule: source path → target path, transform (incl. unit/enum/date conversions), status (§10), provenance (deterministic / LLM-suggested / human), reviewer + timestamp |
+| `IntegrationRun` | One verification or quote execution: status, timing, environment (mock/sandbox/live) |
+| `IntegrationLog` | Events per run for diagnosis |
+| `RawRequest` / `RawResponse` | **Audit/debug only** — retained short-term, never the business source of truth, excluded from business queries |
 
-Defects / smells confirmed (file:line):
-1. **Generic CRUD base has a real bug**: `CrudController.Update` calls `UpdateFromModel(dto, -1)` — id hardcoded to `-1` for every entity (`Src/TwinCore.Api/Controllers/Base/CrudController.cs:43`); constructor takes `object service` and casts at runtime (`:13-16`).
-2. **The one reference feature does NOT use that base**: `DictionaryController` inherits `ApiControllerBase`, not `CrudController` (`Src/TwinCore.Api/Controllers/DictionaryController.cs:11`); `DictionaryService` hand-rolls Add/Get/Update (`Src/TwinCore.Services/Dictionary/DictionaryService.cs:52-65`). ⇒ the buggy generic CRUD base is effectively **dead/untested**.
-3. **Shipped global exception handler is never wired**: `ConfigureExceptionHandler` is defined (`Src/TwinCore.Services.Core/Exceptions/GlobalExceptionHandler.cs:16`) but has **0 call sites** — `Program.cs` never invokes it. It also emails on every 500 (`:52-53`) and returns `error.Message` to the client (`:46`).
-4. **DI anti-pattern**: `BuildServiceProvider()` called during registration in 4 files / 5 sites, incl. **twice in one method** (`AppServicesExtensions.cs:59-60`). This is ASP0000 — builds throwaway containers, duplicates singletons.
-5. **Dead `[Obsolete]` method that is still called**: `AddAppDbContextFactory` begins with `return;` (all logic unreachable) (`Src/TwinCore.Services.Core/Extensions/ServiceCollectionExtensions.cs:32-55`), yet is invoked with a literal typo arg `"connetion string"` (`Src/TwinCore.Api/Infrastructure/Extensions/ServiceCollectionExtensions.cs:60`).
-6. **Connection string logged on failure**: migration catch logs the raw connection string (`Src/TwinCore.Services.Core/Extensions/ServiceCollectionExtensions.cs:78`).
-7. **Silent identity fallback**: unauthenticated writes are stamped as user id `1` ("admin user") (`Repository.cs:155-163`) — audit-integrity / security smell.
-8. **Duplicated audit logic**: `CreatedOn` set in BOTH `Repository.Add` (`:129-135`) and `AppDbContext.SaveChangesAsync` (`AppDbContext.cs:42-60`); the DbContext path stamps only `CreatedOn`, ignores `ModifiedOn`/soft-delete, and overrides only the async `SaveChanges`.
-9. **Zero automated tests**: 0 test attributes/frameworks across `Src`; the solution has **no test project** of any kind.
-10. **Inconsistent project hygiene**: `Nullable`/`ImplicitUsings` enabled in `TwinCore.Core.csproj:5-6` but absent in `TwinCore.Services.csproj:3-5`; **not** centralized in `Directory.Build.props`. `Directory.Build.targets` is empty.
-11. **Copy-paste residue from prior products**: `TwinCore.ruleset:2` is internally named *"Allfreight Analyser Ruleset"*; the `.sln` lists a `Luxury.ruleset` solution item (`TwinCore.sln:12`) that **does not exist** in the tree. StyleCop is installed but heavily suppressed (SA1600/SA1633/… disabled) and **no `TreatWarningsAsErrors`** ⇒ analyzers are advisory, not enforced (overstated by `CLAUDE.md:99-103`).
-12. **Public-API typo baked in**: `UseSingalR` / `opts.UseSingalR` everywhere (`AppServicesExtensions.cs:36,108,199,280`); SignalR is registered (`:110`) but **no hub is mapped** in `Program.cs` ⇒ half-wired.
+## 9. Provider Input Formats
 
-Doc↔code drift (the items that will mislead an AI):
-- `CLAUDE.md:74` documents `ServiceResponse.Error(ErrorType.NotFound)` — **this signature does not exist**. The real enum is `ErrorResponseType` and `Error(...)` takes a string; the correct call is `ServiceResponse.NotFound(entityType)` (`ServiceResponse.cs:31`, `ErrorResponseType.cs`). An LLM copying the doc gets a compile error.
-- `CLAUDE.md:63` says "Three mechanisms" then lists **four** (Services, EF, AutoMapper, Validators).
-- `CLAUDE.md:59` says "14 optional modules"; the solution has **17** `Extensions/` projects.
-- Root `README.md:18` says API uses *SnakeCase*; `Program.cs:25` actually configures **CamelCase**.
-- **Two conflicting READMEs**: root `README.md` is stale (links to aspnetcore-3.1 docs, "could be used: Polly", Google auth) while `Src/README.md` is the new, accurate LLM-oriented one. Nothing tells an AI which is authoritative.
+All formats converge into **one normalized internal schema tree (`ProviderSchema`)** so the
+Workbench, mapping rules, and generator never care about the source format. Ingestion tiers:
 
-## AI / LLM Usability Review
+- **Tier 1 — MVP, fully deterministic:** OpenAPI 3.x / Swagger 2.0 (JSON/YAML), standalone JSON
+  Schema, plus example request/response payloads (example-to-schema inference is deterministic,
+  flagged lower-confidence).
+- **Tier 2 — MVP, LLM-assisted:** human documentation (HTML/Markdown/PDF text) and code samples.
+  The LLM drafts a schema/endpoint description; **everything LLM-derived enters the Workbench as
+  "Needs review"** — it never silently becomes truth.
+- **Tier 3 — phase 2:** WSDL/SOAP. Deterministic WSDL parsing is well-established in the .NET
+  ecosystem, but envelope construction, WS-Security and provider quirks push full support past MVP.
+  The `ProviderSchema` abstraction is designed now so SOAP slots in without reworking the Workbench
+  or generator. Interim path for a SOAP-only carrier: manual schema entry from captured example
+  envelopes (Tier 4 flow).
+- **Tier 4 — worst case:** undocumented/legacy HTTP. Manual schema entry in the Workbench from
+  captured traffic examples; the rest of the pipeline (mapping → generation → verification) works
+  identically.
 
-**Strong, deliberate AI-enablement layer (recent):**
-- A real `CLAUDE.md` operating contract, plus `ARCHITECTURE.md` and `Src/README.md` that each embed a compact **`yaml` "LLM context block"** with entrypoints and convention keys — exactly the kind of machine-readable map an assistant benefits from.
-- `repomix.config.json` + `.repomixignore` ⇒ the repo is set up to be **packed for LLM ingestion** with security checking on. Good instinct.
-- `how-to-add-new-entity.md` is an excellent, deterministic, step-by-step checklist with a named **reference implementation** (`Dictionary`) and a "common mistakes" section. This is the single best AI-usability asset in the repo.
-- **Deterministic folder layout** (feature-foldered services, fixed EF config location, fixed controller location). An AI can place new files unambiguously.
+## 10. Mapping Workbench
 
-**Why it is "AI-documented", not "AI-native" yet:**
-- **No agentic tooling**: there is no `.claude/` agents directory, no subagent/role definitions, no slash commands, no AI guardrails or validators in the repo. AI-friendliness lives entirely in markdown prose. (The request asks specifically about "architect/developer/validator agents" — none exist on `main`.)
-- **Documentation drift is the killer.** The convention "magic" is real, but several documented APIs/counts are wrong (see drift list). LLMs trust docs over code; the `ServiceResponse.Error(ErrorType.NotFound)` example alone will produce broken code on the first try.
-- **Silent conventions with undocumented limits.** DI registration is **name-based and assembly-scoped** to only two assemblies (`AddServicesExplicitly`, `Src/TwinCore.Api/Infrastructure/Extensions/ServiceCollectionExtensions.cs:67-79`; `AddBusinessServices([])` is called with an **empty assembly array**, `AppServicesExtensions.cs:161`). EF config discovery only scans the `TwinCore.DB.EF` assembly (`AppDbContext.cs:22`). An AI that adds a feature in a *new* assembly, or names a service slightly off, gets **silent non-registration** — the worst failure mode for an assistant (no error, just a missing binding at runtime).
-- **Dead / half-wired code misleads reasoning.** An AI inspecting the code will "learn" patterns from `CrudController` (buggy), `GlobalExceptionHandler` (unwired), and the `[Obsolete]` factory (dead) and may propagate them.
+The product's main screen — not a dashboard. Functionally (no UI design in this gate): provider
+schema tree on one side, canonical model on the other, the rule list with statuses in the middle;
+selecting a rule shows source path, target path, transform, provenance, LLM rationale when present,
+and sample values pulled from example payloads.
 
-**Where AI will get confused (ranked):**
-1. Which README / which `ServiceResponse` API is correct (drift).
-2. Why a correctly-written service isn't resolved (assembly-scoped, name-based DI).
-3. Whether to use `CrudController` (the only example bypasses it).
-4. Whether StyleCop/analyzer "enforcement" will block its output (it won't).
+Mapping statuses (exact semantics):
 
-**Net:** an AI pair-programmer **can** ship a new CRUD entity here faster than on a greenfield project, *if* a human has fixed the doc drift and pointed it at `Src/README.md` + `how-to-add-new-entity.md` as the sources of truth. Out of the box, expect 1–2 failed compile/runtime cycles on the documented-but-wrong surface.
+| Status | Meaning | Who sets it |
+|---|---|---|
+| `Auto-mapped` | Deterministic engine matched name/type/path with high confidence; bulk-approvable but human-visible | Engine |
+| `Needs review` | LLM-suggested mapping, or low-confidence deterministic match; requires explicit human accept/edit | Engine/LLM |
+| `Manual` | Human authored or rewrote the rule | Human |
+| `Ignored` | Provider field deliberately unmapped (irrelevant/noise) — recorded so coverage distinguishes "ignored on purpose" from "missed" | Human |
+| `Required missing` | A REQUIRED canonical field has no source; **blocks profile approval** unless explicitly waived with a reason | Engine |
+| `Conflict` | Multiple candidate sources for one target, or contradictory transforms; must be resolved by human | Engine |
 
-## .NET Architecture Review
+Review flow: ingest → deterministic auto-match → LLM gap suggestions (with rationale + confidence)
+→ human resolves every non-auto rule → **coverage gate**: all REQUIRED canonical fields mapped or
+explicitly waived, no `Conflict`, no unreviewed `Needs review` → human approves → MappingProfile
+version frozen → generation unlocked. Every approval records who/when; every rule keeps provenance —
+this is the audit trail that makes "semi-automatic with human approval" a real claim instead of a slogan.
 
-**Strengths:**
-- **Sensible, recognizable layering** (Api/Admin → Services → DataAccess → Domain) with Domain kept free of infrastructure. Easy for any .NET dev to navigate.
-- **Good cross-cutting primitives**: the `ServiceResponse` result-object pattern (avoids exceptions-as-control-flow), generic `AppServiceBase` CRUD/lookup/paging, repository + UoW abstractions, `Throw` guards, AutoMapper/FluentValidation integration, EF `MaxStringLengthConvention`.
-- **Composable feature toggles** via a fluent `AppServicesOptionsBuilder` (`AppServicesExtensions.cs:181-271`) — seniors can opt features in/out and override virtual base methods, so the conventions don't trap you.
-- **Pluggable persistence intent**: EF / LinqToDB / Mongo projects exist; multiple storage extensions (AWS/Azure) behind interfaces.
-- **.NET 8 throughout**, API versioning, response compression, health checks, HSTS in prod, JWT+cookie auth.
+First-class rule types beyond plain field copy: enum translation tables (provider service codes →
+canonical service taxonomy), unit conversions (lb↔kg, in↔cm), date/format parsing (e.g. a provider
+returning day-format strings for delivery commitments), array element selection (e.g. picking the
+correct charge entry from a rated-details array), and constant/default injection.
 
-**Weaknesses / risks:**
-- **No test safety net at all** — the biggest architectural risk for a framework meant to be reused across products. Any refactor is unguarded.
-- **DI composition is fragile and convoluted**: multiple overlapping `AddBusinessServices` methods (one called with `[]`), `BuildServiceProvider()` during registration, name-based resolution with simple-name collision risk, hardcoded two-assembly scan. This is the area most likely to bite at scale.
-- **Generic repository is bound to the concrete `AppDbContext`** (`Repository.cs:16-23`), undercutting the multi-context / modular-monolith story.
-- **Half-finished features presented as features**: SignalR (registered, no hub), `GlobalExceptionHandler` (unwired), `[Obsolete]` DB-context factory (dead but called). These inflate the apparent surface and mislead readers.
-- **Security/operational smells**: connection string in logs on failure; default user id `1` for unauthenticated writes; raw `error.Message` returned to clients; wide-open CORS in Development (`Program.cs:89-95`); email-on-every-500.
-- **Provenance cruft**: "Allfreight"/"Luxury" ruleset naming and a missing referenced ruleset confirm the framework was extracted from earlier client codebases without a cleanup pass.
+Worked example (provider fields of a FedEx-shaped rate response — INFER from field naming; first
+target carrier to be confirmed with Igor):
 
-**MVP fitness:** **High.** You can stand up a versioned REST API + admin UI + EF persistence + auth quickly, following the entity checklist.
+| Provider field | Canonical field | Likely status |
+|---|---|---|
+| `rateReplyDetails[].serviceType` | `QuoteOption.ProviderServiceCode` | Auto-mapped |
+| `rateReplyDetails[].serviceName` | `QuoteOption.ServiceName` | Auto-mapped |
+| `ratedShipmentDetails[].totalNetCharge.amount` | `QuoteOption.Price.Amount` | Needs review (which charge entry is "the" price — human confirms) |
+| `ratedShipmentDetails[].totalNetCharge.currency` | `QuoteOption.Price.Currency` | Auto-mapped after the amount rule is approved |
+| `commit.dateDetail.dayFormat` | `QuoteOption.EstimatedDeliveryDate` | Needs review (format transform) |
+| `alerts[].message` | `QuoteOption.Warnings` | Auto-mapped (array → list) |
 
-**Growth toward modular monolith / microservices:** **Partial.** The `Extensions/` project model is a real, healthy seam for a modular monolith. To get there for real you need: (a) assembly-agnostic / attribute-based service & EF-config discovery, (b) decouple `Repository<T>` from `AppDbContext`, (c) optional messaging/integration-events on by default for service boundaries (MediatR is present but `UseMediatr=false`). Nothing blocks microservices, but nothing specifically enables them yet.
+## 11. Generated Output
 
-## Risks
+Per approved MappingProfile version, the deterministic generator emits:
 
-| # | Risk | Severity | Why it matters |
+1. **Typed DTOs** for the provider's request/response (from `ProviderSchema`).
+2. **Typed thin client** — HTTP plumbing, serialization, auth hook (credentials injected from
+   environment/secret store, never generated into code), provider error envelope handling.
+3. **Adapter** implementing the canonical port — `IRateQuoteProvider.GetQuotesAsync(ShipmentQuoteRequest)
+   → quote options` — whose body is generated *from the MappingProfile*: request-side mapping,
+   response-side mapping, transforms, warning extraction.
+4. **MappingProfile artifact** (versioned JSON/YAML) — the persistent source of truth; regeneration
+   is repeatable and diffable (see §15, Option C).
+5. **Test skeleton**: unit tests asserting golden sample payloads → expected canonical output;
+   a mock-server smoke test using recorded/sample responses; an optional sandbox test configuration
+   (keys via environment only, nothing committed).
+6. **Generation gates**: compile check and mapping-coverage validation must pass before the adapter
+   is considered produced.
+7. **Convention pack** ("by our rules"): DI registration extension, resilience policy placeholders,
+   structured logging. The concrete rule-pack (TwinCore conventions vs a clean standalone profile)
+   is an open question for Igor (§18 Q3) — relevant because the audit showed TwinCore's name-based,
+   assembly-scoped DI silently ignores services in new assemblies, and generated adapters will live
+   in new assemblies; the generated DI extension must therefore be explicit, not convention-scanned.
+
+## 12. Runtime Flow
+
+1. Portal (or API consumer) submits origin/destination/package → canonical `ShipmentQuoteRequest`.
+2. The quote orchestrator fans out to all `IsActive` carrier adapters in parallel with per-carrier
+   timeouts.
+3. Each generated adapter deterministically: maps the canonical request → provider request DTO →
+   calls provider endpoint (live, sandbox, or mock depending on environment) → parses the response →
+   maps to `ShipmentQuoteOption[]` (prices as Money, units normalized, dates parsed, provider codes
+   translated through the approved enum tables, alerts → Warnings).
+4. Orchestrator aggregates options, sorts (price/speed), and returns **partial results on partial
+   failure** — a dead carrier contributes a warning entry, not an outage.
+5. Each adapter call records an `IntegrationRun` + `IntegrationLog`; `RawRequest`/`RawResponse` are
+   persisted only in audit/debug mode with limited retention.
+6. **No LLM anywhere in this flow.** The runtime path is 100% deterministic generated code; LLM cost
+   exists only at design time (§13). This is the direct answer to the "minimize LLM calls" requirement.
+
+## 13. LLM vs Deterministic Responsibilities
+
+| Concern | Owner |
+|---|---|
+| OpenAPI / JSON Schema parsing, schema tree extraction | Deterministic |
+| WSDL parsing (phase 2) | Deterministic |
+| DTO / typed client / adapter code generation | Deterministic |
+| Mapping config storage, versioning, approval workflow | Deterministic |
+| Compile check, test skeleton, mapping coverage validation | Deterministic |
+| Runtime quote execution | Deterministic (generated code only) |
+| Understanding provider docs; drafting schema from prose | LLM (design-time) |
+| Finding the rate-quoting endpoint among many | LLM suggests → human confirms |
+| Semantic field matching (price/service/transit candidates) | LLM suggests → Workbench review |
+| Explaining enums and error codes | LLM (annotations in Workbench) |
+| Detecting missing required fields / asking review questions | LLM assists → coverage gate decides |
+| Final mapping approval | Human, always |
+
+LLM-cost minimization tactics baked into the design: (1) zero LLM at runtime; (2) deterministic
+auto-match runs first, LLM sees only the residual gaps; (3) LLM analyses are cached per
+`ProviderSchema` version — re-run only on schema change, not per session; (4) suggestion tasks are
+small-context and fit cheaper models; human review absorbs imperfection, so the system does not need
+expensive high-certainty prompting.
+
+## 14. TwinCore Fit
+
+How this *can* fit TwinCore's architecture — without claiming any of it exists today:
+
+- **Contract package**: the canonical logistics model + `IRateQuoteProvider` port ship as a small
+  standalone package. Generated adapters depend on the contract only — they do not need the full
+  framework, which keeps the factory decoupled from framework cleanup timelines.
+- **Module seam**: TwinCore's `Extensions/` opt-in project model (the healthiest extension seam per
+  the audit) is the natural shape for carrier adapters consumed by a TwinCore-based logistics portal:
+  one adapter = one opt-in module.
+- **Where the factory itself lives**: recommended for MVP — a **separate repository/solution**, not
+  inside `Twincore-framework`. Reasons: the framework repo is read-only under current boundaries; the
+  audit found cleanup debt (zero tests, DI fragility) that the factory should not inherit on day one;
+  a standalone tool keeps the "minimal separate project" framing Igor used. Folding proven parts into
+  the framework later is a separate, explicit decision.
+- **Known landmines if adapters target TwinCore conventions now** (from the accepted audit):
+  name-based DI discovery is scoped to fixed assemblies — generated adapters in new assemblies would
+  be silently not registered, so generated code must use explicit DI registration extensions; the
+  framework has no test projects, while the factory's value proposition includes generated tests —
+  the factory therefore carries its own test harness; `ServiceResponse`-style conventions can be part
+  of the convention pack only after Igor confirms which conventions are canonical (the audit found
+  doc↔code drift exactly there).
+- **Strategic upside for Igor**: a generated, tested, convention-clean carrier adapter would make a
+  strong candidate for the "golden reference feature" the audit said the framework currently lacks —
+  and the factory direction is a concrete, evidence-backed step toward the AI-assisted vision for
+  TwinCore, without overclaiming that reviewed `main` is already AI-native (it is not proven to be).
+
+## 15. Architecture Options
+
+**A. Runtime mapping config (interpreter).** A generic adapter engine reads the MappingProfile at
+runtime and executes mappings dynamically.
+*Pros:* no codegen step; mapping fixes apply without rebuild. *Cons:* opaque debugging (stack traces
+point into the engine, not into carrier-specific code); weaker compile-time guarantees; runtime
+failure surface for mapping errors; harder to hand a reviewer "the FedEx client" as readable code;
+does not deliver the explicitly requested production-ready C# client.
+
+**B. Generated C# adapter only.** Codegen from the mapping decisions; generated code is the only
+artifact, the profile is throwaway.
+*Pros:* typed, reviewable, debuggable, testable code per carrier. *Cons:* without a persistent
+profile, every mapping fix means re-deriving decisions; no diffable semantic history; regeneration
+after provider schema change loses the human review trail.
+
+**C. Hybrid — persistent MappingProfile + generated adapter (RECOMMENDED for MVP).** The versioned,
+human-approved MappingProfile is the durable source of truth; a deterministic, idempotent generator
+emits the typed C# adapter from it; profile change ⇒ regenerate ⇒ diffable code change.
+*Pros:* human-auditable semantic layer **and** production-grade typed code; repeatable generation;
+re-review after provider schema bumps touches only the changed rules; matches the formula
+"parser + generator deterministic, LLM for semantic gaps, human approval".
+*Cons:* the generator must stay hermetic and idempotent (no hand edits inside generated regions) —
+an accepted engineering constraint.
+
+## 16. Risks
+
+| # | Risk | Why real | Mitigation |
 |---|---|---|---|
-| 1 | **Zero automated tests** | High | No regression guard for a framework reused across products; every change is risky. |
-| 2 | **Doc↔code drift** (wrong `ServiceResponse` API, miscounts, snake/camel, dual READMEs) | High (for AI) | LLMs and juniors will generate broken code from the docs. |
-| 3 | **Fragile DI composition** (empty-array scan, `BuildServiceProvider`, name-based, 2-assembly limit) | High | Silent non-registration; hard to scale to many feature assemblies. |
-| 4 | **Dead / half-wired code** (CrudController `-1`, unwired exception handler, `[Obsolete]` call, SignalR) | Medium-High | Misleads readers/AI; the global error handler not running means inconsistent 500s. |
-| 5 | **Security smells** (conn-string logging, default user id 1, error.Message disclosure, dev CORS) | Medium | Each is individually fixable but signals a missing security review. |
-| 6 | **Provenance cruft** (Allfreight/Luxury ruleset, missing ruleset, vendored JS in git) | Low-Medium | Hygiene; suggests no extraction-cleanup pass. |
+| 1 | **Scope creep toward a TMS** (tracking, labels, booking pull immediately) | The demo dream is a full portal; quoting is just the first slice | Rate-quote-only acceptance criteria (§17); non-scope list (§6) agreed with Igor up front |
+| 2 | **Overclaiming AI** ("AI does the integration") | Sales-friendly but false; the audit already corrected one overclaim direction for TwinCore | Honest formula everywhere: deterministic core, LLM = design-time assistant, human approval; runtime has zero LLM |
+| 3 | **Mapping ambiguity** (which charge is *the* price; gross/net/list; date day-formats; multi-entry arrays) | Real-world rate responses are semantically messy | `Conflict` / `Needs review` statuses, golden sample payloads as test fixtures, human gate before generation |
+| 4 | **Provider auth/sandbox complexity** (OAuth flows, certs, sandbox account approval queues) | Big carriers gate sandboxes behind registration | Mock-first verification as the MVP gate; sandbox as a stretch criterion; no real keys in any artifact |
+| 5 | **Dirty framework foundation** if adapters bind to TwinCore conventions now | Audit: zero tests, DI silent non-registration for new assemblies, doc drift | Standalone contract package for MVP; explicit DI registration in generated code; factory ships its own test harness |
+| 6 | **Spec quality variance** (broken/partial OpenAPI in the wild) | Common with carrier APIs | Schema repair path through Workbench (Tier 2/4 ingestion); example-payload inference |
+| 7 | **LLM suggestion errors** (hallucinated field semantics) | Inherent | Provenance + confidence on every suggestion; nothing LLM-derived is auto-approved; coverage gate |
+| 8 | **Unvalidated elaboration** — canonical model + Workbench not yet confirmed by Igor (call cut off) | Building before validation wastes the MVP | §18 questions first; planning artifact only at this gate |
+| 9 | **Unread ticket** — work item may contain requirements beyond the call | Access unavailable in this environment | Obtain ticket text via Slava before the design gate |
+| 10 | **No test culture in the target framework** | Generated test skeletons only pay off if they run somewhere | Factory repo carries its own CI-able test project from day one |
 
-## Recommended Next Steps
+## 17. Acceptance Criteria
 
-Ordered by leverage (fix highest-impact / lowest-effort first):
+MVP is accepted when each item below has its evidence tuple (command + exit code / artifact / log):
 
-1. **Make the docs true** (1–2 hrs, highest ROI for AI usability): fix `ServiceResponse.Error(ErrorType.NotFound)` → real API, the "three/four" miscount, the "14 vs 17" count, snake/camel; **delete or redirect the stale root `README.md`** so `Src/README.md` is the single source of truth. Add a one-line "AI: read `Src/README.md` + `how-to-add-new-entity.md` first" pointer.
-2. **Fix the `CrudController.Update(-1)` bug** and either make the `Dictionary` reference feature *use* `CrudController`, or delete the generic CRUD base if it's not the intended path. The reference example must exercise the documented base.
-3. **Wire `ConfigureExceptionHandler` in `Program.cs`** (or delete it). Stop returning `error.Message` to clients; stop emailing on every 500 (rate-limit / make opt-in).
-4. **Remove the DI anti-patterns**: eliminate `BuildServiceProvider()` during registration (inject `IConfiguration`/`IWebHostEnvironment` from the builder); collapse the duplicate `AddBusinessServices`; pass real assemblies. Consider attribute-based or `Scrutor` assembly scanning to make discovery explicit and AI-legible.
-5. **Add a minimal test project** (even 10–20 tests over `ServiceResponse`, the repository, and the entity-add happy path) — this is the single biggest credibility upgrade.
-6. **Centralize hygiene in `Directory.Build.props`**: `Nullable`, `ImplicitUsings`, `LangVersion`, optionally `TreatWarningsAsErrors`; rename the ruleset to TwinCore and remove the dead `Luxury.ruleset` reference.
-7. **Remove dead code** (`[Obsolete] AddAppDbContextFactory` + its call + typo string; commented-out registrations) and stop logging the connection string.
-8. **Secure the unauthenticated-write fallback** (no silent user id `1`).
-9. (Strategic) For modular-monolith ambitions: decouple `Repository<T>` from `AppDbContext`, make discovery assembly-agnostic, and turn on integration messaging at module boundaries.
+- **A1 — Ingestion:** a real carrier rate-API spec (OpenAPI/JSON) ingests into a browsable
+  `ProviderSchema` tree without manual file surgery.
+- **A2 — Workbench gate:** the six example mappings of §10 are resolvable in the Workbench; every
+  REQUIRED canonical field ends `Auto-mapped`/`Manual`/accepted-`Needs review`, or is explicitly
+  waived; profile approval is blocked while any `Required missing`/`Conflict`/unreviewed rule exists
+  (negative test included).
+- **A3 — Generation:** generated solution compiles (exit 0); generated unit tests pass against
+  golden sample payloads (N/N).
+- **A4 — Mock run end-to-end:** a `ShipmentQuoteRequest` (two addresses + package) through the
+  generated adapter against a recorded mock returns ≥1 normalized `ShipmentQuoteOption` with price,
+  currency, service code/name, and delivery estimate populated.
+- **A5 — Factory repeatability (the core proof):** a second carrier is integrated by repeating the
+  flow **with zero changes to factory code** — only a new profile + newly generated artifacts.
+- **A6 — Partial failure:** with one carrier's mock forced to fail, the quote response still returns
+  the other carrier's options plus a warning entry (not an error, not an empty result).
+- **A7 — Zero runtime LLM:** no LLM call appears in the runtime quote path (verifiable by code
+  inspection of generated adapters + absence of LLM traffic in runtime logs).
+- **A8 — Secret hygiene:** no credentials in generated code, profiles, configs, or this report's
+  successor artifacts; sandbox keys only via environment injection.
 
-## Questions for Igor
+## 18. Questions For Igor
 
-1. **Intent of the AI layer**: is TwinCore meant to become genuinely *AI-native* (agents, guardrails, codegen), or is the goal "AI can read good docs and scaffold features"? That changes whether we invest in `.claude/` agents + accurate convention contracts or just in doc accuracy.
-2. **Is `CrudController` the intended CRUD path?** The only reference feature bypasses it and it has a clear bug — should we fix+adopt it, or is hand-rolled-per-feature the real convention?
-3. **Test strategy**: is the zero-test state intentional for this stage, or is a test suite expected? Any preferred stack (xUnit + Testcontainers)?
-4. **Provenance**: the "Allfreight"/"Luxury" residue suggests TwinCore was extracted from prior products. Is there an internal "golden" app that shows the *intended* end-to-end usage we should align the docs to?
-5. **Modularity target**: how far toward modular-monolith / microservices is this expected to scale? That decides whether we invest in assembly-agnostic discovery and integration messaging now.
-6. **Which README is canonical?** Confirm `Src/README.md` is source-of-truth so the stale root one can be removed.
-7. **Auth/security expectations**: is the unauthenticated → user id `1` fallback intentional (seed/admin path) or a bug to remove?
+(EN for the record; UA phrasing for the actual conversation.)
 
-## Human-Style Summary Draft
+1. **Where should the factory live** — a separate repo/tool (recommended for MVP) or inside
+   Twincore-framework? / Де живе фабрика — окремий репозиторій/тулза чи всередині фреймворку?
+2. **First target carrier?** The working example's field shapes match a FedEx-style rate API (INFER);
+   alternatively a local-market carrier with an easier sandbox. / Який перевізник перший — FedEx-клас
+   чи локальний з простішим сендбоксом?
+3. **"By our rules" = which rules exactly** — TwinCore conventions (`ServiceResponse`,
+   `AppServiceBase`, …) or a clean standalone convention pack for generated code? / «По наших
+   правилах» — це конвенції TwinCore чи чистий окремий стандарт для згенерованого коду?
+4. **Who uses the Mapping Workbench** — developers only, or also a non-dev integrator/analyst? This
+   decides UI depth. / Хто користувач Workbench — лише розробник чи й не-розробник?
+5. **How urgent is SOAP** — which real legacy provider should drive phase 2? / Наскільки терміновий
+   SOAP і який реальний legacy-провайдер перший?
+6. **The mapping application from the cut-off call** — is the Workbench described here what you
+   meant, or did you envision something different? / Та «аплікуха для мапінгу», на якій обірвався
+   дзвінок — це воно (Workbench) чи ти бачив інакше?
+7. **Ticket contents** — does the work item contain requirements beyond the call? (Also: read access
+   to work items for the executor.) / Чи є в тікеті деталі понад дзвінок?
+8. **LLM constraints** — allowed provider(s), budget ceiling, any data-privacy constraints on sending
+   provider docs to an LLM? / Який LLM-провайдер дозволений, бюджет, обмеження на відправку
+   документації провайдерів?
+9. **Acceptance demo** — what exactly do you want to SEE to call MVP done (how many carriers, which
+   fields, mock or sandbox)? / Що саме ти хочеш побачити, щоб сказати «працює»?
+10. **Product ambition** — internal accelerator for TwinCore-based projects, or potentially a
+    sellable product? Affects licensing/architecture choices. / Це внутрішній прискорювач чи
+    потенційний продукт на продаж?
 
-> TwinCore is a solid, conventional .NET 8 layered framework — it does the boring things right
-> (clean layers, a result-object pattern, generic CRUD/repository helpers, opt-in feature modules,
-> health checks, versioned API) and there's a genuinely good "add a new entity" guide plus a fresh
-> set of LLM-oriented docs and a repomix setup. An AI assistant *can* scaffold features here faster
-> than on an empty project.
->
-> The honest caveats: it reads like a framework **extracted from older client apps** and not yet
-> given a cleanup pass. There are **no automated tests**, a few **dead/half-wired pieces** (a CRUD
-> base controller with an `id = -1` bug that the sample feature doesn't even use; a global error
-> handler that's never switched on; an obsolete DB factory that's still called), some **DI wiring
-> that fights the framework** (building the service provider during startup, scanning an empty
-> assembly list), and a handful of **doc-vs-code mismatches** that will trip up both juniors and AI
-> (a `ServiceResponse` example that won't compile, snake-vs-camel case, two conflicting READMEs).
->
-> None of this is fatal — it's an afternoon or two of cleanup for the high-impact items (fix the
-> docs, fix/relocate the CRUD base, wire or drop the error handler, add a starter test project).
-> Do that and it becomes a credibly clean, AI-friendly MVP platform. Right now it's **"good bones,
-> needs a cleanup and a test pass"** rather than **"production-hardened, AI-native"**.
+Carry-over from the standing audit discussion (one conversation, two agendas): where do the
+mentioned agents / meta-driven parts live (branch? future phase?); test strategy for the framework;
+which README is canonical.
 
-## Not Touched
+## 19. Recommended Next Gate
 
-- The TwinCore framework repository (`Twincore-framework` on Azure DevOps): no commit/push/branch/source edit; working branch `slava/11338` untouched; read-only `main` worktree removed after review.
-- `slavkan777/ai-kb` (durable memory) — not updated (`AIKB_UPDATE_REQUIRED: after-approval`).
-- Global bridge paths (`_BRIDGE/LATEST_REPORT.md`, `TwinCoreFramework/…`) — left as stale/fallback, not treated as authoritative; this report lives only in the project-specific TwinCore bridge.
-- No build, no `dotnet`/EF commands, no database, no app run. No secrets read or written; no external services contacted.
+After Architect-GPT audit of this dossier + Slava's acceptance + the Igor validation conversation
+(§18), the recommended sequence:
 
-## Next Safe Step
+1. **`TWINCORE_CONNECTOR_FACTORY_MARKET_RESEARCH_V0_1`** (next safe gate, read-only): an
+   evidence-based answer to Igor's three explicit questions — what exists (NSwag/Kiota/
+   openapi-generator class tools, aggregators as a *different* category, any AI-mapping products),
+   how they work, and where LLM calls are minimized in comparable systems. Cheap, directly requested
+   by the owner, and it de-risks the design. A preliminary internal scan exists from a prior session
+   but is not yet saved as evidence — this gate would formalize it.
+2. Then **`TWINCORE_CONNECTOR_FACTORY_TECH_DESIGN_V0_1`** (planning, no product code): canonical
+   contract package spec, `ProviderSchema`/`MappingProfile` formats, generator pipeline design,
+   Workbench data flow — the blueprint the first implementation gate would build from.
+3. Only after both: a bounded PoC implementation gate (separate explicit authorization, separate
+   repo per §14 recommendation).
 
-Await Architect-GPT audit of this report (`отчёт`). On approval, the natural follow-ups are a
-**doc-accuracy fix pass** and a **dead-code/DI cleanup pass** on `main` (each a separate, gated,
-explicitly-authorized change), and — if Igor confirms — an AIKB entry capturing the framework's
-real conventions and known landmines.
+## 20. Not Touched
+
+- **Twincore-framework source repo**: not read beyond previously accepted audit evidence, not
+  modified; no commit, no push, no PR, no branch operations; no Azure DevOps write actions.
+- **AIKB (`slavkan777/ai-kb`)**: read-only; no updates (`AIKB_UPDATE_REQUIRED: no`); the new
+  workstream remains non-durable until Slava says `зафиксируй`.
+- **Global `gpt-handoff/_BRIDGE/`**: not used as authority, not written.
+- **`TwinCore/_BRIDGE/ACTIVE_REQUEST.md`**: left as-is (still the completed audit request) — outside
+  this task's write scope; gate-specific ACTIVE_REQUEST backfill is for Architect GPT.
+- No code generated, no DB migrations, no UI mockups, no secrets/API keys anywhere, no paid provider
+  usage, no production-readiness claims, no claim that reviewed `main` is AI-native/agentic/meta-driven.
+- Writes performed: exactly this report to the five authorized gpt-handoff paths (gate report,
+  latest-report mirror, `_BRIDGE/LATEST_REPORT.md` mirror, `latest-summary.json`, `_BRIDGE/STATUS.json`).
+
+## 21. Next Safe Step
+
+Slava reviews this dossier and triggers `отчёт` for Architect-GPT audit; in parallel, takes §18 to
+Igor. On acceptance: `зафиксируй` to register the workstream in AIKB, then `бриф` for the market
+research gate (§19.1). No implementation before those gates.
