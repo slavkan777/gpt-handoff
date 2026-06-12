@@ -1,286 +1,240 @@
-REQUEST_ID: REQ-2026-06-12-twincore-framework-ai-integrator-readiness-v0-1
+REQUEST_ID: REQ-2026-06-12-twincore-ai-integrator-plan-v0-2-review-before-g0
 STATUS: READY_FOR_AUDIT
-TASK_TYPE: read-only analysis / report-only
+TASK_TYPE: analysis-only / report-only
 PROJECT: TwinCore
-GATE: planning / framework-readiness-analysis
-ACTIVE_REQUEST_PATH: TwinCore/twincore-framework-ai-integrator-readiness-v0.1/ACTIVE_REQUEST.md
-TARGET_REPORT_PATH: TwinCore/twincore-framework-ai-integrator-readiness-v0.1/report.md
+GATE: planning / plan-v0.2-review-before-g0
+ACTIVE_REQUEST_PATH: TwinCore/ai-integrator-plan-v0.2-review-before-g0/ACTIVE_REQUEST.md
+TARGET_REPORT_PATH: TwinCore/ai-integrator-plan-v0.2-review-before-g0/report.md
 LATEST_REPORT_PATH: TwinCore/latest-report.md
 COMPLETED: 2026-06-12
 COMPLETED_BY: claude
 
-# Twincore-framework readiness/refactor analysis for AI Integrator v0.1
+# TwinCore AI Integrator Plan v0.2 Review Before G0
 
 ## 1. Executive Verdict
 
-**The framework is NOT a blocker for AI Integrator — provided the split hosting model below is
-adopted.** This conclusion is based on fresh evidence, not the stale audit baseline: current
-`main` is at `8f935f08` — **147 commits past the audited `f6c0c84`** — and a large share of the
-audit's blocking findings are already fixed by the owner (automated tests now exist, DI hygiene is
-repaired, a real module system with module-owned DbContexts has landed, central package management
-and architecture fitness tests are in place, and `.claude/` agents/skills now exist in-repo).
+**READY_FOR_G0_WITH_LIMITATIONS.**
 
-What remains true: a handful of audit defects are still present (a generic CRUD bug, one
-documentation line that actively misleads AI tooling, legacy half-wired pieces), and the module
-infrastructure is young. None of these block the integrator **if the factory workbench is isolated
-in its own solution and generated adapters depend only on a dependency-free contracts package**.
+Plan v0.2 (`FEATURE_PLANS/TWINCORE_AI_INTEGRATOR_IMPLEMENTATION_PLAN_V0_2.md`, ai-kb `dc2803b`)
+correctly absorbs all four prior reports, states owner-proxy mode safely, fixes the hosting and UI
+decisions in reviewable form, and scopes G0 narrowly. **No v0.2 revision is required.**
 
-Framework-side mandatory work before G0: **zero items**. Recommended courtesy fixes for the owner:
-**five small items** (§5.2), the first of which is a one-line doc fix that protects his own in-repo
-AI agents.
+The limitations are five sharpening items, all absorbable into the future G0 ACTIVE_REQUEST
+(drafted in §9) rather than into the plan text:
 
-## 2. Source Evidence and Limitations
+1. **G0 inherently requires one Azure DevOps write** (pushing the feature branch) — every request
+   so far forbids all Azure writes; the G0 request must explicitly authorize exactly this one
+   action, or the executor must BLOCK on the contradiction (§7-L1).
+2. The `TwinCore.sln` escape hatch ("untouched **unless explicitly justified and approved**",
+   plan:252) should be hardened to an unconditional STOP for G0 (§7-L2).
+3. The fixture deliverable is ambiguous ("fixtures folder exists", plan:249, vs the tech design's
+   four authored fixtures + hashes) — decide one way in the G0 request (§7-L3).
+4. CI-pipeline creation collides with the no-Azure-writes boundary — G0 must require local
+   build/test evidence only; pipeline creation is a separately authorized action (§7-L4).
+5. Owner-proxy mode needs a visible **provisional-decision register** for Igor's return (§4-L5).
 
-- **Primary evidence: current `main` @ `8f935f08979f9244daec9f0a1b55e028dbe4c7d9`** ("feat: startup
-  diagnostics for convention auto-discovery", 2026-06-11), fetched read-only from Azure DevOps
-  today; analysis performed on a tracked-files-only export of that commit. File:line references
-  below point to this state.
-- A read-only mirror of the same commit is available to GPT for verification:
-  private repo `slavkan777/twincore-framework-snapshot`, snapshot commit `be4cce6` (created
-  2026-06-12; Azure remains canonical).
-- Delta baseline: `TwinCore/main-review-v0.2/report.md` (audit of `f6c0c84`).
-- The owner's own fix tracker exists in-repo and was used as a cross-check:
-  `Src/Docs/Plans/ARCHITECTURE-REVIEW-FIXES-PLAN.md` (items ticked DONE 2026-06-11 match code).
-- **Limitations:** static analysis only — no build, no test run, no runtime verification; commit
-  count and fix attributions are from git history and code state, not CI evidence. No Azure DevOps
-  write actions; no source modifications; local working tree untouched (clean before and after).
+## 2. Current State Restored
 
-## 3. Current Framework Fit Assessment
+- AIKB (`dc2803b`): TwinCore in `OWNER-PROXY MODE` (Igor unavailable; Slava/GPT make provisional,
+  reversible decisions; "Igor approved" is a forbidden phrase) — `CURRENT_STATE.md:33-34,182`.
+- Current framework evidence commit `8f935f08` recorded (`CURRENT_STATE.md:25`) — the stale
+  zero-tests risk picture has been corrected as the readiness report requested.
+- Evidence chain to date: planning dossier → plan v0.1 → plan review → tech design (ADR'd as
+  baseline: `DECISIONS/ADR-2026-06-12-ai-integrator-technical-design-baseline.md`) → framework
+  readiness (`FRAMEWORK_NOT_A_BLOCKER_WITH_SPLIT_HOSTING`) → plan v0.2 → this review.
+- Gate state: planning only; implementation NOT open; G0 NOT open (plan:326-332). This review does
+  not open it.
+- Boundaries honored here: read-only analysis; writes restricted to the four authorized
+  gpt-handoff paths; no AIKB writes; no source repo access needed for this gate.
 
-### 3.1 What changed since the audited `f6c0c84` (verified in code)
+## 3. v0.2 Consistency Review
 
-| Audit finding (f6c0c84) | Status on `main@8f935f0` | Evidence |
+**Internally consistent. Verified point-by-point against the three source reports:**
+
+| v0.2 claim | Source | Status |
 |---|---|---|
-| Zero automated tests | **FIXED** — `Src/Testing/TwinCore.Tests` with 24 test files incl. `LayeredArchitectureTests`, `ModuleArchitectureTests`, `ConventionDiagnosticsTests`, `AuditStamperTests`; commit history cites "51/51 tests" | `Src/Testing/TwinCore.Tests/*` |
-| `BuildServiceProvider()` during registration (ASP0000) | **FIXED** — zero occurrences in framework code; remaining hits are legitimate test-container usage | grep: only `Src/Testing/**` + doc references |
-| `UseSingalR` typo | **FIXED** — `UseSignalR` is real; `UseSingalR` kept as `[Obsolete]` forwarding shim | `Src/TwinCore.Mvc.Core/Hosting/AppServicesOptions.cs:40-46` |
-| Silent name-based DI non-registration | **MITIGATED** — startup convention diagnostics added (logger + tests) | `Src/TwinCore.Services.Core/DI/ConventionDiagnostics.cs`, `ConventionDiagnosticsLogger.cs` |
-| Repository hardbound to `AppDbContext` | **FIXED** — generic `Repository<TContext, TEntity>` base added; `Repository<TEntity>` is now a compat shim over it | `Src/DataAccess/TwinCore.DB.EF/Repositories/Base/Repository.cs:16-28` |
-| No `.claude/` agents (AI-documented, not AI-native) | **MATERIALLY ADVANCED** — root `.claude/` now contains `agents/architect.md`, `developer.md`, `validator.md`, 11 skills, a hook, settings | `.claude/agents/*`, `.claude/skills/*` |
-| No modularity beyond Extensions | **NEW CAPABILITY** — module system: `TwinCore.Modules.Abstractions` (ICommand/IQuery), `IModuleClient` (in-process via MediatR + `HttpModuleClient` remote), `ModuleLoader` + AssemblyPart controller discovery, `ModuleDbContextBase` + `AddModuleDbContext` (module-owned DbContext, per-context migration history), module diagnostics endpoint; two pilot modules extracted (`TwinCore.Module.Dictionary` + `.Contracts`, `TwinCore.Module.Workflow`) | `Src/Modules/*`, `Src/TwinCore.Modules.Abstractions/`, `Src/TwinCore.Api/Program.cs:89-93,166-168` |
-| Build hygiene not centralized | **FIXED** — Central Package Management (`Directory.Packages.props`), SonarAnalyzer, .editorconfig, fitness tests | repo root / commit `46c216d` |
-| Error handling inconsistent | **REWORKED** — API host uses `AddProblemDetails()` (RFC 7807) with ServiceResponse→ProblemDetails mapping; structured Serilog with trace correlation | `Src/TwinCore.Api/Program.cs:27-34` |
-| No `Src/Docs/Plans` | **NEW** — 16 living plan documents incl. the review-fixes tracker, modular composition, multi-tenancy, web-farm readiness | `Src/Docs/Plans/*` |
+| Tech design decisions list (plan:152-166) | Tech design dossier §3-§13 | ✅ faithful (IterationRoot, element-relative paths, explicit ArraySelect, JSONPath subset, closed TransformKind, immutable approved profiles, generation pinning, SourceHash/SchemaHash/FieldKey, sanitization, sandbox, 4 fixtures, LLM cache/audit, zero runtime LLM) |
+| ADR baseline matches the dossier | ADR tech-design-baseline | ✅ including "no implicit `[0]`" and `ManualCode` blocking generation |
+| Readiness verdict + zero framework prerequisites (plan:183-193) | Readiness report §1/§5.1 | ✅ |
+| Courtesy fixes list (plan:195-201) | Readiness §5.2 | ✅ all five, correctly framed as owner queue, not blockers |
+| G0 layout (plan:226-238) | Readiness §11 | ✅ identical |
+| G1 in-memory only with repository abstraction (plan:263) | Tech design D12 | ✅ |
+| EF "before or at G2" (plan:273) | Tech design (EF at G2 entry) | ✅ compatible |
+| G2 includes IterationRoot/ArraySelect/TransformKind UI (plan:267-271) | Tech design §4-§5 | ✅ |
+| G3 multi-option quote assertion (plan:283) | Tech design §15 MultiOption | ✅ |
+| G4 second provider with no factory-core change (plan:287-288) | Tech design §15 Repeatability | ✅ |
 
-Solution grew from 27 to **50 projects**; Extensions from 17 to **28**.
+**Minor precision gaps (sharpen in G0 request, not in the plan):**
 
-### 3.2 What is still open (verified in code)
+- §4.1 calls contracts "dependency-light" (plan:90); the accepted rule is precise: **BCL +
+  `Microsoft.Extensions.*` abstractions only** — pin the exact wording in the G0 request so the
+  skeleton's `.csproj` is checkable.
+- The readiness report's rebase-cadence rule (rebase the feature branch at gate boundaries, never
+  mid-gate) did not carry into v0.2's gate rules (plan:292-303) — add to the G0+ request template.
+- G0 exit evidence omits build/test *command evidence* (it lists "empty skeleton builds",
+  plan:247, without the evidence-tuple form) — §9 fixes this.
 
-| Item | Evidence | Impact on AI Integrator |
-|---|---|---|
-| `CrudController.Update` still passes `-1` as id | `Src/TwinCore.Api/Controllers/Base/CrudController.cs:43` | None if adapters/tool never use it (rule in §10); courtesy-fix item for owner |
-| **`CLAUDE.md` still documents non-existent `ServiceResponse.Error(ErrorType.NotFound)`** | `Src/CLAUDE.md:138` | **Highest residual AI risk** — the repo now has its own `.claude` agents that can read and propagate this broken example; also poisons any in-repo codegen guidance |
-| `AddBusinessServices([])` empty-assembly scan call remains | `Src/TwinCore.Mvc.Core/Hosting/CommonAppServicesExtensions.cs:181` | Mitigated by convention diagnostics; integrator does not rely on it (explicit DI rule) |
-| `GlobalExceptionHandler.ConfigureExceptionHandler` defined, still un-wired in the API host (which now uses ProblemDetails instead) | `Src/TwinCore.Services.Core/Exceptions/GlobalExceptionHandler.cs:18`; no caller in `Src/TwinCore.Api/Program.cs` | Legacy artifact — should be deleted by owner, not wired; tool must not copy it |
-| `SystemUserId = 1` fallback formalized as constants in three backends | `Src/DataAccess/TwinCore.DB.EF/Hooks/CreationHook.cs:17`, `TwinCore.DB.Mongo/Repository/MongoDbRepository.cs:21`, `TwinCore.DB.LinqToDb/LinqRepositoryBase.cs:26` | Owner's deliberate pattern now; tool keeps its own user context, does not inherit |
-| Ruleset still internally named "Allfreight Analyser Ruleset" | `Src/TwinCore.ruleset` (Name attr) | Cosmetic; no impact |
-| Root `README.md` still stale (aspnetcore-3.1 links, SnakeCase claim vs CamelCase reality) | root `README.md`; `Src/TwinCore.Api/Program.cs:39` (CamelCase) | Low; confuses newcomers/AI mildly |
-| Owner's own open queue: docs-honesty Option B, tenancy strict mode, extension re-pointing | `Src/Docs/Plans/ARCHITECTURE-REVIEW-FIXES-PLAN.md:309-323` (items 8-11) | Not blockers for integrator |
+## 4. Owner-Proxy Mode Review
 
-### 3.3 Fit conclusion
+**Stated safely.** The mode (plan:26-49) has the three required properties: explicit trigger
+(Igor unavailable), explicit reversibility, and a forbidden-phrase rule ("Igor approved") with an
+allowed substitute ("Provisional owner-approved baseline by Slava. Reversible when Igor returns.").
+`CURRENT_STATE.md:182,186` makes proxy-mode changes a tracked state dimension. Two additions:
 
-The framework has moved decisively in the integrator's favor: the module seam the tech design hoped
-for **exists and is proven by two pilot extractions**, persistence is no longer hardbound to one
-DbContext, tests and fitness checks exist, and the repo carries its own AI tooling. The remaining
-defects are localized and avoidable by construction.
+- **L5 — provisional-decision register.** Decisions made under proxy mode are currently scattered
+  (plan §4, §5, CURRENT_STATE fragments). Keep one explicit list — "decisions awaiting Igor
+  ratification" — so the return conversation is a checklist, not an archaeology dig. Current
+  entries: (1) split hosting model; (2) Blazor Server UI; (3) workbench isolation under
+  `AiIntegrator/` + own sln; (4) G0 opening itself; (5) feature branch in Igor's Azure repo.
+  Recommended location: a short section in `CURRENT_STATE.md` or a one-page ADR addendum.
+- **Blast-radius cap, stated explicitly:** proxy mode covers **reversible** actions only. The
+  G0 branch push qualifies (a branch is deletable without trace on `main`). NOT covered without
+  Igor: merge to `main`, PRs into `main`, production anything, paid resources, publishing beyond
+  the established bridge/snapshot channels. Recommend writing this cap into the register.
 
-## 4. Recommended Hosting Model
+## 5. Split Hosting Review
 
-**Split by risk into three pieces:**
+**Correctly captured** (plan:84-118) and consistent with the readiness recommendation it cites:
+three pieces (contracts+orchestrator / generated adapter packages / isolated workbench), with the
+right negative rules — not in `TwinCore.sln`, no `TwinCore.Admin` extension, no framework edits
+during G-gates, no `ServiceResponse`/framework base classes in generated adapters (plan:104-107).
+The generated-adapter rules (plan:100-108) match the readiness §10 compatibility rules. No gaps.
 
-1. **Runtime contracts + quote orchestration** (`IRateProvider`, canonical quote model,
-   orchestrator) — a small, dependency-free contracts package, shaped so it can later become a
-   first-class module-ecosystem citizen (the `Module.Dictionary.Contracts` pattern proves the
-   shape). This is what TwinCore-based portals will reference.
-2. **Generated adapter packages** — module-shaped class libraries referencing ONLY the contracts
-   package + Microsoft abstractions; explicitly referenced/registered by the consuming host
-   (matches how `Program.cs` wires module assemblies today — explicit project references, no
-   magic scanning; `Src/TwinCore.Api/Program.cs:89-93`).
-3. **The factory workbench itself** (import, mapping UI, generator, build/test sandbox) — an
-   **isolated tool application in the same repo, own solution file, NOT added to `TwinCore.sln`**.
-   Rationale: the sandbox compiles and executes generated code and the generator does heavy I/O —
-   neither belongs in the framework host; isolation also frees the UI stack choice (tech design
-   D14) and keeps the 50-project framework solution untouched.
+## 6. UI Stack Decision Review
 
-Embedding the workbench into existing framework layers or into `TwinCore.Admin` is rejected: it
-would couple experimental tooling to production-shaped hosts, inherit conventions the tool must not
-propagate (§3.2), and bloat an already large solution.
+**Blazor Server is acceptable as a provisional decision.** The stated reasons (plan:134-140) match
+the tech-design D14 rationale (single .NET toolchain, no model duplication, internal tool, API
+layer keeps a future SPA swap bounded). Reversibility is real *only if* the API-first layering is
+enforced from G1 — recommend the G1 request carry an explicit check: every workbench UI action
+goes through the app's API/service layer, no domain logic in components. Risk noted and accepted:
+if Igor returns preferring React or admin-portal integration, the rework is UI-only by
+construction. Status `PROVISIONAL_OWNER_DECISION` + register entry (§4-L5) is the right framing.
 
-## 5. Required Framework Completions Before Implementation
+## 7. G0 Scope Review
 
-### 5.1 Blocking (must be done in the framework before G0)
+**Safe and narrow, with four sharpenings:**
 
-**None.** With the §4 isolation model, no framework change is on the integrator's critical path.
-This is the central readiness finding.
+- **L1 — the Azure-write contradiction must be resolved explicitly.** G0's own exit evidence
+  requires "branch created from latest Azure `main`" (plan:244) — that is a push to Igor's Azure
+  DevOps repo, an action every gate so far forbids ("Do not write to Azure DevOps", this request's
+  own boundary). The G0 ACTIVE_REQUEST must contain an explicit, narrow authorization: create
+  branch `feature/12695-ai-integrator-poc` from recorded `origin/main` SHA, commit **only**
+  `AiIntegrator/**` paths, push **only** that branch. Anything beyond = BLOCKED. Without this
+  explicit clause, the correct executor behavior is to stop on the contradiction.
+- **L2 — remove the `TwinCore.sln` escape hatch for G0.** "Untouched unless explicitly justified
+  and approved" (plan:252) invites in-gate judgment calls. For a setup-only gate there is no valid
+  justification; harden to: `TwinCore.sln` and everything outside `AiIntegrator/` are read-only;
+  any perceived need = STOP + report.
+- **L3 — fixtures: decide folder vs artifacts.** Tech design §11 defines four designed fixtures
+  (MockCarrierA/B/Messy/Hostile + golden sets, committed and hashed at G0); plan v0.2 G0 evidence
+  only says "fixtures folder exists" (plan:249). Recommendation: **author all four at G0** — they
+  are pure data, squarely inside "setup-only", and G1 immediately needs MockCarrierA. If the owner
+  prefers a thinner G0, the request must say "folder + MockCarrierA only; B/Messy/Hostile by G3/G4
+  entry" — either way, make it explicit.
+- **L4 — CI.** Readiness §11 proposed a separate CI pipeline at G0; pipeline creation is an Azure
+  DevOps write beyond the branch push. G0 should require **local** `dotnet build` / `dotnet test`
+  evidence (command + exit code) only; CI pipeline creation becomes a separately authorized item
+  (G0.5 or folded into G1's request with its own explicit authorization).
 
-### 5.2 Recommended courtesy fixes (owner's queue, not integrator blockers)
+With L1-L4 absorbed, G0 is exactly what it should be: skeleton, fixtures, tool-scoped CLAUDE.md,
+build evidence, zero product logic.
 
-1. **`Src/CLAUDE.md:138`** — fix `ServiceResponse.Error(ErrorType.NotFound)` to the real API
-   (one line; directly protects the repo's own `.claude` agents from generating broken code).
-2. `CrudController.cs:43` — fix the `-1` id or delete the class (the Dictionary module already
-   bypasses it correctly: `Src/Modules/TwinCore.Module.Dictionary/DictionaryService.cs:65`).
-3. Delete legacy `GlobalExceptionHandler` (superseded by ProblemDetails in the API host).
-4. Refresh stale root `README.md` (or redirect to `Src/README.md`).
-5. Rename the "Allfreight Analyser Ruleset" internal name.
+## 8. G0 Stop Conditions
 
-## 6. Required Refactors or Isolation Boundaries
+The future G0 request should carry exactly these:
 
-No framework refactor is required for the integrator. The isolation boundaries that make this true:
+1. `REQUEST_ID` / `PROJECT` / `GATE` mismatch with STATUS.json → **BLOCKED / STALE_OR_WRONG_REPORT**.
+2. Local `Twincore-framework` working tree dirty, or unexpected branch state at start → **STOP**
+   (report state; never stash/reset/clean someone else's work).
+3. `origin/main` fetch fails, or base SHA differs from the SHA recorded in the request → **STOP**
+   (re-confirm base; no silent rebase onto a moved main).
+4. Branch `feature/12695-ai-integrator-poc` already exists locally or on origin → **STOP** (report;
+   do not reuse/force).
+5. Any required change outside `AiIntegrator/**` (including `TwinCore.sln`, root files, `Src/**`,
+   `.claude/**`) → **STOP**.
+6. Push rejected / branch protected / permission error → **STOP** (no force-push, no retry with
+   different remote).
+7. Any secret material would enter a commit (scan before commit) → **STOP**.
+8. Skeleton build/test cannot pass without touching anything outside `AiIntegrator/**` → report
+   **PARTIAL** with evidence; no workarounds through framework files.
+9. Any instruction ambiguity that widens scope → **STOP and ask**, not interpret-and-proceed.
+10. After push: remote branch SHA ≠ local HEAD → report **FAILED** verification.
 
-- The workbench tool references **nothing from `TwinCore.*`** (not Core, not Services, not
-  DataAccess). If a utility looks tempting (Guard/Throw), copy the idea, not the dependency.
-- The contracts package references **nothing at all** beyond BCL/Microsoft abstractions.
-- Generated adapters reference **contracts only** (+ `Microsoft.Extensions.*` abstractions).
-- The tool's writable disk scope is its own folder tree; the framework solution, projects, and
-  configs are read-only territory in every future G-gate.
-- Hidden-coupling watchlist (do NOT copy into tool or generated code): name-based DI scanning,
-  `ServiceResponse` as a cross-boundary contract, `SystemUserId = 1` stamping, `CrudController`,
-  email-on-error patterns, the obsolete DbContext factory.
+## 9. Draft Future G0 ACTIVE_REQUEST Checklist
 
-## 7. Integration Seams and Contracts
+When Slava says `open G0`, the request should contain:
 
-- **`IRateProvider` + canonical quote model**: live in the new contracts package under the
-  integrator folder for MVP. Decision point for the owner (post-PoC): move/rename it under
-  `Src/Modules/TwinCore.Module.Rates.Contracts` to join the module contracts family — the
-  Dictionary pilot (`TwinCore.Module.Dictionary.Contracts`) is the precedent.
-- **Explicit provider registration**: one DI extension per generated adapter
-  (`services.AddMockCarrierARateProvider(configuration)`), collected by the host into an
-  `IRateProvider` set. No assembly scanning — consistent with both the tech design (D7/explicit
-  DI) and the framework's own module wiring style.
-- **Quote orchestration**: a contracts-level component (fan-out, timeout, partial-failure
-  aggregation) usable by the workbench demo now and by a TwinCore-based portal later. At the
-  TwinCore API boundary, results map into the host's `ServiceResponse`/ProblemDetails idiom — the
-  mapping lives in the consuming app, never in adapters.
-- **Module-ecosystem on-ramp (post-MVP)**: if Igor wants carriers as true TwinCore modules, a thin
-  `TwinCore.Module.Rates` can wrap the orchestrator + adapter set behind `IModuleClient` contracts.
-  The infrastructure for that (module DbContext, contracts dispatch) demonstrably exists — but the
-  MVP must not build ON it while it is still phase 2/3 maturity.
+**Identity & routing**
+- [ ] `REQUEST_ID: REQ-<date>-twincore-ai-integrator-g0-setup-v0-1`; `PROJECT: TwinCore`;
+      `GATE: implementation-setup / G0`; suggested slug `TwinCore/ai-integrator-g0-setup-v0.1/`.
+- [ ] Routing lock: source repo = Azure DevOps `Twincore-framework`; write scope =
+      **branch `feature/12695-ai-integrator-poc`, paths `AiIntegrator/**` only**; report repo =
+      `gpt-handoff/TwinCore/...` (4 standard paths); forbidden = `main`, all other branches,
+      `TwinCore.sln`, `Src/**`, root files, AIKB, global `_BRIDGE`.
 
-## 8. Persistence/Storage Fit
+**Explicit authorizations (the L1 clause)**
+- [ ] Create local branch from `origin/main` @ `<recorded SHA>` (request pins the SHA or says
+      "latest, record it").
+- [ ] Commit to that branch, `AiIntegrator/**` only.
+- [ ] Push exactly that branch to Azure origin once; record before/after SHAs.
+- [ ] Nothing else on Azure: no PR, no pipeline, no policies, no work-item edits.
 
-- Factory metadata (ProviderSchema, MappingProfile, IntegrationRun, …) belongs to the **tool's own
-  EF DbContext with its own migration history**, repository-abstracted from slice 1 (in-memory G1 →
-  EF G2 per tech design D12). It must NOT live in `AppDbContext`.
-- The framework now proves this pattern itself: `ModuleDbContextBase` + `AddModuleDbContext`
-  give per-module DbContexts with separate migration histories — the tool can mirror the pattern
-  without referencing it.
-- The decoupled `Repository<TContext, TEntity>` (`Repository.cs:25`) means even framework-side
-  reuse is no longer hardbound to `AppDbContext` — but the recommendation stands: the tool keeps
-  its own thin persistence; no `IRepository`/UoW import from the framework.
-- EF enterprise hardening that landed (optimistic concurrency via `IConcurrencyAware`/RowVersion,
-  multi-provider story, async save hooks) is available if the tool later needs it — optional.
+**Pre-flight verification (before any change)**
+- [ ] `git status` clean; current checkout noted and restored after work (or work in a separate
+      worktree to leave `slava/11338` checkout untouched).
+- [ ] `git fetch --all --prune` ok; record `origin/main` SHA; default branch confirmed `main`.
+- [ ] Confirm target branch does not exist locally/remotely.
+- [ ] Confirm `AiIntegrator/` does not already exist on `main`.
 
-## 9. UI Hosting Recommendation
+**Deliverables**
+- [ ] Layout exactly per plan v0.2 §8/G0 (sln + 5 src projects + tests + fixtures + CLAUDE.md).
+- [ ] Tool-scoped `CLAUDE.md` stating root TwinCore docs/skills/conventions do not apply inside
+      `AiIntegrator/` (and that `Src/CLAUDE.md` examples must not be copied).
+- [ ] Contracts project dependency rule: BCL + `Microsoft.Extensions.*` abstractions only.
+- [ ] Fixtures per the L3 decision (recommended: all four + golden sets, with recorded hashes).
+- [ ] Own `Directory.Packages.props` (CPM) for the AiIntegrator solution — optional but
+      recommended for consistency with framework practice.
 
-Unchanged from tech design D14, now with framework evidence: **separate workbench host;
-recommendation Blazor Server behind a clean API layer; owner decides.** New data points: the
-existing `TwinCore.Admin` is classic MVC (`UseExceptionHandler("/Home/Error")`,
-`Src/TwinCore.Admin/Program.cs:54`) with no Blazor precedent — extending it would couple the
-experimental workbench to a production-shaped host and inherit its conventions. Module controllers
-exist as a pattern, but a workbench is an application, not an API feature module. Do not extend
-`TwinCore.Admin`; do not add the workbench to `TwinCore.sln`.
+**Evidence (tuple form: command + exit / artifact + hash / log excerpt)**
+- [ ] `dotnet build AiIntegrator.sln` exit 0; `dotnet test` exit 0 (empty/smoke test counts).
+- [ ] `git diff --stat <base>..HEAD -- . ':!AiIntegrator'` is **empty** (nothing outside the
+      folder changed) and `TwinCore.sln` untouched.
+- [ ] Branch push verified: `git ls-remote` SHA == local HEAD.
+- [ ] Secret scan of the new tree: 0 findings.
+- [ ] Fixture hashes listed.
+- [ ] Report to the 4 standard paths + STATUS.json (state, request id, nextActor GPT).
 
-## 10. Generated Adapter Compatibility Rules
+**Stop conditions** — the §8 list verbatim.
 
-1. Reference contracts package + `Microsoft.Extensions.*` abstractions only.
-2. One explicit DI registration extension per adapter; no name-convention reliance (diagnostics
-   exist, but explicitness is the rule).
-3. Configuration via `IOptions<T>` bound to a generated `appsettings` section; secrets only via
-   environment/secret store — never generated into code or config.
-4. Logging via `ILogger<T>` abstractions (host plugs Serilog).
-5. No `ServiceResponse`, no `AppServiceBase`, no `CrudController`, no framework base classes —
-   adapters return contracts-defined results; host adapts at its boundary.
-6. Wire fidelity via serializer attributes (tech design D7); sanitized identifiers are cosmetic.
-7. Each generated package ships its own tests + fixtures (runnable in the sandbox and in CI).
-8. Generated headers + content hashes for drift detection (tech design §9).
-9. Packaging for TwinCore consumption: project/NuGet reference + one `AddXxx()` call — the same
-   explicit shape the framework uses for modules today.
+## 10. Remaining AIKB Updates Before G0
 
-## 11. G0 Setup Recommendation (framework side)
+1. **Provisional-decision register** (§4-L5) — small addition to `CURRENT_STATE.md` or an ADR
+   addendum; the only genuinely recommended pre-G0 AIKB change.
+2. Optional: a one-line hosting/UI ADR (split hosting + Blazor provisional) if the owner wants
+   decisions as ADR files rather than plan sections — current plan §4-§5 coverage is adequate.
+3. Bridge hygiene, outside AIKB: `TwinCore/latest-summary.json` is still stale (describes the
+   first planning gate; it has been outside every subsequent request's write scope). Either GPT
+   refreshes it or the G0 request adds it to the write list.
+4. Nothing else — `CURRENT_STATE.md` already reflects 8f935f0 evidence, proxy mode, and the gate
+   sequence correctly.
 
-- **Branch**: `feature/12695-ai-integrator-poc` off current `main` (`8f935f0` or later).
-- **Layout** (root-level folder, own solution — `TwinCore.sln` untouched):
+## 11. What Must NOT Be Done Yet
 
-```text
-AiIntegrator/
-  AiIntegrator.sln
-  src/
-    TwinCore.AiIntegrator.Contracts/      # IRateProvider, canonical model, orchestrator
-    TwinCore.AiIntegrator.Domain/         # ProviderSchema, MappingProfile, rules engine
-    TwinCore.AiIntegrator.Generator/      # emitters, identifier/literal safety
-    TwinCore.AiIntegrator.Sandbox/        # build/test runner (temp projects, offline feed)
-    TwinCore.AiIntegrator.App/            # workbench host (UI stack per D14 decision)
-  tests/
-    TwinCore.AiIntegrator.Tests/
-  fixtures/                               # MockCarrierA/B/Messy/Hostile + golden sets
-  CLAUDE.md                               # tool-scoped AI guidance (see below)
-```
+- No G0 opening from this review (explicitly not opened here); no branch, no folder, no skeleton,
+  no fixture files, no code.
+- No Azure DevOps writes of any kind until the G0 request's explicit L1 authorization.
+- No framework edits — including the five courtesy fixes (owner's queue).
+- No merge/PR to `main` under owner-proxy mode (outside its blast-radius cap, §4).
+- No UI implementation commitments beyond the provisional decision record.
+- No AIKB writes from this gate (the §10 items are for GPT after Slava's acceptance).
+- No "Igor approved" phrasing anywhere downstream.
 
-- **Tool-scoped `CLAUDE.md` is mandatory at G0**: the repo root `.claude/` skills and `Src/CLAUDE.md`
-  teach framework patterns (including one broken example, §3.2) — the integrator folder must carry
-  its own instructions stating that root skills/conventions do NOT apply inside `AiIntegrator/`.
-- **CI**: a separate pipeline for `AiIntegrator.sln` (build + tests + fixture hash check); the
-  framework's pipeline is not modified.
-- **Verify before G1** (baseline evidence): framework solution builds and its test suite passes at
-  the branch point (records the starting state); integrator skeleton builds with 0 warnings-as-
-  errors config of its own; fixtures committed with recorded hashes; tool-scoped CLAUDE.md present.
+## 12. Final Recommendation
 
-## 12. Priority Matrix
-
-| Priority | Items |
-|---|---|
-| **Must before G0** | UI stack decision (D14, owner); Igor validation of product framing (open product gate); this report accepted; branch+layout per §11 authorized |
-| **Must before G1** | G0 exit evidence (§11); framework-side: nothing |
-| **Must before runtime integration into a TwinCore app** (post-MVP) | Contracts placement decision (§7); orchestrator→ServiceResponse mapping in consuming host; optional `Module.Rates` wrapper decision |
-| **Can defer** | Owner courtesy fixes §5.2 (recommend CLAUDE.md:138 early anyway); tenancy strict mode; extension re-pointing; schema re-import UI; SOAP implementation |
-| **Do not touch** | `TwinCore.sln` and all framework projects (read-only in all G-gates); module infrastructure internals (consume the pattern, don't modify); owner's open plan items (his queue, not ours); no broad cleanup of any kind |
-
-## 13. Risks and Stop Conditions
-
-| Risk | Mitigation / stop condition |
-|---|---|
-| **Over-refactor temptation** — the 147-commit modernization invites "let's also fix the framework while we're here" | Hard scope lock: G-gates may write ONLY under `AiIntegrator/`; any framework edit = STOP + separate explicitly-authorized gate |
-| **Fast-moving main** — 147 commits in ~8 days; a long-lived feature branch will drift | Tool isolated in own folder ⇒ near-zero merge conflict surface; rebase the branch at each G-gate boundary; never rebase during a gate |
-| **In-repo AI tooling poisoned by doc drift** — `.claude` agents + `Src/CLAUDE.md:138` broken example | Tool-scoped CLAUDE.md at G0; courtesy fix recommended to owner; integrator codegen never reads framework docs as truth |
-| **Module infra is young** (pilots at phase 2/3) | Consume the *pattern* (own DbContext, contracts split), do not build the MVP on `IModuleClient`/module dispatch; revisit post-MVP |
-| **Generated-code execution** | Sandbox lives only in the tool host with offline pinned feed (tech design §10); never in framework hosts |
-| **Conclusion staleness both ways** — AIKB still records f6c0c84-era risks (e.g. "zero tests") that are now false | AIKB refresh after acceptance (§14); future claims cite `8f935f0`+ evidence |
-| Stop conditions | Any requirement to modify framework source/config; any Azure DevOps write; any secret material; any instruction to wire the tool into `TwinCore.sln` — STOP and report BLOCKED |
-
-## 14. What AIKB Should Update Later (if Slava accepts)
-
-1. **Refresh the framework risk picture in `CURRENT_STATE.md`** — it still lists f6c0c84-era risks
-   ("zero automated tests", "no verified `.claude/agents`") that are demonstrably outdated on
-   `8f935f0`; record the delta table (§3.1/§3.2) or link this report as the current framework
-   evidence. The audit's conclusions remain accurate **for f6c0c84**; the current state needs its
-   own dated entry (a fresh formal re-audit of `8f935f0` is optional, this report covers the
-   integrator-relevant scope).
-2. Register the analysis mirror: private `slavkan777/twincore-framework-snapshot` @ `be4cce6`
-   (read-only; Azure canonical).
-3. Hosting-model decision (§4) as an ADR candidate alongside the tech-design baseline.
-4. Ledger entry for this gate; `latest-summary.json` refresh (still outside this request's write
-   scope, stale since the first planning gate).
-5. G0 entry-condition checklist (§11-§12) attached to the future G0 ACTIVE_REQUEST.
-
-## 15. What Must NOT Be Done Yet
-
-- No branch, no folder, no solution skeleton, no code, no fixture files (G0 artifacts).
-- No framework edits of any kind — including the §5.2 courtesy fixes (owner's queue; we only
-  recommend).
-- No UI stack final commitment without the owner (D14).
-- No re-audit gate self-opened; no AIKB writes from this gate.
-- No reliance on module dispatch (`IModuleClient`) in MVP plans.
-- No production-readiness claims about the framework or the integrator.
-
-## 16. Final Recommendation
-
-**Proceed.** The framework, as of `main@8f935f0`, is ready to HOST the AI Integrator under the
-split model (§4) with zero framework-side prerequisite work. The two open pre-G0 items are owner
-decisions, not engineering: UI stack (D14) and Igor's product validation. Recommend: accept this
-readiness analysis, refresh the stale framework risk picture in AIKB (§14.1), hand Igor the
-five-item courtesy list (§5.2 — `CLAUDE.md:138` first), and open **G0** per §11 once D14 and the
-validation conversation close.
+Accept plan v0.2 as the operative pre-G0 baseline. Fold L1-L4 into the G0 ACTIVE_REQUEST using the
+§9 checklist verbatim, add the §4-L5 provisional-decision register to AIKB, and G0 is safe to open
+on Slava's explicit `open G0`. Verdict: **READY_FOR_G0_WITH_LIMITATIONS** — the limitations live in
+the G0 request's wording, not in the plan.
 
 Report written only to the four authorized paths (gate report, `latest-report.md`,
-`_BRIDGE/LATEST_REPORT.md`, `_BRIDGE/STATUS.json`). Azure DevOps untouched (fetch-only earlier
-today, no writes); local framework working tree clean throughout.
+`_BRIDGE/LATEST_REPORT.md`, `_BRIDGE/STATUS.json`). Nothing else touched; G0 not opened.
