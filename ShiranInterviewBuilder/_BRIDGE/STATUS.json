@@ -1,0 +1,18 @@
+{
+  "bridge": "gpt-handoff/ShiranInterviewBuilder/_BRIDGE",
+  "scope": "project",
+  "project": "ShiranInterviewBuilder",
+  "state": "REPORT_READY",
+  "nextActor": "architect-gpt",
+  "activeRequestId": "REQ-2026-06-12-shiran-interview-builder-local-finalization",
+  "activeRequestType": "implementation-finalization",
+  "gate": "LOCAL_FINALIZATION_WITH_AIKB_AND_HANDOFF",
+  "targetReportPath": "ShiranInterviewBuilder/_BRIDGE/LATEST_REPORT.md",
+  "projectReportPath": "ShiranInterviewBuilder/local-finalization/report.md",
+  "compatibilityReportPath": "ShiranInterviewBuilder/latest-report.md",
+  "lastReportId": "REQ-2026-06-12-shiran-interview-builder-local-finalization",
+  "lastReportStatus": "FIXED",
+  "supersedes": "REQ-2026-06-11-shiran-bootstrap-audit-readonly (project channel was Shiran/, now superseded by ShiranInterviewBuilder/)",
+  "updated": "2026-06-12",
+  "updatedBy": "claude"
+}
