@@ -3,20 +3,34 @@
   "scope": "project",
   "project": "TwinCore",
   "state": "REPORT_READY",
-  "activeRequestId": "REQ-2026-06-12-twincore-ai-integrator-g1-import-browse-v0-1",
-  "activeRequestType": "implementation-g1-import-browse",
-  "gate": "implementation / G1 import-and-browse",
-  "activeRequestPath": "TwinCore/ai-integrator-g1-import-browse-v0.1/ACTIVE_REQUEST.md",
-  "targetReportPath": "TwinCore/ai-integrator-g1-import-browse-v0.1/report.md",
+  "activeRequestId": "REQ-2026-06-12-twincore-ai-integrator-development-blueprint-review-v0-1",
+  "activeRequestType": "planning-development-blueprint-review",
+  "gate": "planning / development-blueprint-review",
+  "activeRequestPath": "TwinCore/ai-integrator-development-blueprint-review-v0.1/QUEUED_REQUEST.md",
+  "targetReportPath": "TwinCore/ai-integrator-development-blueprint-review-v0.1/report.md",
   "compatibilityReportPath": "TwinCore/latest-report.md",
   "bridgeLatestReportPath": "TwinCore/_BRIDGE/LATEST_REPORT.md",
-  "lastReportId": "REQ-2026-06-12-twincore-ai-integrator-g1-import-browse-v0-1",
+  "lastReportId": "REQ-2026-06-12-twincore-ai-integrator-development-blueprint-review-v0-1",
   "lastReportStatus": "READY_FOR_AUDIT",
-  "lastReportVerdict": "G1_DONE_READY_FOR_AUDIT",
+  "lastReportVerdict": "ACCEPT_WITH_REQUIRED_EDITS",
+  "pendingAuditReports": [
+    {
+      "reportId": "REQ-2026-06-12-twincore-ai-integrator-g1-import-browse-v0-1",
+      "reportPath": "TwinCore/ai-integrator-g1-import-browse-v0.1/report.md",
+      "verdict": "G1_DONE_READY_FOR_AUDIT",
+      "note": "G1 implementation report published earlier today; still awaiting GPT audit. This blueprint review ran as the queued parallel planning request and does not supersede G1."
+    },
+    {
+      "reportId": "REQ-2026-06-12-twincore-ai-integrator-development-blueprint-review-v0-1",
+      "reportPath": "TwinCore/ai-integrator-development-blueprint-review-v0.1/report.md",
+      "verdict": "ACCEPT_WITH_REQUIRED_EDITS",
+      "note": "Blueprint review: 10 required edits before Igor-facing use and G2 prompt derivation."
+    }
+  ],
   "sourceBranch": "feature/12695-ai-integrator-poc",
   "sourceCommitBefore": "d10e34aec6e1676ac34ad23071f9259d322da64d",
   "sourceCommitAfter": "dbea505bf1dd3d8a29a04c368b46b2717fc831ff",
-  "supersedes": "REQ-2026-06-12-twincore-ai-integrator-g0-setup-v0-1",
+  "supersedes": "REQ-2026-06-12-twincore-ai-integrator-g1-import-browse-v0-1",
   "nextActor": "GPT",
   "updated": "2026-06-12",
   "updatedBy": "claude"

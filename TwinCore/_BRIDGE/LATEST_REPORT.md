@@ -1,223 +1,184 @@
-# TwinCore AI Integrator G1 Import + Browse Report
+# TwinCore AI Integrator Development Blueprint Review v0.1
 
-REQUEST_ID: REQ-2026-06-12-twincore-ai-integrator-g1-import-browse-v0-1
+REQUEST_ID: REQ-2026-06-12-twincore-ai-integrator-development-blueprint-review-v0-1
 PROJECT: TwinCore
-GATE: implementation / G1 import-and-browse
+GATE: planning / development-blueprint-review
 STATUS: READY_FOR_AUDIT
 DATE: 2026-06-12
-AUTHOR: Claude (executor); decision mode: owner-proxy (Slava/GPT)
-RESULT: G1_DONE_READY_FOR_AUDIT
+AUTHOR: Claude (reviewer); analysis-only, no code/AIKB/blueprint modified
+REVIEWED ARTIFACT: `01_PROJECTS/TwinCore/ARCHITECTURE/TWINCORE_AI_INTEGRATOR_DEVELOPMENT_BLUEPRINT_V0_1.md` (ai-kb @ `162e5c9`, 1133 lines, status DRAFT_FOR_CLAUDE_REVIEW)
 
 ---
 
-## 1. Executive result
+## 1. Executive verdict
 
-G1 Import + Browse vertical slice is implemented, tested, and pushed as **one macro increment**:
+**ACCEPT_WITH_REQUIRED_EDITS.**
 
-- Commit `dbea505bf1dd3d8a29a04c368b46b2717fc831ff` "Add AI Integrator G1 import and browse slice" on branch `feature/12695-ai-integrator-poc` (64 files, +2686/−28, all under `AiIntegrator/**`).
-- The full chain works and is proven end-to-end: **fixture → deterministic OpenAPI import → in-memory store behind repository abstraction → Blazor workbench renders it** (operations, request/response fields, hashes, `$.output.rateReplyDetails[*]` IterationRoot path visible in served HTML).
-- Build exit 0 with **0 warnings / 0 errors**; tests **30/30 passed**; 5 workbench routes served HTTP 200 with 12/12 content checks; wizard click-through proven by a bUnit component test with the real service stack.
-- `main` untouched at `8f935f08979f9244daec9f0a1b55e028dbe4c7d9`; no PR; scoped diff outside `AiIntegrator/**` is EMPTY; refined secret scan 0 hits over 64 staged files.
-- Zero LLM anywhere in the slice. No real carrier connectivity. Status quo per owner-proxy mode: provisional, reversible when Igor returns. **No production readiness is claimed.**
+The blueprint is structurally strong: boundaries, owner-proxy mode, gate roadmap, mapping semantics (IterationRoot / ArraySelect / closed TransformKind set / profile freeze), generator safety rules, and the manual testing path are all consistent with the accepted tech-design baseline and are the right document to eventually show Igor.
 
-Stop conditions encountered: **0**.
+The single biggest problem is **timing drift**: the blueprint was written while G1 was still in flight (§9 marks G1 "IN PROGRESS / NEXT REPORT") and it specifies G1 names, routes, services, and a project split that **differ from what is now actually merged on the branch** (commit `dbea505…`, report `TwinCore/ai-integrator-g1-import-browse-v0.1/report.md`, 30/30 tests green). If GPT issues G2 prompts from the blueprint as-is, Claude will receive instructions that contradict the code it must extend — that is exactly the kind of churn macro-gates are meant to avoid. ~10 required edits below reconcile the document with shipped reality and fix a few real spec gaps (missing generated `.csproj`, missing `EnumValues` on ProviderField, an EF-timing contradiction with Implementation Plan v0.2, and a manual-testing command that would disturb the developer's main checkout).
 
-## 2. Request identity and gate
+With those edits applied, the document is good enough to drive G2-G5 and, after G5 evidence is appended, to send to Igor.
 
-| Check | Value | Result |
-|---|---|---|
-| STATUS.json state before start | `REQUEST_READY` | ✅ |
-| STATUS.json activeRequestId | `REQ-2026-06-12-twincore-ai-integrator-g1-import-browse-v0-1` | ✅ matches ACTIVE_REQUEST.md and Slava's command |
-| STATUS.json nextActor | `Claude` | ✅ |
-| ACTIVE_REQUEST path | `TwinCore/ai-integrator-g1-import-browse-v0.1/ACTIVE_REQUEST.md` (handoff commit `7095955`) | ✅ read in full |
-| Gate | implementation / G1 import-and-browse | ✅ this report |
-| AIKB sync | `ai-kb` @ `9c5a8fc` "Accept TwinCore AI Integrator G0 and open G1 request state" — G0 ACCEPTED_BY_GPT, provisional decision register read | ✅ |
+## 2. Current state restored
 
-## 3. Pre-flight checks
+- **AIKB** (`ai-kb` @ `162e5c9`): blueprint registered (`74e7c6e`/`f328557`); new `00_CONTROL_CENTER/MACRO_GATE_TRIGGER_RULE.md` added and hardened (`5cce530`, `162e5c9`) — macro-gate execution is now an explicit control-center rule, consistent with blueprint §19. CURRENT_STATE/TASK_LEDGER updated for the blueprint registration. G0 recorded as accepted; G1 acceptance not yet recorded (audit pending).
+- **Bridge** (`gpt-handoff` @ `b22326a`): G1 report published `G1_DONE_READY_FOR_AUDIT` (this reviewer's preceding gate); this queued request unblocked by its own queue note ("until G1 report is finished" — finished).
+- **Source** (`Twincore-framework`): `feature/12695-ai-integrator-poc` @ `dbea505bf1dd3d8a29a04c368b46b2717fc831ff` (G1), base `main` @ `8f935f0…` untouched. Shipped G1 facts used throughout this review: 6 projects, 64 files changed in G1, build 0 warnings, tests 30/30, importer 32 request / 35 response fields from MockCarrierA, `$.output.rateReplyDetails[*]` browsable in the viewer.
+- **Decision mode**: owner-proxy; everything below is a provisional owner-approved baseline by Slava, reversible when Igor returns.
 
-All 9 checks ran before any write, in the isolated local worktree of the canonical repo (same worktree as G0; the developer's main checkout with `slava/11338` was not touched):
+## 3. Blueprint consistency review (question 1)
 
-| # | Check | Evidence | Result |
+Internally consistent in its core invariants (zero runtime LLM stated in §1 and re-enforced in §6.5/§12/§13 tests; boundaries §3 = stop conditions §18; reporting paths §15 = actual bridge convention; IterationRoot rule §7.8 = G2 validation rules §11; TransformKind closed set §7.9 = tech-design ADR).
+
+Found inconsistencies:
+
+1. **§4/§9/§10 vs reality**: G1 marked "IN PROGRESS"; §10 prescribes G1 deliverables in future tense. G1 is done and audited material exists. The blueprint must be re-baselined on `dbea505` or it will mis-instruct G2.
+2. **§7.5 vs §12**: "Required canonical fields" lists only option-level fields (`RateQuoteOption.Warnings/Errors`) but §12's quote-demo proof requires **result-level** warnings ("root alerts become warnings", golden `expected-canonical.json` has `resultWarnings` and no per-option errors). The canonical field list must include result-level `ResultWarnings` and an error slot, and reconcile per-option `Errors` with the golden file (shipped model: option-level `Warnings`, result-level `ResultWarnings` + `Error{Code,Message}`).
+3. **EF timing contradiction with Implementation Plan v0.2**: plan §G2 says "EF persistence required before or at G2"; blueprint §6.4 says "in-memory storage acceptable through G2 if repository abstractions are clean". Both are AIKB sources of truth. Recommendation in §14.
+4. **§10 routes** (`/provider-schema`, single `GetLatestAsync()` repository) conflict with the shipped multi-document model (`/schemas/{documentId:guid}`, list + per-integration queries). The shipped model is strictly more capable; blueprint should adopt it.
+
+## 4. Architecture review (question 2)
+
+The pipeline (§1) and per-project responsibility split (§6) correctly combine product plan, architecture, domain, services, UI, tests, gates, and manual testing in one document — это и есть его ценность: один source of truth вместо четырёх. Strong points worth keeping verbatim: untrusted-provider-strings rule set (§6.5), sandbox containment rules (§6.6), profile freeze + generation pinning (§7.6), factory-proof rule (§13), Igor-facing review points (§17).
+
+Gaps at architecture level:
+
+- **Generated package has no `.csproj`** (§12 "Generated package minimum" lists 6 `.cs` files + appsettings sample). Sandbox runs `dotnet build` on the package — impossible without a project file. Add `MockCarrierA.Generated.csproj` (net8.0, references Contracts only, explicit DI) to the minimum set.
+- **Raw source persistence undefined**: `ProviderSourceDocument.ContentRef?` (§7.2) hints at storing raw source, but no decision is made. G2's mapping UI will want example values and re-import diff needs original bytes. Decide: store raw text on the schema document (in-memory now, column later) or drop `ContentRef` until G4.
+- Roslyn `SyntaxFactory` preference from the tech-design baseline is not restated in §6.5 — restate it so the generator gate inherits it without archaeology.
+
+## 5. Project / layering review (question 3)
+
+Blueprint targets **8 projects** (adds `Application` + `Infrastructure` to the shipped 6). Assessment:
+
+- The 4-layer split is interview-defensible Clean Architecture and the **interfaces named in §6.3/§6.4 are correctly placed** (ports in Application, fixture/in-memory adapters in Infrastructure).
+- But shipped G1 put application services and in-memory/fixture adapters into **Domain** (`Services/`, `Persistence/InMemory/`, `Fixtures/`) — deliberately small for the slice. Both layouts are defensible; what is NOT acceptable is the blueprint silently assuming files live where the code does not have them.
+- **Recommendation (pick one, write it into §5):**
+  - **(a) preferred — split at G2 opening**: first commit of G2 is a mechanical, behavior-preserving move: `Domain/Services + Fixtures + Persistence/InMemory → Application/Infrastructure projects`, sln-only change inside `AiIntegrator/**`, tests must stay 30/30 green before any new G2 feature. G2 then adds mapping into the correct layers from day one. Cost: ~1 hour, low risk, prevents Domain from accreting orchestration.
+  - (b) acceptable — keep 6 projects with namespace discipline and re-evaluate before G3 (Generator/Sandbox add real infrastructure weight).
+- `Sha256HashService` (§6.4) is over-specified: hashing is a pure static function (shipped `HashCalculator`), not an injectable service. Drop it.
+
+## 6. Domain model review (questions 4, 5)
+
+Coverage for G1-G5 is **sufficient in scope**: schema side (§7.1-7.4), mapping side (§7.6-7.10), plus `IntegrationProject`, `IntegrationRun`, `GenerationArtifact` carry G2-G3; `SourceType` includes `Wsdl` for the G4 slot. No missing aggregate.
+
+Field-level findings (blueprint vs shipped `dbea505` and vs G2 needs):
+
+| Item | Blueprint | Shipped / needed | Action |
 |---|---|---|---|
-| 1-3 | Working tree clean | `git status --porcelain` → 0 lines, exit 0 | ✅ |
-| 4 | `git fetch --all --prune` | exit 0 | ✅ |
-| 5 | Branch exists local + remote | `rev-parse HEAD` = `rev-parse origin/feature/12695-ai-integrator-poc` | ✅ |
-| 6 | Remote HEAD is G0 commit | both = `d10e34aec6e1676ac34ad23071f9259d322da64d` | ✅ |
-| 7 | `AiIntegrator/` exists | `AiIntegrator.sln` + `fixtures/MockCarrierA/openapi.json` present | ✅ |
-| 8 | No unreviewed local changes | same as 1-3 | ✅ |
-| 9 | `origin/main` drift | `rev-parse origin/main` = `8f935f0…` — **no drift since G0**; no rebase/merge needed | ✅ |
+| Naming | `ProviderSchema`/`ProviderOperation`/`ProviderField`/`ProviderFieldDirection` | `ProviderSchemaDocument`/`SchemaOperation`/`SchemaField`/`SchemaDirection` (tested, in G1 report) | **Required edit**: adopt shipped names or explicitly order a rename in the G2 pre-commit; do not leave both |
+| `ProviderField.EnumValues` | **absent** | shipped (`KG/LB`, `ACCOUNT/LIST` captured) and **required** to feed §7.9 `EnumMap` UI in G2 | **Required edit**: add |
+| `ProviderField.Type: string` | string | shipped enum `SchemaFieldType` + `Format` (date/date-time) | adopt enum + format; `DateParse` needs format hints |
+| `Name` + `WireName` separate | both | shipped single `Name` ≡ wire-verbatim (sanitization is G3, per tech design) | keep single wire name at import; sanitized names live only in generator output |
+| `ParentPath`, `ExampleValue` | present | absent; ParentPath derivable from JsonPath; ExampleValue useful for mapping UX | ParentPath: drop. ExampleValue: optional add at G2 (source: OpenAPI `example` + golden response) |
+| `ProviderSchema.Id: string` | string | shipped `Guid` | accept Guid (EF-friendly) |
+| Contracts names | `RateQuoteOption`, `AddressDto/PackageDto/MoneyDto`, `ServiceCode`, `TransitDays` | shipped `QuoteOption`, `CanonicalAddress/CanonicalPackage/MoneyValue`, `ProviderServiceCode`, `EstimatedTransitDays` — names match golden `expected-canonical.json` 1:1 | **Required edit**: adopt shipped canonical names; the golden file is the contract anchor |
+| `IRateProvider`, `ProviderExecutionContext`, `ProviderWarning/Error` types | in Contracts now | not shipped — runtime adapter contract is G3 material | keep in blueprint, mark "added at G3" |
+| Option-level `Errors` | required | golden has none; shipped: result-level `Error` | reconcile per §3.2 |
 
-## 4. Branch / head before and after
+MappingProfile/MappingRule/ArraySelect (§7.6-7.10): correct and complete for G2; statuses (`AutoMapped…Waived`) match the tech-design baseline; `ManualCode` blocking generation is right. One addition: `MappingRule` needs an `Order`/stable sort key for deterministic ProfileHash.
 
-```text
-branch:  feature/12695-ai-integrator-poc
-before:  d10e34aec6e1676ac34ad23071f9259d322da64d  (G0)
-after:   dbea505bf1dd3d8a29a04c368b46b2717fc831ff  (G1, exactly one commit)
-base:    origin/main @ 8f935f08979f9244daec9f0a1b55e028dbe4c7d9 (unchanged)
-```
+## 7. Application service review (question 6)
 
-## 5. Files changed under `AiIntegrator/**` (64 — full list in commit `dbea505`)
+Placement is right (ports in Application). Signature-level findings:
 
-| Layer | Files | Content |
-|---|---|---|
-| Root | 1 new | `Directory.Packages.props` — Central Package Management (bunit 1.40.0, xunit 2.5.3, Test.Sdk 17.8.0, coverlet 6.0.0) |
-| Contracts | 7 new | `Canonical/`: `RateQuoteRequest`, `CanonicalAddress`, `CanonicalPackage`, `MoneyValue`, `RateQuoteResult`, `QuoteOption`, `RateQuoteError` — BCL-only records, `[Description]` on every property |
-| Domain | 28 new + 1 csproj | `Schemas/` (model + `FieldKeyCalculator`, `SchemaHashCalculator`, `HashCalculator`), `Import/OpenApiImporter`, `Integrations/`, `Persistence/` (+ `InMemory/`), `Fixtures/` (locator + catalog), `Services/` (integration, import, query), `InternalModel/` (reflection catalog) |
-| App | 17 new/modified | `Program.cs` (explicit DI, no convention scanning), `Infrastructure/DemoSeeder.cs`, layout + nav, pages `Home`, `Integrations`, `NewIntegrationWizard`, `SchemaViewer`, `InternalModelBrowser`, components `WizardForm`, `FieldTable`, `ModelTable`, `app.css`, `appsettings.Development.json` (DemoSeed flag) |
-| Tests | 9 new + 1 csproj | `OpenApiImporterMockCarrierATests` (8), `…HostileTests` (5), `…MessyTests` (1), `InMemoryRepositoryTests` (3), `SchemaImportServiceTests` (5), `CanonicalModelCatalogTests` (4), `WizardFormTests` (bUnit, 2), `Support/TestFixtures`, G0 `SmokeTests` untouched (2) |
+- `IProviderSchemaRepository.GetLatestAsync()` (§10) encodes a single-schema world; shipped reality is multi-integration/multi-document (`GetAsync(id)`, `ListAsync`, `ListForIntegrationAsync`). **Required edit** — otherwise the G2 workbench can't address the schema it maps.
+- `IProviderSourceService.LoadFixtureAsync(fixtureName)` vs shipped `IFixtureCatalog.ListSources()/ReadContent(relativePath)` + path-traversal guard (tested). Adopt shipped shape; the traversal guard must be stated as a rule (MockCarrierHostile ships traversal-shaped ids).
+- `IInternalModelCatalog.GetRateQuoteModels()` vs shipped reflection-based `ICanonicalModelCatalog` (request+result trees, `[Description]`-driven, camelCase paths). Shipped version cannot drift from Contracts — keep it; blueprint's `StaticInternalModelCatalog` would reintroduce drift risk. **Required edit.**
+- G2 service set (`IMappingValidationService.Validate(profile, schema, internalModels)` pure-function style, `IMappingProfileApprovalService.Approve`) — correct, deterministic, testable. Keep.
+- Importer naming: `MockOpenApiProviderSchemaImporter` mislabels shipped behavior — the importer is a real (subset) OpenAPI 3.0 importer, not a mock (`OpenApiImporter`, dependency-free, deterministic, Swagger-2.0-degrading). Rename in blueprint; "Mock" belongs to fixtures, not the importer.
 
-No file outside `AiIntegrator/**` was created, modified, or deleted (see §14).
+## 8. UI / workbench review
 
-## 6. Workbench shell / navigation delivered
+§6.7 page list is right for the MVP arc (G1 pages shipped; `MappingWorkbench`, `GenerationReview`, `QuoteDemo` pending G2/G3). Required reconciliations:
 
-- Sidebar shell (`Components/Layout/MainLayout.razor`): Dashboard / Integrations / New Integration / Internal Model; header "AI Integrator — internal workbench — demo", footer "G1 — import & browse slice".
-- **Neutral internal-tool UI only**: plain system-font styling in `wwwroot/app.css`, no product branding, no marketing claims, and **no production readiness claims** anywhere in markup.
-- Pages render via static SSR except the wizard (`@rendermode InteractiveServer` with prerender), so every route returns meaningful HTML on first GET — verified in §13.
-- UI purity is mechanical, not aspirational: `grep` of all `*.razor` for `OpenApiImporter|SHA256|HashCalculator|JsonDocument` → **0 hits**. Razor components talk to `IIntegrationService` / `ISchemaImportService` / `ISchemaQueryService` / `ICanonicalModelCatalog` only; domain logic stays in Domain (future SPA replacement keeps the same service boundary). `ServiceResponse` is not used anywhere in the slice; no TwinCore framework project is referenced.
+- Routes: adopt shipped `/`, `/integrations`, `/integrations/new`, `/schemas/{documentId}`, `/internal-model`; blueprint's `/provider-schema` (singular, stateless) is superseded. Add planned `/mapping-workbench`, `/generation-review`, `/quote-demo` as G2/G3 routes — fine as specified.
+- §10 minimum UX is already exceeded by shipped G1 (4-step wizard with fixture list + paste tab vs "button: Load MockCarrierA fixture"; viewer shows hashes/enums/required/FieldKey). Blueprint should record the delivered UX as the new baseline so G5's manual script matches the real screens.
+- "No domain logic in Razor components" — shipped and mechanically enforced (grep = 0 hits, in G1 report §6); keep the rule, add the grep as the acceptance mechanism.
+- Blazor Server + prerender remains provisional (D14); SPA-replaceability is preserved by the service boundary. Consistent.
 
-## 7. Provider source input delivered
+## 9. Generator / sandbox review
 
-- `Domain/Fixtures/FixtureLocator` finds the fixtures root by ascending to `AiIntegrator.sln` (works from App content root and test bin output, no hardcoded paths).
-- `FileSystemFixtureCatalog.ListSources()` lists top-level `*.json` of every provider folder; evidence (test `Fixture_catalog_lists_all_four_mock_carriers`): MockCarrierA, MockCarrierB, MockCarrierHostile, MockCarrierMessy. `golden/` subfolders are excluded by design.
-- **Path-traversal guard**: `ReadContent("../CLAUDE.md")` and `..\\..\\Src\\CLAUDE.md` throw `UnauthorizedAccessException` (test `Fixture_catalog_rejects_path_traversal`) — relevant because MockCarrierHostile ships traversal-shaped ids.
-- Wizard step 2 offers the fixture list (MockCarrierA preselected) plus a paste-JSON tab (`ImportFromTextAsync`, covered by test `ImportFromText_stores_pasted_source`) — within deliverable 2's "especially" wording; no external URL fetch exists.
+§6.5/§6.6/§12 are the strongest sections — they encode every safety decision from the tech-design baseline (untrusted strings, no interpolation, serializer-attribute wire names, sanitized identifiers as derivatives only, hash-pinned generation, sanitized logs, no network in sandbox). Required additions:
 
-## 8. ProviderSchema importer delivered
+1. **Generated `.csproj` missing** from the package minimum (§4 above) — without it the sandbox's `dotnet build`/`dotnet test` of the package cannot run.
+2. State the **emitter technology**: Roslyn `SyntaxFactory` preferred over string templates (tech-design decision) — this is the main anti-injection control and must not be rediscovered at G3.
+3. Hostile-fixture round-trip belongs in G3 tests explicitly (§12 has "Hostile fixture names do not break sanitizer" — good; add "compiles and round-trips wire names via serializer attributes").
+4. Sandbox: define artifact root under `AiIntegrator/.artifacts/` or system temp + cleanup rule, so generated output never lands in tracked paths accidentally.
 
-`Domain/Import/OpenApiImporter` — deterministic, dependency-free (System.Text.Json only, **no new NuGet packages**, no LLM, no network):
+## 10. Gate roadmap review (question 7)
 
-- Extracts operations (operationId or `METHOD /path`), request fields from `requestBody.content.application/json.schema`, response fields from the first 2xx response; non-success responses are recorded as warnings, not silently dropped.
-- `$ref` resolution within `#/components/schemas`, **per-branch circular-ref guard with backtracking** (sibling branches may re-expand the same component — shipper/recipient both expand `Party`), depth cap 32.
-- Arrays → `[*]` path segments; enums, formats, descriptions, `required` membership captured. Wire names preserved **verbatim** — sanitization is a generator concern (G3).
-- Identity model per tech-design baseline: `SourceHash` = SHA-256 of raw text; `SchemaHash` = SHA-256 of canonical field serialization (volatile Id/timestamp excluded); `FieldKey` = SHA-256(`OperationKey|Direction|JsonPath`) — independently recomputed in test `FieldKey_matches_documented_formula`.
-- MockCarrierA result: 1 operation `getRateQuotes`, **32 request / 35 response fields** (importer log + `ImportOutcome`).
-- Degradation proven on the hostile and messy fixtures (tests, §12): hostile imports without throwing, keywords/unicode/empty/case-colliding names intact; Swagger 2.0 lists the operation with a clear warning and zero extracted fields.
+Sizing assessment against the now-measured G1 baseline (one macro-gate, 64 files, 30 tests, single session):
 
-## 9. ProviderSchema viewer delivered
+- **G2** as specced ≈ 1.5-2× G1 (domain + workbench UI + validation + approval + freeze + tests). Feasible as ONE macro-gate **if** the §5 layer-split pre-commit is mechanical and the EF question is resolved beforehand (§14). If EF lands inside G2 too, it becomes the largest gate of the project — recommend EF-out (below).
+- **G3** is the riskiest (generator + sandbox + demo). Keep as one bridge gate but pre-authorize an internal two-commit structure (G3a generator+tests, G3b sandbox+demo) — same report, two commits, no extra audit round.
+- **G4, G5** sized correctly (G4 is the factory proof, G5 is documentation+packaging).
+- Gate exit criteria (§9: one commit, evidence, scoped diff, report, audit) match the proven G0/G1 protocol. The new AIKB `MACRO_GATE_TRIGGER_RULE.md` is consistent with §19.
 
-`/schemas/{documentId}` (static SSR):
+## 11. Testing strategy review
 
-- Document meta: provider, source file, source kind, imported-at UTC, `SourceHash`/`SchemaHash` (short form + full hash in tooltip).
-- Per operation: key + HTTP method + path + summary, then **separate request and response field tables**: JSONPath, wire name, type (+format), required ✓, enum values, description, FieldKey prefix.
-- Served-HTML evidence (§13): `getRateQuotes`, `$.output.rateReplyDetails[*]`, response field table marker all present in the HTTP response body — the import visually provable exactly as deliverable 4 asks.
-- Not-found state explains the in-memory reset behavior and links back to the wizard.
+Per-gate test lists (§10-§13) are correct and deterministic-first. Gaps to add:
 
-## 10. Internal Model Browser delivered
+- **Component-level UI tests (bUnit)** proved their worth in G1 (wizard click-through with the real service stack — the only machine evidence of the manual path). The blueprint's test strategy is service-level only; add bUnit as the standing approach for wizard/workbench interactions, отдельно от ручного click-through Славы.
+- **Determinism tests as a class**: re-import → same `SchemaHash`; approve → stable `ProfileHash`; generate → stable `ContentHash`. §12 has the generator case; add the schema and profile cases (schema one already shipped in G1).
+- **Negative-path tests**: path-traversal rejection (shipped), Swagger-2.0 degradation (shipped), hostile import (shipped) — fold into the blueprint so G2+ keeps extending them.
+- CPM (`Directory.Packages.props`) governs test dependencies since G1 — worth one line in §5 so future gates pin versions centrally.
 
-`/internal-model` (static SSR) shows both canonical trees for the rate quote MVP: **RateQuoteRequest** (origin/destination `CanonicalAddress`, `packages[*]` weight/dimensions/declared value, shipDate, preferredCurrency) and **RateQuoteResult**.
+## 12. Manual testing readiness review (question 9)
 
-- The ACTIVE_REQUEST field list is covered and test-asserted (`Result_tree_contains_carrier_service_price_transit_warning_error_fields`): carrier → `$.quoteOptions[*].carrierCode`, service → `providerServiceCode`/`serviceName`, price/currency → `price.amount`/`price.currency`, transit → `estimatedTransitDays`/`estimatedDeliveryDate`, warnings → option-level `warnings` + result-level `resultWarnings`, error → `$.error.code`/`$.error.message`.
-- **Where "carrier" lives**: at option level (`QuoteOption.CarrierCode`, nullable), not at result level — one result can aggregate several carriers later; the golden `expected-canonical.json` does not constrain it. All other canonical names match the G0 golden file 1:1 (`quoteOptions[*].providerServiceCode/serviceName/price{amount,currency}/estimatedTransitDays/estimatedDeliveryDate/isAvailable/warnings`, `resultWarnings`).
-- The catalog is **built by reflection over the Contracts types** (`CanonicalModelCatalog`): camelCase paths, `[Description]` texts, required flags from the C# `required` modifier — the browser cannot drift from the real contract. Browse/display only; no mapping UI exists.
+The G5 target is realistic — G1 already proves the heaviest prerequisite (app runs, imports, renders on a clean `dotnet run`). Two required fixes:
 
-## 11. Repository abstraction + in-memory implementation delivered
+1. **§14 manual commands would disturb the developer's primary checkout**: `cd C:\Projects\Twincore-framework; git checkout feature/12695-ai-integrator-poc` switches the main working copy away from its current task branch. Replace with a `git worktree add <separate-folder> feature/12695-ai-integrator-poc` flow (this is exactly how G0/G1 were executed) or a fresh clone. Otherwise the first manual test session creates the dirty-tree stop condition for the next gate.
+2. The 19-step browser flow should reference the **shipped** routes/screens after §8 edits (e.g. step 4-5 "see ProviderSchema" happens at `/schemas/{id}` reached from the wizard's "View schema" or `/integrations`).
 
-- Interfaces: `IIntegrationRepository` (add/get/list/update), `IProviderSchemaRepository` (add/get/list — documents immutable by design).
-- `InMemory*Repository`: `ConcurrentDictionary`, deterministic ordering, duplicate-add and missing-update guarded (tests). Registered as singletons in `Program.cs`; **EF (G2) swaps in behind the same interfaces** — no UI or service change required.
-- Service layer between UI and persistence: `IntegrationService`, `SchemaImportService` (read fixture → import → persist document → attach id to integration), `SchemaQueryService`. The wizard/result flow returns `ImportOutcome` (counts + warnings) for the UI.
+Minor: add `DemoSeed:Enabled` note (Development seeds MockCarrierA automatically — manual testers should know why data is pre-populated, or the flag should be off for the manual script so the wizard path is exercised).
 
-## 12. Tests added / updated
+## 13. Igor-facing readiness review (question 10)
 
-`dotnet test` — **30/30 passed, exit 0** (10 test classes; G0 smoke tests untouched and passing). ACTIVE_REQUEST checklist mapping:
+§17's ten review points are exactly the right story for Igor (isolation, untouched framework, zero runtime LLM, schema import, MappingProfile as the core value, freeze/hash, explicit-DI adapters, sandbox, factory proof, path to real providers). Verdict: **good enough to send to Igor after the required edits**, with two packaging additions:
 
-| Required by request | Test (all PASSED) |
-|---|---|
-| MockCarrierA fixture loads | `TestFixtures` + every importer test reads it from disk |
-| Importer creates expected operation count / core fields | `Imports_single_getRateQuotes_operation`, `Request_contains_core_shipper_and_package_fields` (incl. enum KG/LB, required chain), `Response_contains_charge_and_commit_fields` (ACCOUNT/LIST enum, totalNetCharge.amount) |
-| Response array path for future IterationRoot | `Response_contains_iteration_root_array_path` — asserts `$.output.rateReplyDetails` is Array **and** `[*]`-children exist |
-| Internal model browser definitions present | 4 `CanonicalModelCatalogTests` |
-| Existing smoke tests still pass | 2/2 in the 30 |
-| (beyond request) determinism + identity | `Reimport_is_deterministic` (SchemaHash stable, Ids differ), `SourceHash_matches_raw_source_bytes`, `FieldKey_matches_documented_formula` (independent SHA-256 recomputation) |
-| (beyond request) hostile/messy degradation | 5 hostile (verbatim wire names, keywords, unicode, empty name, x/X collision) + 1 messy (Swagger 2.0 warning, 0 fields) |
-| (beyond request) service + storage | 3 repository + 5 import-service tests (incl. path-traversal rejection) |
-| (beyond request) manual wizard path | bUnit `Wizard_click_through_imports_MockCarrierA` — real catalog + importer + in-memory repos, click Step 1→2→3, asserts summary "Imported 1 operation", schema link, document in store; `Step1_blocks_empty_name_and_provider` (NEGATIVE) |
+- Attach per-gate evidence numbers (G1: build 0 warnings, 30/30 tests, 32/35 fields, `$.output.rateReplyDetails[*]` visible) — Igor responds to evidence, not promises.
+- Add an explicit "what this is NOT yet" half-page (no real carriers, no production claims, in-memory/EF status, LLM design-time-only and not yet wired) — pre-empts the obvious challenge questions and keeps owner-proxy honesty.
+- Keep the provisional-decision register reference (CURRENT_STATE) so Igor sees which decisions await his confirmation.
 
-## 13. Build / test evidence
+## 14. Required edits (question 11 — exact list for GPT)
 
-```text
-dotnet build AiIntegrator/AiIntegrator.sln   → exit 0, "0 Warning(s), 0 Error(s)", ~22.5 s
-dotnet test  AiIntegrator/AiIntegrator.sln   → exit 0, Failed: 0, Passed: 30, Skipped: 0, 809 ms
-```
+1. **Re-baseline on shipped G1**: §4 add G1 commit `dbea505bf1dd3d8a29a04c368b46b2717fc831ff` + evidence; §9 G1 → DONE (audit pending); rewrite §10 from prescription to record (deliverables as shipped: wizard 4 steps + paste tab, multi-document schema viewer `/schemas/{id}`, reflection-based internal model browser, demo seed flag).
+2. **Adopt shipped names** everywhere or order an explicit rename commit: `ProviderSchemaDocument/SchemaOperation/SchemaField/SchemaDirection/SchemaFieldType(+Format)`; Contracts `QuoteOption/CanonicalAddress/CanonicalPackage/MoneyValue/ProviderServiceCode/EstimatedTransitDays/EstimatedDeliveryDate/IsAvailable`; importer `OpenApiImporter` (not "Mock…"); catalog `ICanonicalModelCatalog` (reflection-based, not static).
+3. **Fix §7.5 canonical field list**: add result-level `ResultWarnings` + `Error{Code,Message}`; reconcile option-level `Errors` with golden `expected-canonical.json`; note that `CarrierCode` lives at option level.
+4. **Add `EnumValues` (and optional `ExampleValue`) to ProviderField**; type as enum + `Format`; drop `WireName` duplication and `ParentPath`.
+5. **Resolve the EF contradiction** with Implementation Plan v0.2: recommended decision — in-memory through G2 (blueprint §6.4 wins), EF introduced as G3 pre-step when `IntegrationRun`/`GenerationArtifact` need durability; record as provisional owner decision and update the plan or the blueprint accordingly.
+6. **§5 layering decision**: adopt option (a) — mechanical Application/Infrastructure split as the first, behavior-preserving commit of G2 (tests stay 30/30 before features); drop `Sha256HashService`.
+7. **Repository signatures**: replace `GetLatestAsync()` with the shipped multi-document set; add the path-traversal guard rule to the fixture source service.
+8. **Generated package**: add `MockCarrierA.Generated.csproj` to §12 minimum; state Roslyn SyntaxFactory preference; define sandbox artifact root + cleanup.
+9. **§14 manual commands**: switch to `git worktree add` (or fresh clone) flow; align the 19-step script with shipped routes; add the `DemoSeed:Enabled` note.
+10. **Routes**: §10 routes → shipped set; keep `/mapping-workbench`, `/generation-review`, `/quote-demo` for G2/G3.
 
-Runtime render evidence (label: **LOCAL_REAL** — real Kestrel, real import, no mocks; zero external/provider/LLM calls by design). App started at `http://127.0.0.1:5599` (Development, demo seed on), then stopped:
+## 15. Optional edits
 
-| Route | HTTP | Bytes | Markers verified in served HTML |
-|---|---|---|---|
-| `/` | 200 | 2 627 | `count-integrations`, "AI Integrator" |
-| `/integrations` | 200 | 2 621 | demo-seed row, `schemas/<guid>` link |
-| `/integrations/new` | 200 | 3 538 | `wiz-name` input, step list "1. Name" (prerendered) |
-| `/internal-model` | 200 | 13 531 | `quoteOptions[*].price.amount`, `resultWarnings` |
-| `/schemas/{id}` | 200 | 30 953 | `getRateQuotes`, `rateReplyDetails`, `field-table-response`, **`$.output.rateReplyDetails[*]`** |
+- Add bUnit component testing + determinism-test class + negative-path tests to the testing strategy (§11 findings).
+- Add `MappingRule.Order` (stable ProfileHash) and an explicit canonical-JSON definition for ProfileHash computation.
+- One line on CPM (`Directory.Packages.props`) as the version-pinning mechanism.
+- Decide `ProviderSourceDocument.ContentRef` (store raw source text or defer to G4).
+- Add importer-warnings surface (`ImportOutcome.Warnings`) as the designed hook for the G4 LLM Gap Assistant narrative.
+- §16 final-report checklist: add "stale `latest-summary.json` refreshed" housekeeping item.
 
-12/12 content checks TRUE (11 marker greps in served HTML + the `schemas/<guid>` link extracted from `/integrations` by regex and successfully dereferenced). Startup log: `Demo seed: imported MockCarrierA/openapi.json -> 1 operation(s), 32 request / 35 response field(s).`
+## 16. What must not be changed
 
-UI evidence classification: MECHANICAL_PASS (5×200 + markers), SEMANTIC_PASS (markers are real imported data, counts match `ImportOutcome`), PERSISTENCE_PASS within app lifetime (list page link → viewer renders the same stored document; restart resets by design — in-memory G1, documented in UI), NEGATIVE_PASS (empty-form validation blocks step 1; traversal read rejected; hostile spec imports without crash).
+- §3 boundaries and §18 stop conditions (question 8: the 15-item stop list is sufficient — it is a superset of the G0/G1 ACTIVE_REQUEST stop conditions under which both gates executed cleanly, including the G0 hook incident that the STOP discipline caught correctly; no addition needed).
+- Owner-proxy phrasing rules (§2) — including the forbidden-phrase discipline.
+- Zero-LLM runtime invariant; design-time-only LLM with no provider configured until G4 placeholder.
+- Closed TransformKind set; exactly-one-IterationRoot rule; no implicit `[0]`; ManualCode blocks generation; Draft→Approved→Superseded immutability with hash-pinned generation.
+- Macro-gate execution model (§19 + new AIKB trigger rule); per-gate single-commit + evidence + audit discipline.
+- Fixture-only scope until owner decision; the four-fixture set and golden files as acceptance anchors.
 
-## 14. Verification that no files outside `AiIntegrator/**` changed
+## 17. Final recommendation
 
-```text
-git status --porcelain (before staging)        → 33 lines, 0 outside AiIntegrator/
-git diff --cached --stat -- . ':!AiIntegrator' → EMPTY
-git diff --stat d10e34a..HEAD -- . ':!AiIntegrator' → EMPTY
-git status --porcelain (after commit)          → 0 lines
-```
+**ACCEPT_WITH_REQUIRED_EDITS** — apply §14 items 1-10 (GPT can do this in one editing pass; nothing requires code changes), re-register the blueprint as v0.2, and only then open G2 with prompts derived from the corrected document. Suggested G2 opening order: (1) mechanical layer-split commit, (2) mapping domain + validation, (3) workbench UI, (4) approval/freeze — one macro-gate, one report. The document after edits is fit both as the G2-G5 execution contract and, with G5 evidence appended, as the Igor review package.
 
-`TwinCore.sln` unchanged ✅; `Src/**` unchanged ✅; `.claude/**` unchanged ✅; root files unchanged ✅. The G1 `Directory.Packages.props` sits **inside** `AiIntegrator/` (nearest-wins MSBuild lookup; repo root has no `Directory.Packages.props`/`Directory.Build.props`/`nuget.config` — checked), so the framework tree cannot be affected.
-
-## 15. Secret scan result
-
-- Refined scan over all 64 staged files (passwords, api keys, client secrets, connection strings, private-key blocks, sk-/ghp_/AKIA/xoxb-/glpat- prefixes): **0 hits**.
-- Transparency note: a first broad pass reported 30 "hits", all false positives — the pattern `token\s*[=:]` matched the C# `CancellationToken cancellationToken = default` parameter idiom. Pattern refined; no real secret was ever present.
-- Repo pre-commit secret gate also passed at commit time. No credentials, no carrier keys, no provider endpoints beyond fixtures.
-
-## 16. Push verification
-
-```text
-git push origin feature/12695-ai-integrator-poc → exit 0 (no force)
-local  HEAD: dbea505bf1dd3d8a29a04c368b46b2717fc831ff
-remote head: dbea505bf1dd3d8a29a04c368b46b2717fc831ff   → MATCH
-origin/main: 8f935f08979f9244daec9f0a1b55e028dbe4c7d9   → untouched
-```
-
-No PR created. No other ref pushed. Commit author matches the G0 chain (anonymized noreply identity).
-
-## 17. Deviations / limitations
-
-Scope notes (all inside `AiIntegrator/**`, all reversible):
-
-1. **CPM added** (`Directory.Packages.props`) — fulfils the G0 `CLAUDE.md` note "CPM lands in G1"; scoped to the workbench tree only.
-2. **Demo seed added** (flag `DemoSeed:Enabled`, on in Development only, never fatal) — supports deliverable 4 "visually prove import worked"; the manual wizard path is proven **independently** by the bUnit click-through, so the seed masks nothing.
-3. **Paste-JSON input added** alongside fixtures — within deliverable 2 wording; no URL fetch.
-4. **bunit 1.40.0** is the single new test-time dependency (component click-through evidence). Runtime dependencies: none added.
-
-Limitations (known, by design for G1):
-
-5. In-memory store resets on restart (UI states this; EF arrives at/before G2).
-6. Importer subset: OpenAPI 3.0 **JSON** only; success (2xx) response only; same-document `#/components/schemas` refs only; no YAML/SOAP/external refs (SOAP slot is G4; Swagger 2.0 degrades to operations + warning — proven by the messy fixture test).
-7. Human click-through in a real browser remains for Slava's hands-on acceptance (his stated done-criterion); machine evidence covers prerendered HTML + bUnit event dispatch.
-8. Workbench has no auth — internal demo tool on localhost, consistent with "neutral internal-tool UI".
-
-Decision-mode statement: this gate's choices are a **provisional owner-approved baseline by Slava; reversible when Igor returns**. No approval is attributed to Igor anywhere in this report.
-
-## 18. Stop conditions encountered
-
-None (0). No dirty tree, no divergence, no need to touch anything outside `AiIntegrator/**`, no `TwinCore.sln`/`Src/**`/`.claude/**` modification required, no secret material, no framework edit needed for build/test, no scope drift into G2/G3, push accepted first try. (Unlike G0, no hook conflict occurred — the pre-commit gate already allowlists `AiIntegrator/*` since G0.)
-
-## 19. Next safe step
-
-1. GPT audits this report (trigger «отчёт»), records G1 acceptance in AIKB (ledger + CURRENT_STATE: commit `dbea505…`), and refreshes the stale `TwinCore/latest-summary.json` (untouched since the planning gate — outside my write scope).
-2. Optional human smoke for Slava (2 min): `dotnet run --project AiIntegrator/src/TwinCore.AiIntegrator.App` → open the printed URL → wizard → import MockCarrierA → viewer → internal model.
-3. Await explicit «open G2» (Mapping Workbench: IterationRoot UI, ArraySelect, TransformKind, coverage gate, MappingProfile approve/freeze, EF persistence). A G2 ACTIVE_REQUEST should pin: EF provider choice, profile immutability rules (Draft→Approved hash-pinned), and mapping validation gate semantics from the tech-design baseline.
-
-## 20. What must NOT be done next
-
-- No merge/PR of `feature/12695-ai-integrator-poc` to `main` (outside owner-proxy blast radius).
-- No G2 work (mapping workbench, validation engine, profile approval) without an explicit G2 request.
-- No generator/sandbox/codegen (G3), no second provider/LLM Gap Assistant/SOAP (G4).
-- No real carrier connectivity, no credentials, no runtime LLM, ever in this workstream without a separate explicit gate.
-- No framework (`Src/**`) edits, including "courtesy fixes" — Igor's queue.
-- No production claims; no Azure work-item/pipeline writes.
+Provisional owner-approved baseline by Slava; reversible when Igor returns. No approval is attributed to Igor anywhere in this review.
 
 ---
 
-*Report paths: `TwinCore/ai-integrator-g1-import-browse-v0.1/report.md` (this file), mirrored to `TwinCore/latest-report.md` and `TwinCore/_BRIDGE/LATEST_REPORT.md`; `TwinCore/_BRIDGE/STATUS.json` updated (nextActor: GPT).*
+*Report paths: `TwinCore/ai-integrator-development-blueprint-review-v0.1/report.md` (this file), mirrored to `TwinCore/latest-report.md` and `TwinCore/_BRIDGE/LATEST_REPORT.md`; `TwinCore/_BRIDGE/STATUS.json` updated. The G1 implementation report remains at `TwinCore/ai-integrator-g1-import-browse-v0.1/report.md` and still awaits GPT audit.*
