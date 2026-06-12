@@ -1,58 +1,31 @@
-REQUEST_ID: REQ-2026-06-12-shiran-interview-builder-documentation-finalization
+REQUEST_ID: REQ-2026-06-12-shiran-ai-correspondence-refinement
 PROJECT: ShiranInterviewBuilder
-GATE: DOCUMENTATION_FINALIZATION_MACRO_GATE
+GATE: AI_DOCUMENTATION_REFINEMENT
 STATUS: PASSED
 COMPLETED: 2026-06-12
 COMPLETED_BY: claude
-SANITIZATION: public report — no client/person identifiers beyond the operator-approved author first name on the deliverable cover, no workstation paths, no credentials.
+SANITIZATION: public report — absolute workstation paths withheld (recorded in private AIKB and provided to the operator directly); no client/person identifiers, no credentials.
 
 ## Summary
 
-Reviewer-facing documentation layer created on top of the verified implementation (previous gate: local-finalization, STATUS FIXED). New `SOLUTION_OVERVIEW.md` (13 sections) and `SOLUTION_OVERVIEW.pdf` (10 pages: full cover page, table of contents, 6 rendered diagrams, verification matrix). Three existing docs updated minimally. Zero application code changes — proven by a SHA-256 manifest of all 69 code files taken before and after the gate (identical). New final submission ZIP built including the PDF; the previous ZIP is retained as pre-documentation.
+AI usage documentation refined with explicit three-tool attribution (OpenAI / Anthropic Claude Code / Fable LLM) and honest role boundaries, then the final submission package was rebuilt under the operator's canonical file name. Documentation-only gate: zero application code changes (hash-proven). Before rebuilding, the communication channel was checked and confirmed that the superseded package had **not** been sent to the client, so no submitted/документed divergence exists.
 
-## Documentation files created / updated
+## Confirmations
 
-| File | Action |
+| Item | Status / Evidence |
 |---|---|
-| `SOLUTION_OVERVIEW.md` | CREATED — executive summary, business process, user flow, scaffold understanding, runtime architecture, data model + constraints, submit-question backend flow, AI draft flow (mock), suggestions flow, validation rules, verification matrix, scope boundaries/tradeoffs, next improvements; 6 Mermaid diagrams |
-| `SOLUTION_OVERVIEW.pdf` | CREATED — 10 pages; formal cover (title, subtitle, author, date, style-basis note with explicit "not an official Microsoft-certified document"), table of contents, all 6 diagrams **rendered** (mermaid-cli → SVG → PDF), professional layout |
-| `README_SUBMISSION.md` | UPDATED — added "Documentation Map" section linking the 4 documentation files |
-| `TASK_BREAKDOWN.md` | UPDATED — added TASK-11 (final manual acceptance + documentation layer, no code changes) |
-| `AI_CORRESPONDENCE.md` | UPDATED — added Interaction 6 (documentation support, transparency) |
-
-## Diagram coverage (all rendered in the PDF)
-
-1. Business process flow (hiring need → position → interview → skill coverage → question source → ordered sequence)
-2. User flow (select/create position → interview → skill → component type → manual/suggestion/AI question → guidance → mandatory → submit → sequence)
-3. Runtime architecture (browser → MVC controller → application service → EF Core → SQL Server; service → question generation service → Python mock)
-4. Data model ERD (Position, Skill, Interview, Question, InterviewQuestion, QuestionComponentType)
-5. Submit-question sequence diagram
-6. AI draft generation sequence diagram
-
-## Code immutability evidence
-
-- SHA-256 manifest of all 69 non-documentation files (code, views, css, configs, migrations, python service, csv) captured before the gate and re-captured after: **zero differences**.
-- No UI/CSS/layout/migration/entity/service/controller/view changes; documentation and packaging only.
-
-## Verification of the PDF itself
-
-- Rendered via mermaid-cli (all 6/6 diagrams to SVG, no fallback needed) + headless Chromium print.
-- pypdf content check: 19/19 structural checks pass (cover fields, TOC on page 2, every required section present, honest "automated tests: not added" statement); negative scan clean (no workstation paths/usernames, no phone numbers, no client company name, no credential values).
-- Page count: 10 (target 8–12).
-
-## Final package
-
-- Path (workstation, relative): `ShiranInterviewBuilder/InterviewBuilder_submission_final_2026-06-12.zip`
-- 76 file entries, 607 KB, sha256 `BE154624A6E6A06AA7DC44AE04006CECE73D2291DC347DBC5B5DF5D56CC538F5`
-- Includes: full source, README_SUBMISSION.md, SOLUTION_OVERVIEW.md, SOLUTION_OVERVIEW.pdf, TASK_BREAKDOWN.md, AI_CORRESPONDENCE.md
-- Excludes (audited): bin, obj, .vs, .git, *.user, *.docx, __pycache__, temp files
-- Previous ZIP (`InterviewBuilder_submission_2026-06-12.zip`) retained, explicitly treated as pre-documentation, NOT final.
-- Forward-slash zip entries (cross-platform unzip safe).
-
-## Readiness
-
-**READY FOR CLIENT SUBMISSION.** Application code verified in the previous gate (Docker build/runtime + scripted HTTP E2E + operator's manual browser acceptance). Documentation layer factual, sanitized, reviewer-oriented. No assignment source pushed to any repository.
+| `AI_CORRESPONDENCE.md` updated | ✅ "Tools Used" table with exact wording: **OpenAI** (assignment analysis, architecture planning, scope control, risk review, documentation strategy, reviewer-oriented explanation, final audit support); **Anthropic Claude Code** (local agentic coding assistant: codebase navigation, implementation, build/runtime verification, documentation generation, ZIP packaging, verification reporting under human supervision); **Fable LLM** (supplementary reasoning/review support during final audit and communication/documentation refinement). Honest-attribution notes included: Fable LLM was not the local coding agent; Claude Code was the local coding/build/package agent; OpenAI and Fable LLM were reasoning/review/documentation support; the candidate (human owner) remained responsible for scope, acceptance, manual verification, and final submission |
+| `README_SUBMISSION.md` updated | ✅ AI Assistant Usage section aligned with the same three-tool attribution; links to `AI_CORRESPONDENCE.md` for the per-interaction log |
+| No application code changed | ✅ 69/69 non-documentation file SHA-256 hashes identical to the reference manifest (entities, migrations, services, controllers, views, css, configs, python service) |
+| Final ZIP rebuilt | ✅ rebuilt after the documentation update from a fresh audited staging copy |
+| Exact final ZIP path | `ShiranInterviewBuilder/InterviewBuilder_submission_final.zip` on the operator workstation (canonical name chosen by the operator; absolute path recorded in private AIKB `01_PROJECTS/ShiranInterviewBuilder/`) |
+| File count | ✅ 76 file entries |
+| sha256 | ✅ `C62D88003AAC9FDA61DF87AA7126767B76D696AF01D4A3E2BF253F052FCF58A3` (supersedes pre-attribution build `BE154624…538F5`, which was verified as never sent) |
+| `SOLUTION_OVERVIEW.pdf` still included | ✅ present in the rebuilt package, unchanged (10 pages, 6 rendered diagrams) |
+| Exclusions | ✅ re-audited: no bin / obj / .vs / .git / *.user / *.docx / __pycache__ |
+| Private backup sync | ✅ private AIKB `ARTIFACTS/` copy updated to v2 under the canonical name; committed blob == `git hash-object` of the local package (byte-identical) |
+| Package readiness | ✅ **READY FOR CLIENT SUBMISSION** — no blocker; v2 is the only version to send |
 
 ## Next safe step
 
-Operator sends `InterviewBuilder_submission_final_2026-06-12.zip` to the client via the agreed channel. Architect GPT audits this report.
+Operator sends `InterviewBuilder_submission_final.zip` to the client through the agreed channel. Architect GPT audits this report.
