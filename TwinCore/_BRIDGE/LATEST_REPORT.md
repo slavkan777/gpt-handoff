@@ -1,184 +1,248 @@
-# TwinCore AI Integrator Development Blueprint Review v0.1
+# TwinCore Rate API — Carrier & Shipping API Docs Research v0.1
 
-REQUEST_ID: REQ-2026-06-12-twincore-ai-integrator-development-blueprint-review-v0-1
+REQUEST_ID: REQ-2026-06-14-twincore-rate-api-carrier-docs-research-v0-1
 PROJECT: TwinCore
-GATE: planning / development-blueprint-review
+GATE: research / specification support
 STATUS: READY_FOR_AUDIT
-DATE: 2026-06-12
-AUTHOR: Claude (reviewer); analysis-only, no code/AIKB/blueprint modified
-REVIEWED ARTIFACT: `01_PROJECTS/TwinCore/ARCHITECTURE/TWINCORE_AI_INTEGRATOR_DEVELOPMENT_BLUEPRINT_V0_1.md` (ai-kb @ `162e5c9`, 1133 lines, status DRAFT_FOR_CLAUDE_REVIEW)
+TASK_TYPE: research-spike
+DATE: 2026-06-14
+AUTHOR: Claude (researcher); research/report only — no code, no AIKB writes, no branches, no live carrier calls
+RESULT: RESEARCH_DONE_READY_FOR_AUDIT
 
 ---
 
-## 1. Executive verdict
+## 1. Request identity
 
-**ACCEPT_WITH_REQUIRED_EDITS.**
+| Field | Value |
+|---|---|
+| Request | `REQ-2026-06-14-twincore-rate-api-carrier-docs-research-v0-1` |
+| Gate ACTIVE_REQUEST | `TwinCore/rate-api-carrier-docs-research-v0.1/ACTIVE_REQUEST.md` (read in full) |
+| Bridge ACTIVE_REQUEST | `TwinCore/_BRIDGE/ACTIVE_REQUEST.md` — same REQUEST_ID; router confirms |
+| Routing evidence | gpt-handoff commit `18c7ecd` "Route active request to carrier docs research gate" |
+| AIKB context read | 11 READ-FIRST files incl. SDD package `SPECIFICATIONS/RATE_API_CONNECTOR_GENERATOR/` (ai-kb @ `ae85405`) |
+| Identity note | bridge `STATUS.json` still pointed at the prior blueprint-review gate when this gate opened; the two ACTIVE_REQUEST files + the routing commit agree, so this report proceeds. STATUS.json is updated on publish (preserving the two pending audits for G1 + blueprint review). |
+| Decision mode | owner-proxy (Slava/GPT) while Igor unavailable; all findings advisory, reversible. |
 
-The blueprint is structurally strong: boundaries, owner-proxy mode, gate roadmap, mapping semantics (IterationRoot / ArraySelect / closed TransformKind set / profile freeze), generator safety rules, and the manual testing path are all consistent with the accepted tech-design baseline and are the right document to eventually show Igor.
+## 2. Method and limitations
 
-The single biggest problem is **timing drift**: the blueprint was written while G1 was still in flight (§9 marks G1 "IN PROGRESS / NEXT REPORT") and it specifies G1 names, routes, services, and a project split that **differ from what is now actually merged on the branch** (commit `dbea505…`, report `TwinCore/ai-integrator-g1-import-browse-v0.1/report.md`, 30/30 tests green). If GPT issues G2 prompts from the blueprint as-is, Claude will receive instructions that contradict the code it must extend — that is exactly the kind of churn macro-gates are meant to avoid. ~10 required edits below reconcile the document with shipped reality and fix a few real spec gaps (missing generated `.csproj`, missing `EnumValues` on ProviderField, an EF-timing contradiction with Implementation Plan v0.2, and a manual-testing command that would disturb the developer's main checkout).
+- **Method:** public-internet research via search + page fetch against **official developer portals first**; aggregator findings cross-checked against the providers' own docs. Five parallel research passes (big global carriers / EU posts / APAC+ME / NA regionals / aggregators), then synthesis.
+- **Evidence labelling:** every cell is graded `official-verified` (read on the provider's own docs/spec), `third-party` (Postman public network, RapidAPI, GitHub mirrors, aggregator statements), or `model-knowledge-only` (not freshly verifiable). Where neither official nor confident, the provider is marked **NEEDS_MANUAL_CHECK** rather than guessed.
+- **No facts invented.** No credentials used, no paid signup, no live/sandbox carrier call made. A WSDL URL is reported as "exists/reachable" only when a document was actually fetched without login; otherwise it is flagged unverified.
+- **Limitations:** (a) many portals are JS-rendered, so a spec can exist behind a page that returns empty HTML to a fetcher — noted per provider; (b) several carriers gate the actual OpenAPI/WSDL behind a developer/commercial account, so "OpenAPI exists" sometimes means "exists but not anonymously downloadable"; (c) API surfaces change — current as of 2026-06-14; (d) this is desk research to support the SDD, **not** a procurement or contractual assessment.
 
-With those edits applied, the document is good enough to drive G2-G5 and, after G5 evidence is appended, to send to Igor.
+## 3. Executive summary
 
-## 2. Current state restored
+1. **Rate quoting is not universal.** Of 30 direct carriers, only a subset expose a *callable rate/quote endpoint* in public docs. Many national posts and last-mile carriers (Evri, Yodel, DPD, GLS, PostNL, Correos, Colissimo) publish **label/tracking/shipment** APIs but **no public price-quote** — their pricing is contractual rate cards, not an endpoint. A rate-connector "factory" must scope to rate-capable providers; label/track-only carriers are out of MVP scope.
+2. **Exactly one direct carrier offers an official, anonymously-downloadable OpenAPI spec for rating: UPS** (`Rating.yaml` in the official `UPS-API` GitHub org, MIT-licensed). FedEx, USPS and DHL Express all have modern REST rate APIs, but their canonical specs are JSON-collections / portal-gated / commercial-account-gated respectively.
+3. **The cleanest deterministic OpenAPI generation targets are the aggregators**, not the carriers: **ShipEngine** (single OpenAPI 3.0 file + free `TEST_` sandbox), **Shippo** (OpenAPI 3.1 + official C#/.NET SDK), **EasyPost** (Swagger + best-in-class .NET SDK). These double as the **canonical-model reference** for TwinCore's `RateQuoteResult`/`QuoteOption`.
+4. **The SOAP/WSDL path has excellent free test artifacts.** **Canpar** serves a *publicly reachable, login-free* `CanparRatingService?wsdl` with a `rateShipment` operation (verified by live fetch). **Canada Post** Get Rates ships WSDL/XSD + an **official C# sample** + free test service. **Aramex** has a dedicated Rates-Calculator WSDL + official C# samples. **Chronopost** publishes a `QuickcostServiceWS?wsdl` price-quote operation. Any of these proves the WSDL→C# branch without credentials.
+5. **The legacy SOAP assumption for the big integrators is outdated.** FedEx and UPS have **deprecated** their old SOAP Web Services; USPS retired Web Tools (2026-01). So the generator's SOAP path should be anchored on **Canada Post / Canpar / Aramex / Chronopost**, *not* FedEx/UPS.
+6. **Recommended first targets:** aggregator smoke target **ShipEngine** (fastest path to an end-to-end deterministic generation demo on a free sandbox); first real-carrier OpenAPI **UPS**; first real-carrier REST-without-OpenAPI **Australia Post** (free key, clean PAC rate API); first SOAP **Canpar** or **Canada Post**. This sequence exercises all three input families (OpenAPI / REST-docs / WSDL) on free, testable providers.
 
-- **AIKB** (`ai-kb` @ `162e5c9`): blueprint registered (`74e7c6e`/`f328557`); new `00_CONTROL_CENTER/MACRO_GATE_TRIGGER_RULE.md` added and hardened (`5cce530`, `162e5c9`) — macro-gate execution is now an explicit control-center rule, consistent with blueprint §19. CURRENT_STATE/TASK_LEDGER updated for the blueprint registration. G0 recorded as accepted; G1 acceptance not yet recorded (audit pending).
-- **Bridge** (`gpt-handoff` @ `b22326a`): G1 report published `G1_DONE_READY_FOR_AUDIT` (this reviewer's preceding gate); this queued request unblocked by its own queue note ("until G1 report is finished" — finished).
-- **Source** (`Twincore-framework`): `feature/12695-ai-integrator-poc` @ `dbea505bf1dd3d8a29a04c368b46b2717fc831ff` (G1), base `main` @ `8f935f0…` untouched. Shipped G1 facts used throughout this review: 6 projects, 64 files changed in G1, build 0 warnings, tests 30/30, importer 32 request / 35 response fields from MockCarrierA, `$.output.rateReplyDetails[*]` browsable in the viewer.
-- **Decision mode**: owner-proxy; everything below is a provisional owner-approved baseline by Slava, reversible when Igor returns.
+## 4. Classification legend
 
-## 3. Blueprint consistency review (question 1)
+Documentation/spec availability (a provider may carry several):
 
-Internally consistent in its core invariants (zero runtime LLM stated in §1 and re-enforced in §6.5/§12/§13 tests; boundaries §3 = stop conditions §18; reporting paths §15 = actual bridge convention; IterationRoot rule §7.8 = G2 validation rules §11; TransformKind closed set §7.9 = tech-design ADR).
+| Code | Meaning |
+|---|---|
+| A | OpenAPI / Swagger confirmed |
+| B | REST API docs confirmed, OpenAPI not confirmed (or behind login) |
+| C | SOAP / WSDL / XSD confirmed |
+| D | SDK / code samples / Postman collection confirmed |
+| E | Documentation/examples only (e.g. PDF spec) |
+| F | Developer-portal login / commercial account required |
+| G | Not enough public evidence |
+| H | Aggregator API with standardized multi-carrier rate model |
 
-Found inconsistencies:
+MVP suitability (request labels): `FIRST_MVP_CANDIDATE`, `GOOD_SECOND_CANDIDATE`, `SOAP_TEST_CANDIDATE`, `DOCS_ONLY_TEST_CANDIDATE`, `AGGREGATOR_REFERENCE_MODEL`, `DEFER`, `NEEDS_MANUAL_CHECK`.
 
-1. **§4/§9/§10 vs reality**: G1 marked "IN PROGRESS"; §10 prescribes G1 deliverables in future tense. G1 is done and audited material exists. The blueprint must be re-baselined on `dbea505` or it will mis-instruct G2.
-2. **§7.5 vs §12**: "Required canonical fields" lists only option-level fields (`RateQuoteOption.Warnings/Errors`) but §12's quote-demo proof requires **result-level** warnings ("root alerts become warnings", golden `expected-canonical.json` has `resultWarnings` and no per-option errors). The canonical field list must include result-level `ResultWarnings` and an error slot, and reconcile per-option `Errors` with the golden file (shipped model: option-level `Warnings`, result-level `ResultWarnings` + `Error{Code,Message}`).
-3. **EF timing contradiction with Implementation Plan v0.2**: plan §G2 says "EF persistence required before or at G2"; blueprint §6.4 says "in-memory storage acceptable through G2 if repository abstractions are clean". Both are AIKB sources of truth. Recommendation in §14.
-4. **§10 routes** (`/provider-schema`, single `GetLatestAsync()` repository) conflict with the shipped multi-document model (`/schemas/{documentId:guid}`, list + per-integration queries). The shipped model is strictly more capable; blueprint should adopt it.
+Evidence confidence per row: `[O]` official-verified · `[3]` third-party · `[M]` model-knowledge-only.
 
-## 4. Architecture review (question 2)
+## 5. Provider research matrix — first 40 providers
 
-The pipeline (§1) and per-project responsibility split (§6) correctly combine product plan, architecture, domain, services, UI, tests, gates, and manual testing in one document — это и есть его ценность: один source of truth вместо четырёх. Strong points worth keeping verbatim: untrusted-provider-strings rule set (§6.5), sandbox containment rules (§6.6), profile freeze + generation pinning (§7.6), factory-proof rule (§13), Igor-facing review points (§17).
+### Direct carriers (1–30)
 
-Gaps at architecture level:
+| # | Provider | Official dev URL | Spec evidence | Rate endpoint? | Class | Diff | MVP status | Conf | Why (1 line) |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | FedEx | developer.fedex.com | REST + JSON-collection; OpenAPI not standard-public; legacy SOAP deprecated | Yes — Rates & Transit Times `POST /rate/v1/rates/quotes` | B,D,F | med | GOOD_SECOND_CANDIDATE | O | Clean REST + OAuth2 but no anonymously-downloadable OpenAPI; consume JSON collection or hand-model |
+| 2 | UPS | developer.ups.com + github.com/UPS-API | **OpenAPI `Rating.yaml` (MIT, downloadable)** | Yes — Rating API | A,D | low-med | **FIRST_MVP_CANDIDATE** | O | Only carrier with an official downloadable rating OpenAPI; budget for known path/tag quirks (issue #132) |
+| 3 | USPS | developer.usps.com | REST + OAuth2; OpenAPI behind portal; Web Tools retired 2026-01 | Yes — Domestic Prices 3.0 | B,D,F | med | GOOD_SECOND_CANDIDATE | O | Modern REST, free, but spec needs portal account; price/transit split across two APIs |
+| 4 | DHL Express | developer.dhl.com | **OpenAPI exists** but portal + DHL-customer-account gated; BasicAuth | Yes — MyDHL Rating `/rates` | A,F,D | med | GOOD_SECOND_CANDIDATE | O | Real OpenAPI + clean rate, but spec & test both need a commercial DHL account |
+| 5 | Canada Post | canadapost-postescanada.ca/.../developers | **SOAP WSDL/XSD + official C#/Java/PHP samples**; free test | Yes — Get Rates `getRates` | C,D | med-high | **SOAP_TEST_CANDIDATE** | O | Best SOAP exercise: free testable Get Rates + official C# sample |
+| 6 | Purolator | eship.purolator.com | SOAP/ASMX WSDL; dev-key registration | Yes — Estimate | C,D,F | high | SOAP_TEST_CANDIDATE (2nd) / DEFER | O | Valid second SOAP but ASMX, versioned services, dev-key onboarding, thin first-party samples |
+| 7 | Royal Mail | developer.royalmail.net | Portal-login-gated; REST + some SOAP underneath | Yes — Online Postage API (behind login) | F | med | NEEDS_MANUAL_CHECK | O/M | Real postage-price capability but full schema behind a Royal Mail dev account |
+| 8 | Australia Post | developers.auspost.com.au | Public REST (no formal OpenAPI); free key | Yes — PAC `…/calculate` (domestic+intl) | B | low | **FIRST_MVP_CANDIDATE** | O | Cleanest free public REST rate API of all carriers; GET+JSON, self-serve key |
+| 9 | New Zealand Post | nzpost.co.nz dev + MuleSoft Anypoint | REST; likely RAML/OAS on Anypoint; account-gated | Yes — Rate Finder / ShippingOptions | B (A-leaning) | low | GOOD_SECOND_CANDIDATE | O | Solid REST rate, two generations; verify Anypoint OAS for codegen |
+| 10 | La Poste / Colissimo | colissimo.entreprise.laposte.fr | Legacy SOAP WSDL + newer REST SLS (OpenAPI/Redoc) | No public rate quote (label/track; pricing contractual) | C,B | high/med | SOAP_TEST_CANDIDATE | O | Dual-stack good for SOAP test, but no callable rate quote lowers RATE value |
+| 11 | Chronopost | ws.chronopost.fr | **SOAP `QuickcostServiceWS?wsdl`** (price-quote) | Yes — QuickCost | C | high | **SOAP_TEST_CANDIDATE** | O | Public downloadable WSDL with an explicit price operation — best EU SOAP *rate* target |
+| 12 | DPD | geoapi.dpd.cz + national units | REST (no public OpenAPI); fragmented per country | No (UK confirmed none; pricing contractual) | B | med-high | DEFER | O/M | No public rate quote + heavy per-country fragmentation |
+| 13 | GLS | shipit.gls-group.eu | REST + SOAP twin documented | No rate operation (verified) | B,C | med | DEFER / SOAP_TEST (2nd) | O | Good public ShipIT docs but explicitly no rate op |
+| 14 | Hermes / Evri | (no public portal) | Account-manager gated; only via aggregators | No — "EVRi does not have a Rates API" | F | unknown | DEFER | O(3) | No public docs, explicitly no Rates API (rates are static cards) |
+| 15 | Yodel | (no public portal) | Partner/aggregator only | No — "does not send estimated rates" | F | unknown | DEFER | O(3) | Label/track only via partners; no rate quote |
+| 16 | PostNL | developer.postnl.nl | REST + Postman + SOAP twins | No cost endpoint (DeliveryDate/Timeframe ≠ price) | B | low-med | GOOD_SECOND_CANDIDATE (connector) / DEFER (rate) | O | Best-documented public REST portal here, but no cost-quote endpoint |
+| 17 | Correos | developers.correos.es (Anypoint) | REST + JWT modules; legacy SOAP PreRegistro | No rate module among ~23 assets | B,C | med | DEFER (rate) | O | Real modular REST + legacy SOAP, but no exposed rate module |
+| 18 | Poste Italiane | apigardent.gp.posteitaliane.it | Official portal login-gated; OAS3 + pricing only via a reseller | Yes via reseller (direct unconfirmed) | F | unknown | NEEDS_MANUAL_CHECK | 3/M | Pricing OAS3 seen only on reseller (ufficiopostale/openapi.com); direct portal gated |
+| 19 | Japan Post | post.japanpost.jp/bizpost | Postal-code REST API real; shipping/rate contract-gated | Unknown (only web simulator + aggregators) | F,G | unknown | NEEDS_MANUAL_CHECK | M | Genuine postal-code API, but no verified public Yu-pack rate API |
+| 20 | Singapore Post | developer.singpost.com | Official portal; verified surface = tracking | Unknown (rate calculator on site, no confirmed dev endpoint) | F | med | NEEDS_MANUAL_CHECK | 3 | Real portal but rate endpoint not verified; log in to confirm |
+| 21 | Hongkong Post | ec-ship.hongkongpost.hk/API-portal | **PDF spec (not OpenAPI)** + open-data rate JSON; account-gated | Yes — postage-charge calculation | E,F | med | **DOCS_ONLY_TEST_CANDIDATE** | O | Real EC-Ship API w/ postage calc + PDF spec; no machine spec → hand-model |
+| 22 | China Post / EMS | (no official EN portal) | Only third-party aggregators | Unknown (consumer calculator only) | G | unknown | DEFER / NEEDS_MANUAL_CHECK | M | No official public API located; reach only via aggregators |
+| 23 | Aramex | aramex.com/developers | **SOAP Rates-Calculator WSDL + official C# samples**; REST emerging | Yes — Rate Calculator `CalculateRate` | C | med | **SOAP_TEST_CANDIDATE** | O | Canonical SOAP+WSDL with dedicated rates WSDL + official C# sample |
+| 24 | SF Express | open.sf-express.com (Fengqiao) | Portal login-gated; signature auth; CN-centric | Unknown (rate cards often offline) | F | high | DEFER / NEEDS_MANUAL_CHECK | 3 | Sign-up-gated, signature auth, public rate endpoint unconfirmed |
+| 25 | Yamato Transport | B2 Cloud API (Business Members) | Login-gated; waybill-oriented | Unknown/No (label-focused) | F | unknown | NEEDS_MANUAL_CHECK | M | Official B2 Cloud API (2024) but no verified public rate endpoint |
+| 26 | Sagawa Express | e-Hiden (contract-gated) | No public portal | Unknown | G | unknown | DEFER / NEEDS_MANUAL_CHECK | M | No official public API; e飛伝 contract-gated; rate only via aggregators |
+| 27 | OnTrac | west.ontrac.com + V3 (account) | Legacy XML + REST V3; account-gated; no public spec | Yes (gated) — rate & transit quote | F | high | NEEDS_MANUAL_CHECK | O | Rating exists but no public OpenAPI/WSDL; contract emailed by carrier |
+| 28 | LaserShip | (merged into OnTrac) | Folded into OnTrac V3 (EasyPost 2024) | Unknown (folded) | G | unknown | DEFER | O | Absorbed into OnTrac; no separate dev docs — treat as OnTrac |
+| 29 | Canpar Express | sandbox.canpar.com/canshipws | **`CanparRatingService?wsdl` — publicly reachable, login-free (live-fetched)** | Yes — `rateShipment` | C | med | **SOAP_TEST_CANDIDATE (best)** | O | Clean public login-free WSDL with rating op — ideal SOAP-path artifact |
+| 30 | Loomis Express | canshipws (shared w/ Canpar, TFI) | Same SOAP stack; own-domain WSDL not separately reachable | Yes — `rateShipment` (same as Canpar) | C | med | SOAP_TEST_CANDIDATE | O/3 | Identical codegen to Canpar; only live endpoint host + creds differ |
 
-- **Generated package has no `.csproj`** (§12 "Generated package minimum" lists 6 `.cs` files + appsettings sample). Sandbox runs `dotnet build` on the package — impossible without a project file. Add `MockCarrierA.Generated.csproj` (net8.0, references Contracts only, explicit DI) to the minimum set.
-- **Raw source persistence undefined**: `ProviderSourceDocument.ContentRef?` (§7.2) hints at storing raw source, but no decision is made. G2's mapping UI will want example values and re-import diff needs original bytes. Decide: store raw text on the schema document (in-memory now, column later) or drop `ContentRef` until G4.
-- Roslyn `SyntaxFactory` preference from the tech-design baseline is not restated in §6.5 — restate it so the generator gate inherits it without archaeology.
+### Aggregators (31–40) — standardized multi-carrier rate model (class H)
 
-## 5. Project / layering review (question 3)
+| # | Provider | Official dev URL | Spec evidence | Rate endpoint? | Class | Diff | MVP status | Conf | Why (1 line) |
+|---|---|---|---|---|---|---|---|---|---|
+| 31 | Shippo | docs.goshippo.com | **OpenAPI 3.1 downloadable + official C#/.NET SDK**; free test key | Yes — Shipment → `rates[]` | H,A,B | low | **AGGREGATOR_REFERENCE_MODEL** (+FIRST_MVP) | O | Richest normalized rate object (provider/servicelevel/dual-currency/estimated_days/attributes) — best canonical reference |
+| 32 | EasyPost | docs.easypost.com | **Swagger + best-in-class C#/.NET SDK + Postman**; free test key | Yes — Shipment `rates[]` + SmartRate | H,A,B | low | **AGGREGATOR_REFERENCE_MODEL** (+FIRST_MVP) | O | Triple rate model (rate/list_rate/retail_rate) = reference for negotiated vs published vs retail |
+| 33 | ShipEngine | shipengine.com/docs | **Single OpenAPI 3.0 on GitHub + free `TEST_` sandbox** | Yes — `POST /v1/rates` | H,A,B | low | **FIRST_MVP_CANDIDATE** (+AGG_REF) | O | Cleanest single spec + zero-cost sandbox → best early deterministic-generation smoke target |
+| 34 | ShipStation | docs.shipstation.com | **V2 = ShipEngine rebrand (same OpenAPI)**; V1 legacy separate | Yes — `/v2/rates` | H,A,B | low | DEFER (redundant) | O | Same spec as ShipEngine — generate once; only touch V1 if a client needs the old order API |
+| 35 | AfterShip | aftership.com/docs/shipping | REST Rates API; OpenAPI not clearly downloadable; tracking-first | Yes — `POST /rates` | H,A,D | med | GOOD_SECOND_CANDIDATE | O/3 | Good `total_charge{amount,currency}` + transit model; weaker .NET SDK & spec story |
+| 36 | Sendcloud | sendcloud.dev | OpenAPI-backed v2/v3 Redoc; no first-class .NET; test mode | Yes — v3 shipping options (quotes) | H,A,B | med | GOOD_SECOND_CANDIDATE | O | Strong EU coverage + real OpenAPI, but v2/v3 split + payment gating add friction |
+| 37 | ShippyPro | shippypro.com/…API-Documentation | No public OpenAPI; Enterprise-plan-gated | Yes — `GetRates` | H,F | high | DEFER | O/M | Multi-carrier GetRates exists but Enterprise-only, no OpenAPI/.NET — can't self-serve |
+| 38 | Metapack | dev.metapack.com (Manhattan) | Partial Redoc; enterprise sales-gated | Yes (conceptual — optimal carrier service) | H,F | high | DEFER | O/M | 300+ carriers but account-gated, only partial public spec |
+| 39 | nShift | nshift.com/apis + Transsmart devdocs | Fragmented products, mixed auth, no unified OpenAPI | Yes — rate selection via Shipping Rules | H,F | high | DEFER | O/M | Disjoint product APIs + mixed auth; costly codegen, enterprise-onboarded |
+| 40 | Easyship | developers.easyship.com | **OpenAPI + `llms.txt` + free no-CC sandbox** | Yes — Shipping Rates API | H,A,B | low-med | GOOD_SECOND_CANDIDATE (+AGG_REF ranking) | O | Free sandbox + OpenAPI + ranking flags (cheapest/fastest/value) — agent-friendly second target |
 
-Blueprint targets **8 projects** (adds `Application` + `Infrastructure` to the shipped 6). Assessment:
+**Tally:** rate-capable + low-friction public docs: ~9 (UPS, AusPost, NZ Post + aggregators Shippo/EasyPost/ShipEngine/Easyship/AfterShip/Sendcloud). Rate-capable via SOAP/WSDL: 5 (Canpar, Loomis, Canada Post, Aramex, Chronopost; + Purolator/Colissimo SOAP without/with rate). Rate-capable but gated/docs-only: FedEx, USPS, DHL, Royal Mail, HK Post. No public rate quote / defer: DPD, GLS, Evri, Yodel, PostNL, Correos. Needs manual portal check: Royal Mail, Poste Italiane, Japan Post, SingPost, SF Express, Yamato, Sagawa, OnTrac, China Post.
 
-- The 4-layer split is interview-defensible Clean Architecture and the **interfaces named in §6.3/§6.4 are correctly placed** (ports in Application, fixture/in-memory adapters in Infrastructure).
-- But shipped G1 put application services and in-memory/fixture adapters into **Domain** (`Services/`, `Persistence/InMemory/`, `Fixtures/`) — deliberately small for the slice. Both layouts are defensible; what is NOT acceptable is the blueprint silently assuming files live where the code does not have them.
-- **Recommendation (pick one, write it into §5):**
-  - **(a) preferred — split at G2 opening**: first commit of G2 is a mechanical, behavior-preserving move: `Domain/Services + Fixtures + Persistence/InMemory → Application/Infrastructure projects`, sln-only change inside `AiIntegrator/**`, tests must stay 30/30 green before any new G2 feature. G2 then adds mapping into the correct layers from day one. Cost: ~1 hour, low risk, prevents Domain from accreting orchestration.
-  - (b) acceptable — keep 6 projects with namespace discipline and re-evaluate before G3 (Generator/Sandbox add real infrastructure weight).
-- `Sha256HashService` (§6.4) is over-specified: hashing is a pure static function (shipped `HashCalculator`), not an injectable service. Drop it.
+## 6. Best first MVP candidates
 
-## 6. Domain model review (questions 4, 5)
+Ranked, with rationale tied to the SDD's deterministic-first goal:
 
-Coverage for G1-G5 is **sufficient in scope**: schema side (§7.1-7.4), mapping side (§7.6-7.10), plus `IntegrationProject`, `IntegrationRun`, `GenerationArtifact` carry G2-G3; `SourceType` includes `Wsdl` for the G4 slot. No missing aggregate.
+1. **ShipEngine (aggregator) — first end-to-end smoke target.** Single OpenAPI 3.0 file + free `TEST_` sandbox means the generator's *deterministic OpenAPI → C# client → adapter → mapper → fixture test* chain can be proven with **zero credentials cost and zero LLM**. Its rate response is also a clean canonical reference.
+2. **UPS (carrier) — first real-carrier OpenAPI.** The only direct carrier with an official downloadable rating OpenAPI (`Rating.yaml`, MIT). Proves the generator on a genuine carrier spec, not just an aggregator. Budget a little time for documented spec/path quirks.
+3. **Australia Post (carrier) — first REST-without-OpenAPI.** Free self-serve key, clean PAC `…/calculate` rate endpoint, GET+JSON. Proves the "REST docs, no OpenAPI → hand-modelled provider schema" path on a free, testable carrier.
+4. **Shippo / EasyPost (aggregators) — reference + .NET-native seconds.** Both have official C#/.NET SDKs and free test keys; ideal to validate generated-adapter ergonomics against a real SDK.
 
-Field-level findings (blueprint vs shipped `dbea505` and vs G2 needs):
+This set covers all three SDD input families (OpenAPI, REST-docs, and — see §7 — WSDL) on **free, anonymously testable** providers, which is exactly what a first generator gate needs.
 
-| Item | Blueprint | Shipped / needed | Action |
-|---|---|---|---|
-| Naming | `ProviderSchema`/`ProviderOperation`/`ProviderField`/`ProviderFieldDirection` | `ProviderSchemaDocument`/`SchemaOperation`/`SchemaField`/`SchemaDirection` (tested, in G1 report) | **Required edit**: adopt shipped names or explicitly order a rename in the G2 pre-commit; do not leave both |
-| `ProviderField.EnumValues` | **absent** | shipped (`KG/LB`, `ACCOUNT/LIST` captured) and **required** to feed §7.9 `EnumMap` UI in G2 | **Required edit**: add |
-| `ProviderField.Type: string` | string | shipped enum `SchemaFieldType` + `Format` (date/date-time) | adopt enum + format; `DateParse` needs format hints |
-| `Name` + `WireName` separate | both | shipped single `Name` ≡ wire-verbatim (sanitization is G3, per tech design) | keep single wire name at import; sanitized names live only in generator output |
-| `ParentPath`, `ExampleValue` | present | absent; ParentPath derivable from JsonPath; ExampleValue useful for mapping UX | ParentPath: drop. ExampleValue: optional add at G2 (source: OpenAPI `example` + golden response) |
-| `ProviderSchema.Id: string` | string | shipped `Guid` | accept Guid (EF-friendly) |
-| Contracts names | `RateQuoteOption`, `AddressDto/PackageDto/MoneyDto`, `ServiceCode`, `TransitDays` | shipped `QuoteOption`, `CanonicalAddress/CanonicalPackage/MoneyValue`, `ProviderServiceCode`, `EstimatedTransitDays` — names match golden `expected-canonical.json` 1:1 | **Required edit**: adopt shipped canonical names; the golden file is the contract anchor |
-| `IRateProvider`, `ProviderExecutionContext`, `ProviderWarning/Error` types | in Contracts now | not shipped — runtime adapter contract is G3 material | keep in blueprint, mark "added at G3" |
-| Option-level `Errors` | required | golden has none; shipped: result-level `Error` | reconcile per §3.2 |
+## 7. Best SOAP/WSDL test candidates
 
-MappingProfile/MappingRule/ArraySelect (§7.6-7.10): correct and complete for G2; statuses (`AutoMapped…Waived`) match the tech-design baseline; `ManualCode` blocking generation is right. One addition: `MappingRule` needs an `Order`/stable sort key for deterministic ProfileHash.
+1. **Canpar Express — best.** `https://sandbox.canpar.com/canshipws/services/CanparRatingService?wsdl` was **fetched live, no login**, valid WSDL, `rateShipment` operation, DTO XSDs at `http://dto.canshipws.canpar.com/xsd`. This is a ready downloadable artifact to exercise the WSDL→C# (`dotnet-svcutil`) branch end-to-end. (Loomis Express shares the same `canshipws` stack — same codegen, creds differ.)
+2. **Canada Post Get Rates — best for review quality.** Downloadable WSDL/XSD + soapUI project + an **official C# sample** + a free test service. The official C# sample is gold for validating generated output against a known-good reference.
+3. **Aramex Rates Calculator — best global SOAP rate.** Dedicated `aramex-rates-calculator` WSDL with `CalculateRate` + official C# samples; `ClientInfo` credential block is the main manual plumbing.
+4. **Chronopost QuickCost — best EU SOAP rate.** Public `QuickcostServiceWS?wsdl` with an explicit price operation.
+5. Secondary: **Purolator** (ASMX, dev-key gated), **Colissimo/GLS SOAP** (no rate op — structural test only).
 
-## 7. Application service review (question 6)
+Note: do **not** anchor the SOAP path on FedEx/UPS — their SOAP Web Services are deprecated.
 
-Placement is right (ports in Application). Signature-level findings:
+## 8. Best OpenAPI / Swagger candidates
 
-- `IProviderSchemaRepository.GetLatestAsync()` (§10) encodes a single-schema world; shipped reality is multi-integration/multi-document (`GetAsync(id)`, `ListAsync`, `ListForIntegrationAsync`). **Required edit** — otherwise the G2 workbench can't address the schema it maps.
-- `IProviderSourceService.LoadFixtureAsync(fixtureName)` vs shipped `IFixtureCatalog.ListSources()/ReadContent(relativePath)` + path-traversal guard (tested). Adopt shipped shape; the traversal guard must be stated as a rule (MockCarrierHostile ships traversal-shaped ids).
-- `IInternalModelCatalog.GetRateQuoteModels()` vs shipped reflection-based `ICanonicalModelCatalog` (request+result trees, `[Description]`-driven, camelCase paths). Shipped version cannot drift from Contracts — keep it; blueprint's `StaticInternalModelCatalog` would reintroduce drift risk. **Required edit.**
-- G2 service set (`IMappingValidationService.Validate(profile, schema, internalModels)` pure-function style, `IMappingProfileApprovalService.Approve`) — correct, deterministic, testable. Keep.
-- Importer naming: `MockOpenApiProviderSchemaImporter` mislabels shipped behavior — the importer is a real (subset) OpenAPI 3.0 importer, not a mock (`OpenApiImporter`, dependency-free, deterministic, Swagger-2.0-degrading). Rename in blueprint; "Mock" belongs to fixtures, not the importer.
+- **Carrier:** **UPS** (`Rating.yaml`, official, MIT, downloadable) — the single best real-carrier OpenAPI. DHL Express *has* an OpenAPI but it is commercial-account-gated; USPS/FedEx specs are portal-gated / JSON-collection respectively.
+- **Aggregators (cleanest specs):** **ShipEngine** (OpenAPI 3.0, single file, GitHub), **Shippo** (OpenAPI 3.1, ~932 KB, GitHub mirror), **Easyship** (OpenAPI + `llms.txt`), **EasyPost** (Swagger UI + Postman). All four are downloadable and back a free test tier.
+- **Practical implication:** the deterministic OpenAPI importer (already shipped in G1) should be validated first against **ShipEngine + UPS**; both are real specs with the nested/array shapes the importer must handle (UPS rated-shipment arrays mirror the G1 `MockCarrierA` `rateReplyDetails[*]` design).
 
-## 8. UI / workbench review
+## 9. Best docs-only / LLM-assisted candidates
 
-§6.7 page list is right for the MVP arc (G1 pages shipped; `MappingWorkbench`, `GenerationReview`, `QuoteDemo` pending G2/G3). Required reconciliations:
+These are where deterministic parsing is insufficient and design-time LLM assistance earns its place (never runtime):
 
-- Routes: adopt shipped `/`, `/integrations`, `/integrations/new`, `/schemas/{documentId}`, `/internal-model`; blueprint's `/provider-schema` (singular, stateless) is superseded. Add planned `/mapping-workbench`, `/generation-review`, `/quote-demo` as G2/G3 routes — fine as specified.
-- §10 minimum UX is already exceeded by shipped G1 (4-step wizard with fixture list + paste tab vs "button: Load MockCarrierA fixture"; viewer shows hashes/enums/required/FieldKey). Blueprint should record the delivered UX as the new baseline so G5's manual script matches the real screens.
-- "No domain logic in Razor components" — shipped and mechanically enforced (grep = 0 hits, in G1 report §6); keep the rule, add the grep as the acceptance mechanism.
-- Blazor Server + prerender remains provisional (D14); SPA-replaceability is preserved by the service boundary. Consistent.
+- **Hongkong Post EC-Ship — primary docs-only candidate.** Real postage-calculation API but the contract is a **PDF spec** + open-data rate JSON, not a machine-readable spec → an LLM can draft the endpoint/field model from the PDF, then a human approves before deterministic generation.
+- **Royal Mail / Poste Italiane / SingPost / OnTrac** — REST capability exists but the schema sits behind a portal; once a developer pastes the post-login docs, an LLM-assisted pass can propose the schema for review.
+- **FedEx** — its public artifact is a JSON request/response *collection* rather than a full OpenAPI; an LLM can help infer a complete schema/enum set from the samples, human-reviewed.
+- **General rule from the data:** docs-only/LLM-assisted is the *minority* path. The majority of rate-capable providers have either OpenAPI (UPS, aggregators) or WSDL (Canpar, Canada Post, Aramex, Chronopost) — both deterministically parseable. LLM assistance is for the long tail (PDF specs, portal-only docs), not the core.
 
-## 9. Generator / sandbox review
+## 10. Best aggregator reference models
 
-§6.5/§6.6/§12 are the strongest sections — they encode every safety decision from the tech-design baseline (untrusted strings, no interpolation, serializer-attribute wire names, sanitized identifiers as derivatives only, hash-pinned generation, sanitized logs, no network in sandbox). Required additions:
+Aggregators already solved "normalize many carriers into one rate object" — their response shapes are the best external validation of TwinCore's canonical `RateQuoteResult`/`QuoteOption`:
 
-1. **Generated `.csproj` missing** from the package minimum (§4 above) — without it the sandbox's `dotnet build`/`dotnet test` of the package cannot run.
-2. State the **emitter technology**: Roslyn `SyntaxFactory` preferred over string templates (tech-design decision) — this is the main anti-injection control and must not be rediscovered at G3.
-3. Hostile-fixture round-trip belongs in G3 tests explicitly (§12 has "Hostile fixture names do not break sanitizer" — good; add "compiles and round-trips wire names via serializer attributes").
-4. Sandbox: define artifact root under `AiIntegrator/.artifacts/` or system temp + cleanup rule, so generated output never lands in tracked paths accidentally.
+| Aggregator | Rate object highlights | What TwinCore should borrow |
+|---|---|---|
+| **Shippo** | `provider`, `servicelevel{name,token,display_name}`, `amount`+`currency` **and** `amount_local`+`currency_local`, `estimated_days`, `duration_terms`, `attributes[CHEAPEST\|FASTEST\|BESTVALUE]` | dual-currency (sender/recipient); a **ranking-attribute enum** for quote sorting |
+| **EasyPost** | `carrier`, `service`, `rate`+`currency`, `list_rate`, `retail_rate`, `delivery_days`, `delivery_date_guaranteed` | **negotiated vs published vs retail** price distinction; guaranteed-delivery flag |
+| **ShipEngine** | `carrier_id`, `service_code`, `shipping_amount{amount,currency}` + separate `insurance_amount`/`other_amount`, `delivery_days`, `estimated_delivery_date`, `trackable` | **cost breakdown** as separate typed amounts (vs one total) |
+| **Easyship** | `courier_name`, `total_charge`+`currency`, `min/max_delivery_time`, `value_for_money/cheapest/fastest` flags | **transit as a min/max range**; ranking flags |
 
-## 10. Gate roadmap review (question 7)
+**Recommendation:** TwinCore's current `QuoteOption` (CarrierCode, ProviderServiceCode, ServiceName, Price{Amount,Currency}, EstimatedTransitDays, EstimatedDeliveryDate, IsAvailable, Warnings) is well-aligned with the common subset. Consider, as *optional* canonical fields for later gates: (a) a price-type/`list`/`retail` distinction (EasyPost), (b) a ranking attribute (Shippo/Easyship), (c) a transit min/max range, (d) a typed surcharge/charge breakdown (ShipEngine). These are additive and should not block G2.
 
-Sizing assessment against the now-measured G1 baseline (one macro-gate, 64 files, 30 tests, single session):
+## 11. Providers requiring manual developer-portal check
 
-- **G2** as specced ≈ 1.5-2× G1 (domain + workbench UI + validation + approval + freeze + tests). Feasible as ONE macro-gate **if** the §5 layer-split pre-commit is mechanical and the EF question is resolved beforehand (§14). If EF lands inside G2 too, it becomes the largest gate of the project — recommend EF-out (below).
-- **G3** is the riskiest (generator + sandbox + demo). Keep as one bridge gate but pre-authorize an internal two-commit structure (G3a generator+tests, G3b sandbox+demo) — same report, two commits, no extra audit round.
-- **G4, G5** sized correctly (G4 is the factory proof, G5 is documentation+packaging).
-- Gate exit criteria (§9: one commit, evidence, scoped diff, report, audit) match the proven G0/G1 protocol. The new AIKB `MACRO_GATE_TRIGGER_RULE.md` is consistent with §19.
+Log in / request access, then re-run a focused pass: **Royal Mail** (Online Postage schema), **Poste Italiane** (direct portal vs reseller OAS), **Japan Post** (Yu-pack rate API existence), **Singapore Post** (rate endpoint in portal), **SF Express** (Fengqiao rate interface), **Yamato** (B2 Cloud rate vs label-only), **Sagawa** (any e飛伝 API), **OnTrac** (V3 contract), **China Post/EMS** (any official API). For each, the open question is narrow: *is there a callable rate/quote endpoint, and what is its request/response schema?*
 
-## 11. Testing strategy review
+## 12. Recommendation for the small initial tool (ANSWER REQUIRED)
 
-Per-gate test lists (§10-§13) are correct and deterministic-first. Gaps to add:
+The first small tool should **include** (refines the request's hypothesis with the findings):
 
-- **Component-level UI tests (bUnit)** proved their worth in G1 (wizard click-through with the real service stack — the only machine evidence of the manual path). The blueprint's test strategy is service-level only; add bUnit as the standing approach for wizard/workbench interactions, отдельно от ручного click-through Славы.
-- **Determinism tests as a class**: re-import → same `SchemaHash`; approve → stable `ProfileHash`; generate → stable `ContentHash`. §12 has the generator case; add the schema and profile cases (schema one already shipped in G1).
-- **Negative-path tests**: path-traversal rejection (shipped), Swagger-2.0 degradation (shipped), hostile import (shipped) — fold into the blueprint so G2+ keeps extending them.
-- CPM (`Directory.Packages.props`) governs test dependencies since G1 — worth one line in §5 so future gates pin versions centrally.
+1. **Input import:** OpenAPI/Swagger (JSON/YAML) — *primary, deterministic*; WSDL — *deterministic via `dotnet-svcutil`*; docs/examples (incl. PDF) — *LLM-assisted, human-approved*. (G1 already ships the OpenAPI importer.)
+2. **Provider classification** by input family (A/B/C/E above) + **rate-endpoint detection** (operations named Rate/Rates/Quote/CalculateRate/getRates/QuickCost) — flag carriers with **no rate endpoint** as out-of-scope early (the §3 finding makes this essential).
+3. **Provider schema browser** (G1) + **internal canonical model browser** (G1).
+4. **Basic mapping profile** (provider field → canonical `QuoteOption`), with explicit **IterationRoot** for the rate-array and no implicit `[0]` (G2).
+5. **Deterministic C# generation** from an approved profile: API client (HttpClient-based for REST, svcutil-wrapped for SOAP), `IRateProvider` adapter, request mapper, response mapper, error mapper, options class, DI extension.
+6. **Production-oriented scaffolding:** typed options bound from appsettings, retry/timeout policy hooks (Polly or `Microsoft.Extensions.Http.Resilience`), cancellation tokens, structured logging without secrets, typed error mapping.
+7. **Fixture-based tests** (request/response/error mappers + options binding + adapter-from-fixture), runnable **without real credentials**.
+8. **Generation manifest + MANUAL_REVIEW_CHECKLIST** (input hash, profile hash, file list, warnings, unresolved decisions).
+9. **First fixtures = free testable providers:** ShipEngine (OpenAPI), UPS (OpenAPI), Australia Post (REST), Canpar/Canada Post (WSDL). Plus the existing synthetic `MockCarrier*` set for hostile/edge coverage.
 
-## 12. Manual testing readiness review (question 9)
+## 13. What the small initial tool should NOT include (ANSWER REQUIRED)
 
-The G5 target is realistic — G1 already proves the heaviest prerequisite (app runs, imports, renders on a clean `dotnet run`). Two required fixes:
+- **No real carrier credentials**, no paid signup, no live/sandbox carrier calls inside the generator gate (separate external-access gate only).
+- **No runtime LLM** — zero LLM on the Rate API request/price/mapping path. LLM is design-time only.
+- **No shipment creation, tracking, labels, payments, pickup scheduling** — rate quoting only.
+- **No automatic PR / main merge / source-tree insertion** — generated output is a reviewable package; a human integrates it.
+- **No production-readiness claim** without developer review + sandbox/real evidence.
+- **No `TwinCore.sln` / `Src/**` / Azure work-item / pipeline edits** — isolated under `AiIntegrator/**`.
+- **No full docs-only automation** — LLM suggestions from docs must be human-approved before deterministic generation.
+- **No provider-specific hacks in the factory core** — a new provider must not require core changes (factory-proof rule).
+- **No secrets in generated source** — auth fields are placeholders bound from secret store/appsettings.
 
-1. **§14 manual commands would disturb the developer's primary checkout**: `cd C:\Projects\Twincore-framework; git checkout feature/12695-ai-integrator-poc` switches the main working copy away from its current task branch. Replace with a `git worktree add <separate-folder> feature/12695-ai-integrator-poc` flow (this is exactly how G0/G1 were executed) or a fresh clone. Otherwise the first manual test session creates the dirty-tree stop condition for the next gate.
-2. The 19-step browser flow should reference the **shipped** routes/screens after §8 edits (e.g. step 4-5 "see ProviderSchema" happens at `/schemas/{id}` reached from the wizard's "View schema" or `/integrations`).
+## 14. LLM minimization strategy (ANSWER REQUIRED)
 
-Minor: add `DemoSeed:Enabled` note (Development seeds MockCarrierA automatically — manual testers should know why data is pre-populated, or the flag should be off for the manual script so the wizard path is exercised).
+The market data confirms LLM can be kept to a **minority, design-time-only** role, because most rate-capable providers expose machine-readable contracts:
 
-## 13. Igor-facing readiness review (question 10)
+**Deterministic (no LLM):**
+- OpenAPI/Swagger parsing → provider schema (UPS, aggregators) — the common case.
+- WSDL/XSD parsing → SOAP client + schema (Canpar, Canada Post, Aramex, Chronopost) via `dotnet-svcutil`.
+- DTO/client generation; adapter/mapper/options/DI/test emission from an **approved mapping profile** (Roslyn `SyntaxFactory` preferred).
+- Manifest/hash generation; fixture-based test generation; re-generation from a stored profile (must be reproducible).
 
-§17's ten review points are exactly the right story for Igor (isolation, untouched framework, zero runtime LLM, schema import, MappingProfile as the core value, freeze/hash, explicit-DI adapters, sandbox, factory proof, path to real providers). Verdict: **good enough to send to Igor after the required edits**, with two packaging additions:
+**LLM-assisted (design-time only, human-approved, never on the runtime path):**
+- Interpreting **docs-only / PDF** specs (HK Post) and portal-only docs (Royal Mail, OnTrac).
+- Endpoint/rate-operation discovery from unstructured docs.
+- Draft field-mapping suggestions (provider path → canonical) — always `NeedsReview` until a human approves.
+- Auth-model and error-model explanation; test-scenario suggestions.
 
-- Attach per-gate evidence numbers (G1: build 0 warnings, 30/30 tests, 32/35 fields, `$.output.rateReplyDetails[*]` visible) — Igor responds to evidence, not promises.
-- Add an explicit "what this is NOT yet" half-page (no real carriers, no production claims, in-memory/EF status, LLM design-time-only and not yet wired) — pre-empts the obvious challenge questions and keeps owner-proxy honesty.
-- Keep the provisional-decision register reference (CURRENT_STATE) so Igor sees which decisions await his confirmation.
+**Forbidden (hard rule):**
+- LLM during a live Rate API request, price calculation, or response mapping at runtime.
+- LLM as a production dependency of the generated adapter.
 
-## 14. Required edits (question 11 — exact list for GPT)
+**Quantified expectation from this research:** of the ~14 rate-capable providers worth pursuing, ~9 are fully deterministic (OpenAPI or WSDL) and only ~5 (FedEx JSON-collection, HK Post PDF, Royal Mail/Poste Italiane/OnTrac portal docs) would benefit from design-time LLM assistance — so the deterministic path covers the clear majority.
 
-1. **Re-baseline on shipped G1**: §4 add G1 commit `dbea505bf1dd3d8a29a04c368b46b2717fc831ff` + evidence; §9 G1 → DONE (audit pending); rewrite §10 from prescription to record (deliverables as shipped: wizard 4 steps + paste tab, multi-document schema viewer `/schemas/{id}`, reflection-based internal model browser, demo seed flag).
-2. **Adopt shipped names** everywhere or order an explicit rename commit: `ProviderSchemaDocument/SchemaOperation/SchemaField/SchemaDirection/SchemaFieldType(+Format)`; Contracts `QuoteOption/CanonicalAddress/CanonicalPackage/MoneyValue/ProviderServiceCode/EstimatedTransitDays/EstimatedDeliveryDate/IsAvailable`; importer `OpenApiImporter` (not "Mock…"); catalog `ICanonicalModelCatalog` (reflection-based, not static).
-3. **Fix §7.5 canonical field list**: add result-level `ResultWarnings` + `Error{Code,Message}`; reconcile option-level `Errors` with golden `expected-canonical.json`; note that `CarrierCode` lives at option level.
-4. **Add `EnumValues` (and optional `ExampleValue`) to ProviderField**; type as enum + `Format`; drop `WireName` duplication and `ParentPath`.
-5. **Resolve the EF contradiction** with Implementation Plan v0.2: recommended decision — in-memory through G2 (blueprint §6.4 wins), EF introduced as G3 pre-step when `IntegrationRun`/`GenerationArtifact` need durability; record as provisional owner decision and update the plan or the blueprint accordingly.
-6. **§5 layering decision**: adopt option (a) — mechanical Application/Infrastructure split as the first, behavior-preserving commit of G2 (tests stay 30/30 before features); drop `Sha256HashService`.
-7. **Repository signatures**: replace `GetLatestAsync()` with the shipped multi-document set; add the path-traversal guard rule to the fixture source service.
-8. **Generated package**: add `MockCarrierA.Generated.csproj` to §12 minimum; state Roslyn SyntaxFactory preference; define sandbox artifact root + cleanup.
-9. **§14 manual commands**: switch to `git worktree add` (or fresh clone) flow; align the 19-step script with shipped routes; add the `DemoSeed:Enabled` note.
-10. **Routes**: §10 routes → shipped set; keep `/mapping-workbench`, `/generation-review`, `/quote-demo` for G2/G3.
+## 15. Suggested updates to the SDD spec
 
-## 15. Optional edits
+Tie-backs to `00_MASTER_SDD_SPEC.md` and siblings (advisory — AIKB edits belong to GPT after audit):
 
-- Add bUnit component testing + determinism-test class + negative-path tests to the testing strategy (§11 findings).
-- Add `MappingRule.Order` (stable ProfileHash) and an explicit canonical-JSON definition for ProfileHash computation.
-- One line on CPM (`Directory.Packages.props`) as the version-pinning mechanism.
-- Decide `ProviderSourceDocument.ContentRef` (store raw source text or defer to G4).
-- Add importer-warnings surface (`ImportOutcome.Warnings`) as the designed hook for the G4 LLM Gap Assistant narrative.
-- §16 final-report checklist: add "stale `latest-summary.json` refreshed" housekeeping item.
+1. **Re-anchor the SOAP examples.** The integration spec lists Canada Post/Purolator for SOAP — correct; **add Canpar** (publicly reachable login-free WSDL — the easiest SOAP test artifact) and **Aramex/Chronopost** (rate-bearing WSDLs). Explicitly note FedEx/UPS SOAP is **deprecated** so nobody anchors SOAP work on them.
+2. **Name the first real fixtures.** §16 assumptions say "first safe input is a mock OpenAPI fixture" — keep that, and add a concrete real-spec ladder: **ShipEngine → UPS → Australia Post → Canpar/Canada Post**, all free/testable.
+3. **Record the "not every carrier has a rate API" truth** (new risk/assumption): many posts/last-mile carriers are label/track-only; the factory must detect rate-endpoint presence and scope label-only carriers out of MVP. This materially affects provider selection and should be explicit in §15/§18.
+4. **Validate the canonical model against aggregators.** The G1 `QuoteOption` matches the Shippo/EasyPost/ShipEngine common subset; consider optional additive fields (price-type, ranking attribute, transit min/max, charge breakdown — see §10) for a later gate. Confirms the G1 design choice rather than changing it.
+5. **Answer NEEDS-CLARIFICATION #6** (first acceptance fixture): recommend **ShipEngine OpenAPI** as the first real generation acceptance fixture (free sandbox, clean spec), with the synthetic `MockCarrierA` retained for hostile/edge tests.
+6. **Auth-model coverage** is validated by the data: OAuth2 client-credentials (UPS/USPS/FedEx), BasicAuth (DHL, GLS, EasyPost), API-key header (AusPost, ShipEngine, AfterShip), token (Shippo, Easyship), SOAP body credentials + `ClientInfo` (Canpar/Aramex/Canada Post). The spec's auth list already covers these — no gap.
 
-## 16. What must not be changed
+## 16. Risks and unknowns
 
-- §3 boundaries and §18 stop conditions (question 8: the 15-item stop list is sufficient — it is a superset of the G0/G1 ACTIVE_REQUEST stop conditions under which both gates executed cleanly, including the G0 hook incident that the STOP discipline caught correctly; no addition needed).
-- Owner-proxy phrasing rules (§2) — including the forbidden-phrase discipline.
-- Zero-LLM runtime invariant; design-time-only LLM with no provider configured until G4 placeholder.
-- Closed TransformKind set; exactly-one-IterationRoot rule; no implicit `[0]`; ManualCode blocks generation; Draft→Approved→Superseded immutability with hash-pinned generation.
-- Macro-gate execution model (§19 + new AIKB trigger rule); per-gate single-commit + evidence + audit discipline.
-- Fixture-only scope until owner decision; the four-fixture set and golden files as acceptance anchors.
+| Risk / unknown | Note |
+|---|---|
+| Portal-gated specs | UPS aside, the big-carrier OpenAPI/WSDL artifacts often need an account; "OpenAPI exists" ≠ "anonymously downloadable". Verified per provider. |
+| JS-rendered portals | Some docs returned empty HTML to a fetcher; rate-endpoint existence confirmed via search where the page was un-fetchable — flagged `[3]`/`[M]`. |
+| Spec quality | UPS OpenAPI has documented path/tag inconsistencies (issue #132) — the importer must tolerate imperfect specs (G1 already degrades gracefully). |
+| No-rate-API carriers | Evri/Yodel/DPD/GLS/PostNL/Correos confirmed label/track-only — wasted effort if the factory targets them for rate. |
+| Manual-check tail | 9 providers (§11) could not be fully verified without login — their rate-API status is genuinely unknown, not negative. |
+| Aggregator ToS | Using an aggregator's free test key for *generation testing* is fine; redistributing their OpenAPI or calling at scale has ToS limits — out of scope here, flag before any real use. |
+| Currency/units | Carriers differ (KG/LB, CM/IN, multi-currency) — the mapping layer's UnitConvert/EnumMap (tech-design) is essential; aggregators show dual-currency is real (Shippo). |
 
-## 17. Final recommendation
+## 17. Next safe step
 
-**ACCEPT_WITH_REQUIRED_EDITS** — apply §14 items 1-10 (GPT can do this in one editing pass; nothing requires code changes), re-register the blueprint as v0.2, and only then open G2 with prompts derived from the corrected document. Suggested G2 opening order: (1) mechanical layer-split commit, (2) mapping domain + validation, (3) workbench UI, (4) approval/freeze — one macro-gate, one report. The document after edits is fit both as the G2-G5 execution contract and, with G5 evidence appended, as the Igor review package.
-
-Provisional owner-approved baseline by Slava; reversible when Igor returns. No approval is attributed to Igor anywhere in this review.
+1. **GPT audits this report** (trigger «отчёт»); on acceptance, GPT folds the findings into the SDD (§15 suggestions) and answers the open NEEDS-CLARIFICATION items — **AIKB writes are GPT's**, not this gate's.
+2. **Recommended provider ladder for the generator gates:** G2 mapping/validation proven on **ShipEngine** (free OpenAPI sandbox) + the synthetic `MockCarrierA`; G3 generation/quote-demo on the same; G4 factory-proof adds **UPS** (real carrier OpenAPI) and a **SOAP** target (**Canpar** or **Canada Post**) to prove WSDL + multi-provider.
+3. **No implementation in this gate.** This is research/spec support only. The next *execution* gate remains G2 (Mapping Workbench), which must be opened explicitly with its own ACTIVE_REQUEST after the blueprint v0.2 + SDD updates land.
+4. **Owner-proxy note:** all recommendations are a provisional owner-approved baseline by Slava; reversible when Igor returns. No approval is attributed to Igor.
 
 ---
 
-*Report paths: `TwinCore/ai-integrator-development-blueprint-review-v0.1/report.md` (this file), mirrored to `TwinCore/latest-report.md` and `TwinCore/_BRIDGE/LATEST_REPORT.md`; `TwinCore/_BRIDGE/STATUS.json` updated. The G1 implementation report remains at `TwinCore/ai-integrator-g1-import-browse-v0.1/report.md` and still awaits GPT audit.*
+*Report written to `TwinCore/rate-api-carrier-docs-research-v0.1/report.md` and mirrored to `TwinCore/latest-report.md` + `TwinCore/_BRIDGE/LATEST_REPORT.md`. `STATUS.json` updated (state REPORT_READY, nextActor GPT) preserving the two prior pending audits (G1 import-browse, blueprint review). No source code, no AIKB writes, no branches, no live carrier calls. STOP — GPT will audit; no self-acceptance.*
