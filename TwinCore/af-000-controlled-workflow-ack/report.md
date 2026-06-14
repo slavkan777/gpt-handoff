@@ -61,7 +61,7 @@ WHAT THE PROJECT-SPECIFIC WORKFLOW MEANS (TwinCore AI Integrator):
 CURRENT PROJECT BOUNDARIES:
 - Accepted baseline (per `CURRENT_STATE.md` @ `f67eccc`): G0 DONE; **G1 DONE / ACCEPTED_BY_GPT** (branch `feature/12695-ai-integrator-poc` @ `dbea505bf1dd3d8a29a04c368b46b2717fc831ff`, base `8f935f0`); Blueprint v0.2 accepted (required edits applied); Igor review package v0.1 ready for Slava; **G2 NOT opened.**
 - Allowed future implementation area: `AiIntegrator/**` only.
-- Hard boundaries (still in force): no G2 implementation until explicit owner decision; no generator until G3; no real carrier credentials; no runtime LLM; no Azure PR/work-item/pipeline/policy; no merge to `main`; no framework edits; no `TwinCore.sln` / `Src/**` / `.claude/**` / root edits; no production-readiness claim; **never claim "Igor approved"** (owner-proxy mode: "Provisional owner-approved baseline by Slava; reversible when Igor returns").
+- Hard boundaries (still in force): no G2 implementation until explicit owner decision; no generator until G3; no real carrier credentials; no runtime LLM; no Azure PR/work-item/pipeline/policy; no merge to `main`; no framework edits; no `TwinCore.sln` / `Src/**` / `.claude/**` / root edits; no production-readiness claim; **no approval may be attributed to Igor** (owner-proxy mode: only "Provisional owner-approved baseline by Slava; reversible when Igor returns").
 
 NEXT SAFE FEATURE OPTIONS:
 - **AF-000 — Read-only Controlled Workflow Acknowledgement** — this report (now complete).
