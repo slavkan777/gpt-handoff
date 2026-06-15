@@ -1,0 +1,142 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Mock Carrier Rate API",
+    "version": "1.0.0",
+    "description": "SYNTHETIC spec imitating a carrier Rate API. For NSwag-vs-Kiota tool-shape evaluation ONLY. Not a real carrier, not a real endpoint, no credentials."
+  },
+  "servers": [
+    { "url": "https://mock-carrier.example.test/v1" }
+  ],
+  "paths": {
+    "/rates": {
+      "post": {
+        "operationId": "getRates",
+        "summary": "Get shipping rate quotes for one or more packages",
+        "tags": ["Rates"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rate quotes returned",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RateResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Address": {
+        "type": "object",
+        "required": ["countryCode", "postalCode"],
+        "properties": {
+          "name": { "type": "string", "nullable": true },
+          "addressLine1": { "type": "string", "nullable": true },
+          "addressLine2": { "type": "string", "nullable": true },
+          "city": { "type": "string", "nullable": true },
+          "stateProvince": { "type": "string", "nullable": true },
+          "postalCode": { "type": "string" },
+          "countryCode": { "type": "string", "minLength": 2, "maxLength": 2 },
+          "residential": { "type": "boolean", "nullable": true }
+        }
+      },
+      "Dimensions": {
+        "type": "object",
+        "required": ["length", "width", "height", "unit"],
+        "properties": {
+          "length": { "type": "number", "format": "double" },
+          "width": { "type": "number", "format": "double" },
+          "height": { "type": "number", "format": "double" },
+          "unit": { "type": "string", "enum": ["in", "cm"] }
+        }
+      },
+      "Package": {
+        "type": "object",
+        "required": ["weight", "weightUnit"],
+        "properties": {
+          "weight": { "type": "number", "format": "double" },
+          "weightUnit": { "type": "string", "enum": ["lb", "kg"] },
+          "dimensions": { "$ref": "#/components/schemas/Dimensions" }
+        }
+      },
+      "RateRequest": {
+        "type": "object",
+        "required": ["shipFrom", "shipTo", "packages"],
+        "properties": {
+          "shipFrom": { "$ref": "#/components/schemas/Address" },
+          "shipTo": { "$ref": "#/components/schemas/Address" },
+          "packages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Package" }
+          },
+          "serviceCode": { "type": "string", "nullable": true }
+        }
+      },
+      "Rate": {
+        "type": "object",
+        "required": ["carrierCode", "serviceCode", "amount", "currency"],
+        "properties": {
+          "carrierCode": { "type": "string" },
+          "serviceCode": { "type": "string" },
+          "serviceName": { "type": "string", "nullable": true },
+          "amount": { "type": "number", "format": "decimal" },
+          "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+          "estimatedDays": { "type": "integer", "format": "int32", "nullable": true }
+        }
+      },
+      "RateResponse": {
+        "type": "object",
+        "properties": {
+          "rates": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Rate" }
+          },
+          "warnings": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "errors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ApiError" }
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ApiError" }
+          }
+        }
+      }
+    }
+  }
+}

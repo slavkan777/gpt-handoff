@@ -1,16 +1,17 @@
 {
-  "gate": "PHASE_0_MARKET_PRODUCTS_REVIEW",
+  "gate": "PHASE_0_1_TOOL_TRIAL_NSWAG_KIOTA",
   "status": "completed",
-  "primary_report": "TwinCore/market-products-review.md",
+  "primary_report": "TwinCore/tool-trial-nswag-kiota.md",
   "latest_report": "TwinCore/latest-report.md",
   "bridge_report": "TwinCore/_BRIDGE/LATEST_REPORT.md",
-  "next_safe_step": "Review market products report and choose one carrier for minimal provider spike",
+  "next_safe_step": "Review NSwag vs Kiota report and choose baseline for manual carrier provider spike",
+  "recommendation": "A - NSwag as first baseline; Kiota deferred behind a client abstraction (option C)",
   "bridge": "gpt-handoff/TwinCore/_BRIDGE",
   "scope": "project",
   "project": "TwinCore",
-  "lastReportId": "REQ-2026-06-16-twincore-universal-connector-phase0-market-review",
-  "lastReportPath": "TwinCore/market-products-review.md",
-  "lastReportVerdict": "PHASE_0_MARKET_REVIEW_DONE_READY_FOR_AUDIT",
+  "lastReportId": "REQ-2026-06-16-twincore-universal-connector-phase0-1-tool-trial-nswag-kiota",
+  "lastReportPath": "TwinCore/tool-trial-nswag-kiota.md",
+  "lastReportVerdict": "PHASE_0_1_TOOL_TRIAL_DONE_READY_FOR_AUDIT",
   "compatibilityReportPath": "TwinCore/latest-report.md",
   "bridgeLatestReportPath": "TwinCore/_BRIDGE/LATEST_REPORT.md",
   "pendingAuditReports": [
@@ -28,6 +29,11 @@
       "reportId": "REQ-2026-06-16-twincore-universal-connector-phase0-market-review",
       "reportPath": "TwinCore/market-products-review.md",
       "verdict": "PHASE_0_MARKET_REVIEW_DONE_READY_FOR_AUDIT"
+    },
+    {
+      "reportId": "REQ-2026-06-16-twincore-universal-connector-phase0-1-tool-trial-nswag-kiota",
+      "reportPath": "TwinCore/tool-trial-nswag-kiota.md",
+      "verdict": "PHASE_0_1_TOOL_TRIAL_DONE_READY_FOR_AUDIT"
     }
   ],
   "acceptedPriorReports": [
@@ -39,5 +45,5 @@
   "nextActor": "GPT",
   "updated": "2026-06-16",
   "updatedBy": "claude",
-  "note": "STATUS.json carries the requested Phase-0 fields (gate/status/primary_report/latest_report/bridge_report/next_safe_step) verbatim, plus preserved routing + pendingAuditReports so the three not-yet-confirmed-audited reports are not lost (merge, not overwrite)."
+  "note": "STATUS.json carries the requested Phase-0.1 fields (gate/status/primary_report/latest_report/bridge_report/next_safe_step) verbatim, plus preserved routing + pendingAuditReports so the four not-yet-confirmed-audited reports are not lost (merge, not overwrite)."
 }
