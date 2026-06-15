@@ -1,0 +1,3 @@
+# Build artifacts from the UPS NSwag build trial — do not commit
+**/bin/
+**/obj/
