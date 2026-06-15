@@ -1,6 +1,9 @@
 {
   "gate": "PHASE_0_MARKET_PRODUCTS_REVIEW",
   "status": "completed",
+  "primary_report": "TwinCore/market-products-review.md",
+  "latest_report": "TwinCore/latest-report.md",
+  "bridge_report": "TwinCore/_BRIDGE/LATEST_REPORT.md",
   "next_safe_step": "Review market products report and choose one carrier for minimal provider spike",
   "bridge": "gpt-handoff/TwinCore/_BRIDGE",
   "scope": "project",
@@ -36,5 +39,5 @@
   "nextActor": "GPT",
   "updated": "2026-06-16",
   "updatedBy": "claude",
-  "note": "STATUS.json carries the requested Phase-0 fields (gate/status/next_safe_step) plus preserved routing + pendingAuditReports so the three not-yet-confirmed-audited reports are not lost (merge, not overwrite)."
+  "note": "STATUS.json carries the requested Phase-0 fields (gate/status/primary_report/latest_report/bridge_report/next_safe_step) verbatim, plus preserved routing + pendingAuditReports so the three not-yet-confirmed-audited reports are not lost (merge, not overwrite)."
 }
