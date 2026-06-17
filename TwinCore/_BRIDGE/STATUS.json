@@ -1,19 +1,34 @@
 {
-  "gate": "PHASE_0_2_MANUAL_CARRIER_PROVIDER_SPIKE",
-  "status": "completed",
-  "primary_report": "TwinCore/manual-carrier-provider-spike.md",
-  "latest_report": "TwinCore/latest-report.md",
-  "bridge_report": "TwinCore/_BRIDGE/LATEST_REPORT.md",
-  "next_safe_step": "Review UPS manual provider spike and draft generator algorithm",
-  "recommendation": "NSwag viable on a real 150-schema UPS spec (after one YAML->JSON conversion); builds 0W/0E; confirms Phase 0.1 'A - NSwag first'",
-  "bridge": "gpt-handoff/TwinCore/_BRIDGE",
-  "scope": "project",
   "project": "TwinCore",
-  "lastReportId": "REQ-2026-06-16-twincore-universal-connector-phase0-2-manual-carrier-provider-spike",
-  "lastReportPath": "TwinCore/manual-carrier-provider-spike.md",
-  "lastReportVerdict": "PHASE_0_2_MANUAL_CARRIER_SPIKE_DONE_READY_FOR_AUDIT",
-  "compatibilityReportPath": "TwinCore/latest-report.md",
+  "gate": "PHASE_0_3_DRAFT_GENERATOR_ALGORITHM_RESEARCH",
+  "status": "READY_FOR_CLAUDE",
+  "requestId": "REQ-2026-06-17-twincore-phase-0-3-generator-architecture-research",
+  "taskType": "research-architecture",
+  "mode": "RESEARCH_ONLY_PLANNING_ONLY",
+  "activeRequestPath": "TwinCore/phase-0.3-universal-connector-generator-architecture-research/ACTIVE_REQUEST.md",
+  "targetReportPath": "TwinCore/phase-0.3-universal-connector-generator-architecture-research/report.md",
+  "latestReportPath": "TwinCore/latest-report.md",
   "bridgeLatestReportPath": "TwinCore/_BRIDGE/LATEST_REPORT.md",
+  "latestSummaryPath": "TwinCore/latest-summary.json",
+  "globalCompatibilityReportPath": "_BRIDGE/LATEST_REPORT.md",
+  "nextActor": "Claude via Agent Army",
+  "nextSafeStep": "Claude researches Phase 0.3 architecture and returns report; GPT audits before any AIKB update or implementation.",
+  "scope": "project-specific bridge",
+  "bridge": "gpt-handoff/TwinCore/_BRIDGE",
+  "sourceRuntimeChangesAllowed": false,
+  "aikbWritesAllowed": false,
+  "implementationAllowed": false,
+  "credentialsAllowed": false,
+  "paidApiCallsAllowed": false,
+  "ownerAcceptanceGate": "Slava/Igor after GPT audit",
+  "priorCompletedGate": {
+    "gate": "PHASE_0_2_MANUAL_CARRIER_PROVIDER_SPIKE",
+    "status": "completed",
+    "lastReportId": "REQ-2026-06-16-twincore-universal-connector-phase0-2-manual-carrier-provider-spike",
+    "lastReportPath": "TwinCore/manual-carrier-provider-spike.md",
+    "lastReportVerdict": "PHASE_0_2_MANUAL_CARRIER_SPIKE_DONE_READY_FOR_AUDIT",
+    "nextSafeStepAtThatTime": "Review UPS manual provider spike and draft generator algorithm"
+  },
   "pendingAuditReports": [
     {
       "reportId": "REQ-2026-06-14-twincore-rate-api-carrier-docs-research-v0-1",
@@ -41,14 +56,7 @@
       "verdict": "PHASE_0_2_MANUAL_CARRIER_SPIKE_DONE_READY_FOR_AUDIT"
     }
   ],
-  "acceptedPriorReports": [
-    "REQ-2026-06-12-twincore-ai-integrator-g1-import-browse-v0-1 (ACCEPTED_BY_GPT per AIKB CURRENT_STATE)",
-    "REQ-2026-06-12-twincore-ai-integrator-development-blueprint-review-v0-1 (blueprint v0.2 accepted per AIKB CURRENT_STATE)"
-  ],
-  "sourceBranch": "feature/12695-ai-integrator-poc",
-  "sourceCommitAfter": "dbea505bf1dd3d8a29a04c368b46b2717fc831ff",
-  "nextActor": "GPT",
-  "updated": "2026-06-16",
-  "updatedBy": "claude",
-  "note": "STATUS.json carries the requested Phase-0.2 fields (gate/status/primary_report/latest_report/bridge_report/next_safe_step) verbatim, plus preserved routing + pendingAuditReports so the five not-yet-confirmed-audited reports are not lost (merge, not overwrite)."
+  "updated": "2026-06-17T19:07:00+03:00",
+  "updatedBy": "GPT Architect",
+  "note": "Project-specific bridge now points Claude to Phase 0.3 research. Canonical request/report paths supersede global fallback. No AIKB update or implementation is authorized."
 }
