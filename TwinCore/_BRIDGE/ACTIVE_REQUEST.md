@@ -1,13 +1,16 @@
-REQUEST_ID: REQ-2026-06-14-twincore-rate-api-carrier-docs-research-v0-1
+REQUEST_ID: REQ-2026-06-17-twincore-phase-0-3-generator-architecture-research
 STATE: READY_FOR_CLAUDE
-TASK_TYPE: research-spike
+TASK_TYPE: research-architecture
 PROJECT: TwinCore
-GATE: research / specification support
-TARGET_REPORT_PATH: TwinCore/_BRIDGE/LATEST_REPORT.md
-PROJECT_REPORT_PATH: TwinCore/rate-api-carrier-docs-research-v0.1/report.md
-COMPATIBILITY_REPORT_PATH: TwinCore/latest-report.md
-AIKB_UPDATE_REQUIRED: after-gpt-audit-and-slava-approval
-CREATED: 2026-06-14T00:00:00+00:00
+GATE: Phase 0.3 / Draft Generator Algorithm research
+ACTIVE_REQUEST_PATH: TwinCore/phase-0.3-universal-connector-generator-architecture-research/ACTIVE_REQUEST.md
+TARGET_REPORT_PATH: TwinCore/phase-0.3-universal-connector-generator-architecture-research/report.md
+LATEST_REPORT_PATH: TwinCore/latest-report.md
+PROJECT_BRIDGE_REPORT_PATH: TwinCore/_BRIDGE/LATEST_REPORT.md
+PROJECT_STATUS_PATH: TwinCore/_BRIDGE/STATUS.json
+GLOBAL_COMPATIBILITY_REPORT_PATH: _BRIDGE/LATEST_REPORT.md
+AIKB_UPDATE_REQUIRED: no, candidate only after GPT audit and Slava approval
+CREATED: 2026-06-17T19:07:00+03:00
 CREATED_BY: GPT Architect
 
 # ACTIVE REQUEST ROUTER
@@ -15,48 +18,49 @@ CREATED_BY: GPT Architect
 Read the canonical full prompt from:
 
 ```text
-TwinCore/rate-api-carrier-docs-research-v0.1/ACTIVE_REQUEST.md
+TwinCore/phase-0.3-universal-connector-generator-architecture-research/ACTIVE_REQUEST.md
 ```
 
 # TASK SUMMARY
 
-Research public developer documentation for approximately 40 logistics carriers and shipping API aggregators.
+Research and propose architecture for TwinCore Universal API / Integration Connector Generator Phase 0.3.
 
-Classify each provider by available material:
+This is not a Rate API generator.
+This is a Universal API / Integration Connector Generator.
+Rate API / UPS Rating API is only the first proof case.
 
-- OpenAPI / Swagger;
-- REST documentation;
-- SOAP / WSDL / XSD;
-- SDKs, examples, or collections;
-- developer portal/manual check required;
-- rate/pricing/quote endpoint support.
-
-Then recommend:
-
-1. best first MVP candidates;
-2. best OpenAPI path candidates;
-3. best SOAP/WSDL path candidates;
-4. best docs-only or LLM-assisted candidates;
-5. what the first small TwinCore Rate API Connector Generator should include;
-6. what it should not include;
-7. how to minimize LLM usage.
-
-# BOUNDARIES
-
-Research and report only.
-Do not change source code.
-Do not change AIKB.
-Do not create branches or PRs.
-Do not perform live provider integrations.
+Claude must route through Agent Army first.
+No direct Claude execution before Agent Army route classification.
 
 # REPORT TARGETS
 
 Write report to:
 
 ```text
-TwinCore/rate-api-carrier-docs-research-v0.1/report.md
-TwinCore/_BRIDGE/LATEST_REPORT.md
+TwinCore/phase-0.3-universal-connector-generator-architecture-research/report.md
 TwinCore/latest-report.md
+TwinCore/latest-summary.json
+TwinCore/_BRIDGE/LATEST_REPORT.md
+TwinCore/_BRIDGE/STATUS.json
 ```
+
+May also mirror to global fallback:
+
+```text
+_BRIDGE/LATEST_REPORT.md
+```
+
+# BOUNDARIES
+
+Research and architecture only.
+No implementation.
+No generator code.
+No CLI.
+No WPF.
+No TwinCore runtime changes.
+No credentials.
+No paid API calls.
+No production integration.
+No AIKB writes.
 
 After report: STOP. GPT will audit.
