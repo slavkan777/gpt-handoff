@@ -1,7 +1,7 @@
 {
   "project": "TwinCore",
   "gate": "PHASE_0_3_DRAFT_GENERATOR_ALGORITHM_RESEARCH",
-  "status": "READY_FOR_CLAUDE",
+  "status": "PHASE_0_3_REPORT_DELIVERED_READY_FOR_GPT_AUDIT",
   "requestId": "REQ-2026-06-17-twincore-phase-0-3-generator-architecture-research",
   "taskType": "research-architecture",
   "mode": "RESEARCH_ONLY_PLANNING_ONLY",
@@ -11,8 +11,8 @@
   "bridgeLatestReportPath": "TwinCore/_BRIDGE/LATEST_REPORT.md",
   "latestSummaryPath": "TwinCore/latest-summary.json",
   "globalCompatibilityReportPath": "_BRIDGE/LATEST_REPORT.md",
-  "nextActor": "Claude via Agent Army",
-  "nextSafeStep": "Claude researches Phase 0.3 architecture and returns report; GPT audits before any AIKB update or implementation.",
+  "nextActor": "GPT Architect (audit)",
+  "nextSafeStep": "GPT audits the Phase 0.3 architecture report at targetReportPath; then Slava/Igor owner acceptance. No AIKB update or implementation until accepted.",
   "scope": "project-specific bridge",
   "bridge": "gpt-handoff/TwinCore/_BRIDGE",
   "sourceRuntimeChangesAllowed": false,
@@ -21,6 +21,20 @@
   "credentialsAllowed": false,
   "paidApiCallsAllowed": false,
   "ownerAcceptanceGate": "Slava/Igor after GPT audit",
+  "phase03Delivery": {
+    "reportId": "REQ-2026-06-17-twincore-phase-0-3-generator-architecture-research",
+    "reportPath": "TwinCore/phase-0.3-universal-connector-generator-architecture-research/report.md",
+    "verdict": "PHASE_0_3_ARCH_RESEARCH_DONE_READY_FOR_AUDIT",
+    "runId": "2026-06-17-twincore-phase03-arch-army",
+    "armyRoute": "project-context-resolver -> commander-orchestrator(HIGH,not CRITICAL) -> aikb-bootstrap -> bounded-executor(producer) -> review-agent -> evidence-auditor -> agent-output-validator -> permission-safety-auditor -> manual-verification-coordinator",
+    "checkpoints": "review PASS / evidence PASS / output VALID / permission-safety SAFE / coordinator PASS_TO_MANUAL_ACCEPTANCE",
+    "reportSections": 24,
+    "keyDecisions": "MVP-OpenAPI KEEP; NSwag KEEP; Kiota DEFER; EDI/SFTP DEFER; AI-Draft-only ENFORCE; Format-Intelligence-Library design-now YES; AmbiguityLog+EvidenceLedger shapes YES",
+    "selfAccepted": false,
+    "codeWritten": false,
+    "twinCoreRuntimeTouched": false,
+    "aikbUpdated": false
+  },
   "priorCompletedGate": {
     "gate": "PHASE_0_2_MANUAL_CARRIER_PROVIDER_SPIKE",
     "status": "completed",
@@ -54,9 +68,14 @@
       "reportId": "REQ-2026-06-16-twincore-universal-connector-phase0-2-manual-carrier-provider-spike",
       "reportPath": "TwinCore/manual-carrier-provider-spike.md",
       "verdict": "PHASE_0_2_MANUAL_CARRIER_SPIKE_DONE_READY_FOR_AUDIT"
+    },
+    {
+      "reportId": "REQ-2026-06-17-twincore-phase-0-3-generator-architecture-research",
+      "reportPath": "TwinCore/phase-0.3-universal-connector-generator-architecture-research/report.md",
+      "verdict": "PHASE_0_3_ARCH_RESEARCH_DONE_READY_FOR_AUDIT"
     }
   ],
-  "updated": "2026-06-17T19:07:00+03:00",
-  "updatedBy": "GPT Architect",
-  "note": "Project-specific bridge now points Claude to Phase 0.3 research. Canonical request/report paths supersede global fallback. No AIKB update or implementation is authorized."
+  "updated": "2026-06-17T21:05:00+03:00",
+  "updatedBy": "Claude via Permanent Agent Army (run 2026-06-17-twincore-phase03-arch-army)",
+  "note": "Phase 0.3 architecture research report delivered to canonical bridge path and mirrors. Produced + reviewed via the full bespoke Agent Army conveyor (9 agents, all checkpoints green); not self-accepted. GPT audit next; no AIKB update or implementation authorized."
 }
