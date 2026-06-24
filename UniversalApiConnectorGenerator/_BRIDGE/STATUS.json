@@ -1,8 +1,8 @@
 {
   "project": "UniversalApiConnectorGenerator",
-  "gate": "ARCHITECTURE_DISCOVERY",
-  "requestId": "NONE",
-  "state": "IDLE",
+  "gate": "BRIDGE_COMMUNICATION_BOOTSTRAP",
+  "requestId": "REQ-2026-06-24-uacg-bridge-communication-bootstrap",
+  "state": "READY_FOR_CLAUDE",
   "promptPath": "UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md",
   "reportPath": "UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md",
   "compatibilityActiveRequestPath": "UniversalApiConnectorGenerator/_BRIDGE/ACTIVE_REQUEST.md",
@@ -12,7 +12,7 @@
   "sourceCommitBefore": "",
   "sourceCommitAfter": "",
   "handoffCommit": "",
-  "nextActor": "Slava",
+  "nextActor": "Claude",
   "updatedAt": "2026-06-24",
-  "blockedReason": "Master Specification approval and source repository verification are pending."
+  "blockedReason": ""
 }
