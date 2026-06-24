@@ -5,128 +5,93 @@ Updated: 2026-06-24
 Project: UniversalApiConnectorGenerator
 Handoff repository: slavkan777/gpt-handoff
 
-## Canonical bridge folder
-
-Repository-relative path:
+## Canonical two-folder bridge
 
 ```text
 UniversalApiConnectorGenerator/_BRIDGE/
+|- PROMPTS/
+|  `- ACTIVE_REQUEST.md
+|- REPORTS/
+|  `- LATEST_REPORT.md
+|- ACTIVE_REQUEST.md       # compatibility pointer
+|- LATEST_REPORT.md        # compatibility pointer
+|- STATUS.json
+`- README.md
 ```
 
-Inside a local checkout of `slavkan777/gpt-handoff`:
+## Command protocol
 
-```text
-<LOCAL_GPT_HANDOFF>/UniversalApiConnectorGenerator/_BRIDGE/
-```
+### Slava writes `промт` to Claude
 
-This is the only current prompt/report channel for the project. Do not create a second bridge inside the source repository or TwinCore.
+Claude must:
 
-## Where Claude reads prompts
+1. Read `UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md`.
+2. Verify `REQUEST_ID`, `PROJECT`, `GATE`, source repository, branch, allowed and forbidden scope, stop conditions, and report path.
+3. Execute only when `STATE: READY_FOR_CLAUDE`.
+4. If `REQUEST_ID: NONE` or `STATE: IDLE`, stop without execution.
+5. Never invent or expand the task beyond the active prompt.
 
-Current project request:
+Architect GPT is the only writer of the canonical active prompt unless Slava explicitly changes that rule.
+
+### Slava writes `отчёт` to Architect GPT
+
+Architect GPT must:
+
+1. Read `UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md`.
+2. Verify that `REQUEST_ID`, `PROJECT`, and `GATE` match the active prompt.
+3. Reject mismatches as `STALE_REPORT`.
+4. Audit evidence and return a verdict.
+5. Never treat `READY_FOR_GPT_AUDIT` as final acceptance.
+
+Claude is the writer of the canonical report. Architect GPT reads and audits it. Slava remains the final decision-maker.
+
+## Compatibility pointers
+
+Existing ClaudeOS rules may first open:
 
 ```text
 UniversalApiConnectorGenerator/_BRIDGE/ACTIVE_REQUEST.md
-```
-
-Claude must read this file first and verify:
-
-- `REQUEST_ID`;
-- `PROJECT`;
-- `GATE`;
-- source repository and branch;
-- allowed and forbidden paths;
-- target report paths;
-- stop conditions.
-
-If `REQUEST_ID: NONE` or `STATE: IDLE`, Claude must not execute.
-
-For an opened implementation or audit gate, Architect GPT may create:
-
-```text
-UniversalApiConnectorGenerator/<gate-slug>/ACTIVE_REQUEST.md
-```
-
-The gate-specific request is canonical for that gate. The project `_BRIDGE/ACTIVE_REQUEST.md` remains its current pointer/mirror.
-
-## Where Claude writes reports
-
-Current project report pointer:
-
-```text
 UniversalApiConnectorGenerator/_BRIDGE/LATEST_REPORT.md
 ```
 
-For an opened gate, Claude must write the canonical evidence report to:
+Those files point to the canonical files inside `PROMPTS/` and `REPORTS/`.
+They are not a second independent prompt/report channel.
 
-```text
-UniversalApiConnectorGenerator/<gate-slug>/report.md
-```
+## Matching contract
 
-Claude then updates these project mirrors when the request permits it:
-
-```text
-UniversalApiConnectorGenerator/_BRIDGE/LATEST_REPORT.md
-UniversalApiConnectorGenerator/latest-report.md
-UniversalApiConnectorGenerator/latest-summary.json
-```
-
-Every report must echo the exact matching:
+Every prompt and report must contain the exact matching:
 
 ```text
 REQUEST_ID
 PROJECT
 GATE
-ACTIVE_REQUEST_PATH
-TARGET_REPORT_PATH
+PROMPT_PATH
+REPORT_PATH
 ```
 
-A mismatch means `STALE_REPORT` and the report is not accepted.
+A mismatch means `STALE_REPORT`.
 
-## Status file
-
-Indicator only:
+## Current state
 
 ```text
-UniversalApiConnectorGenerator/_BRIDGE/STATUS.json
-```
-
-`STATUS.json` never authorizes execution by itself.
-
-## Communication protocol
-
-```text
-Slava decision
--> Architect GPT writes ACTIVE_REQUEST.md
--> Claude reads and executes only that request
--> Claude writes report.md and LATEST_REPORT.md
--> Architect GPT audits the matching report
--> Slava accepts, rejects, or requests rework
-```
-
-Long prompts, implementation instructions, diffs, evidence, and reports travel only through this project bridge. Chat is limited to short control commands, decisions, status, and links.
-
-## Current gate
-
-```text
-ARCHITECTURE_DISCOVERY
+PROJECT: UniversalApiConnectorGenerator
+GATE: ARCHITECTURE_DISCOVERY
 REQUEST_ID: NONE
 STATE: IDLE
 IMPLEMENTATION: NOT OPEN
 ```
 
-No source implementation is authorized until the Master Specification is approved and Slava explicitly opens implementation with:
+No implementation is authorized until the Master Specification is approved,
+the source repository is verified, and Architect GPT publishes a bounded prompt
+with a new request ID.
 
-```text
-APPROVED FOR IMPLEMENTATION
-```
+## Forbidden
 
-## Forbidden routing
-
-- global `gpt-handoff/_BRIDGE/` as the authoritative project channel;
-- TwinCore or `Twincore-framework` bridge/source paths;
+- TwinCore source or bridge routing;
+- global `gpt-handoff/_BRIDGE/` as the authoritative channel;
 - unrelated project folders;
-- AIKB writes by Claude;
 - source implementation while the bridge is IDLE;
-- commit, push, PR, deployment, paid calls, credentials, or live UPS calls without an explicit matching gate;
-- secrets in prompts, reports, status files, logs, screenshots, or Git.
+- self-acceptance;
+- secrets in prompts or reports;
+- commit, push, PR, deployment, paid calls, credentials, or live UPS calls
+  without an explicit matching gate.
