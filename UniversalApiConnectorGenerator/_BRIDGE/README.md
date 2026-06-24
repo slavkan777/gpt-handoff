@@ -57,6 +57,35 @@ UniversalApiConnectorGenerator/_BRIDGE/LATEST_REPORT.md
 Those files point to the canonical files inside `PROMPTS/` and `REPORTS/`.
 They are not a second independent prompt/report channel.
 
+## Communication lock
+
+This Bridge is the only GPT <-> Claude task communication channel for this
+project.
+
+```text
+Architect GPT -> writes task -> PROMPTS/ACTIVE_REQUEST.md
+Slava -> writes only "промт" to Claude
+Claude -> reads and executes the active prompt
+Claude -> writes evidence/report -> REPORTS/LATEST_REPORT.md
+Slava -> writes "отчёт" to Architect GPT
+Architect GPT -> reads and audits the report
+```
+
+Rules:
+
+- Architect GPT does not deliver implementation instructions to Claude through
+  chat; it writes them to the canonical prompt file.
+- Claude does not use chat text as the task specification. The command
+  `промт` means: read the canonical prompt file.
+- Claude does not return the full report in chat. It writes the canonical report
+  file and replies only: `Bridge report ready. Tell GPT: отчёт.`
+- Architect GPT does not audit a pasted chat report as current evidence. The
+  command `отчёт` means: read the canonical report file.
+- If the Bridge cannot be read or written, stop with `BLOCKED / BRIDGE_UNAVAILABLE`.
+  Do not fall back to long prompt/report copy-paste.
+- Short chat messages may contain only commands, decisions, blocking questions,
+  and status. The authoritative task and evidence remain in Git.
+
 ## Matching contract
 
 Every prompt and report must contain the exact matching:
