@@ -3,15 +3,16 @@
   "gate": "ARCHITECTURE_DISCOVERY",
   "requestId": "NONE",
   "state": "IDLE",
-  "activeRequestPath": "UniversalApiConnectorGenerator/_BRIDGE/ACTIVE_REQUEST.md",
-  "latestReportPath": "UniversalApiConnectorGenerator/_BRIDGE/LATEST_REPORT.md",
-  "gateReportPath": "",
+  "promptPath": "UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md",
+  "reportPath": "UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md",
+  "compatibilityActiveRequestPath": "UniversalApiConnectorGenerator/_BRIDGE/ACTIVE_REQUEST.md",
+  "compatibilityLatestReportPath": "UniversalApiConnectorGenerator/_BRIDGE/LATEST_REPORT.md",
   "sourceRepo": "PENDING_CREATION",
   "sourceBranch": "main (planned)",
   "sourceCommitBefore": "",
   "sourceCommitAfter": "",
   "handoffCommit": "",
   "nextActor": "Slava",
-  "updatedAt": "2026-06-23",
-  "blockedReason": "Standalone foundation contract and first vertical slice are not yet approved."
+  "updatedAt": "2026-06-24",
+  "blockedReason": "Master Specification approval and source repository verification are pending."
 }
