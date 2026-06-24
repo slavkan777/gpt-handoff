@@ -1,1 +1,5 @@
-test
+REQUEST_ID=REQ-2026-06-24-uacg-local-foundation-skeleton-v0-1
+STATUS=AWAITING_REPORT
+PROJECT=UniversalApiConnectorGenerator
+GATE=LOCAL_FOUNDATION_SKELETON_V0_1
+PROMPT=UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md
