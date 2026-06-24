@@ -7,6 +7,22 @@ REPORT_PATH: UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
 UPDATED: 2026-06-24
 UPDATED_BY: architect-gpt
 
+# Communication Lock
+
+This file is the only authoritative task source from Architect GPT to Claude.
+
+When Slava writes `промт`, ignore any unstored task detail in chat and read
+this file. If this file is inaccessible, stop with
+`BLOCKED / BRIDGE_UNAVAILABLE`. Do not request the full prompt through chat.
+
+After execution, write the full report only to
+`UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md` and reply
+in Claude chat only:
+
+```text
+Bridge report ready. Tell GPT: отчёт.
+```
+
 # No Active Prompt
 
 This is the canonical prompt inbox for Claude.
