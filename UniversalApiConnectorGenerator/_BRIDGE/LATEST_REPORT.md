@@ -9,6 +9,7 @@ UPDATED: 2026-06-24
 UPDATED_BY: architect-gpt
 PREVIOUS_REQUEST_ID: REQ-2026-06-24-uacg-bridge-communication-bootstrap
 PREVIOUS_VERDICT: ACCEPTED_FOR_BRIDGE_BOOTSTRAP
+ARCHIVE_PATH: UniversalApiConnectorGenerator/_BRIDGE/REPORTS/ARCHIVE/REQ-2026-06-24-uacg-bridge-communication-bootstrap.md
 
 # Compatibility Report Pointer
 
@@ -18,8 +19,6 @@ The canonical report path is:
 UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
 ```
 
-The completed bootstrap report remains preserved at the canonical report path for audit history.
-
 Current state:
 
 ```text
@@ -28,4 +27,12 @@ STATE: IDLE
 GATE: ARCHITECTURE_DISCOVERY
 ```
 
-Do not treat any previous report as current evidence unless the active prompt has a matching non-empty `REQUEST_ID` and `STATE: READY_FOR_CLAUDE`.
+There is no active Claude report.
+
+The completed bootstrap report is archived at:
+
+```text
+UniversalApiConnectorGenerator/_BRIDGE/REPORTS/ARCHIVE/REQ-2026-06-24-uacg-bridge-communication-bootstrap.md
+```
+
+Do not treat any previous or archived report as current evidence unless the active prompt has a matching non-empty `REQUEST_ID` and `STATE: READY_FOR_CLAUDE`.
