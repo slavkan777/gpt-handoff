@@ -1,6 +1,6 @@
-REQUEST_ID: REQ-2026-06-24-uacg-local-foundation-skeleton-v0-1
+REQUEST_ID: REQ-2026-06-24-uacg-local-foundation-skeleton-net9-v0-2
 STATE: READY_FOR_CLAUDE
-TASK_TYPE: implementation-local-foundation
+TASK_TYPE: implementation-local-foundation-rerun
 PROJECT: UniversalApiConnectorGenerator
 GATE: LOCAL_FOUNDATION_SKELETON_V0_1
 PROMPT_PATH: UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md
@@ -8,14 +8,26 @@ REPORT_PATH: UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
 LOCAL_WORKSPACE: C:\Projects\UniversalApiConnectorGenerator
 CREATED: 2026-06-24
 CREATED_BY: architect-gpt
+TEMP_TARGET_FRAMEWORK: net9.0
+FINAL_ARCHITECTURE_TARGET: net10.0_later_migration
 
 # ROUTING LOCK
 
 ROUTE USED: TITAN_ELITE_4
-WHY: bounded local implementation gate for standalone solution skeleton
+WHY: bounded local implementation rerun after .NET 10 SDK blocker
 ALLOWED: write only inside C:\Projects\UniversalApiConnectorGenerator and write the Bridge report
 FORBIDDEN: TwinCore, AiIntegrator, claude-vault, AIKB writes, remote repo operations, provider/API calls, production/deployment
 FIRST SAFE ACTION: read Bridge README, verify STATUS.json, then verify the local workspace path
+
+# DECISION OVERRIDE
+
+Slava approved temporary local target `net9.0` for this Foundation Skeleton gate because installed SDKs are 8.0.422 and 9.0.304, and .NET 10 SDK is absent.
+
+Use `net9.0` for all projects in this gate.
+
+Do not use `net10.0` in this rerun.
+
+Preserve the architecture note: final target remains `net10.0` after a later SDK installation/migration gate.
 
 # READ FIRST
 
@@ -39,9 +51,7 @@ Stop with BLOCKED if:
 - REQUEST_ID / PROJECT / GATE do not match STATUS.json;
 - local workspace is not C:\Projects\UniversalApiConnectorGenerator;
 - the workspace contains unexpected existing product files;
-- dotnet SDK cannot create net10.0 projects.
-
-Do not downgrade from net10.0 without a new Architect GPT request.
+- dotnet SDK cannot create `net9.0` projects.
 
 # WRITABLE LOCAL SCOPE
 
@@ -61,7 +71,7 @@ src/ConnectorGenerator.Infrastructure
 src/ConnectorGenerator.Profiles.Rate
 tests/ConnectorGenerator.Tests
 
-Use target framework net10.0.
+Use target framework `net9.0` for this local gate.
 
 Project references:
 
@@ -98,7 +108,7 @@ Root folders:
 
 # MINIMAL CODE SHAPE
 
-Keep it simple. Suggested files:
+Keep it simple:
 
 - Cli Program.cs
 - Application command result / exit code types
@@ -133,10 +143,12 @@ UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
 
 The report must include:
 
-REQUEST_ID: REQ-2026-06-24-uacg-local-foundation-skeleton-v0-1
+REQUEST_ID: REQ-2026-06-24-uacg-local-foundation-skeleton-net9-v0-2
 STATUS: READY_FOR_GPT_AUDIT or BLOCKED
 PROJECT: UniversalApiConnectorGenerator
 GATE: LOCAL_FOUNDATION_SKELETON_V0_1
+TARGET_FRAMEWORK_USED: net9.0
+FINAL_TARGET_NOTE: net10.0 later migration gate
 PROMPT_PATH: UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md
 REPORT_PATH: UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
 
