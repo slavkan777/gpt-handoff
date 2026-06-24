@@ -1,76 +1,159 @@
-REQUEST_ID: NONE
-STATE: IDLE
-TASK_TYPE: none
+REQUEST_ID: REQ-2026-06-24-uacg-local-foundation-skeleton-v0-1
+STATE: READY_FOR_CLAUDE
+TASK_TYPE: implementation-local-foundation
 PROJECT: UniversalApiConnectorGenerator
-GATE: SOURCE_REPOSITORY_SETUP_PENDING
+GATE: LOCAL_FOUNDATION_SKELETON_V0_1
 PROMPT_PATH: UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md
 REPORT_PATH: UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
-UPDATED: 2026-06-24
-UPDATED_BY: architect-gpt
-ARCHITECTURE_BASELINE: MASTER_SPEC_V0_2_APPROVED
-IMPLEMENTATION: NOT_OPEN
-SOURCE_REPO: PENDING_CREATION_OR_VERIFICATION
-SOURCE_REPO_FULL_NAME: slavkan777/universal-api-connector-generator
 LOCAL_WORKSPACE: C:\Projects\UniversalApiConnectorGenerator
-PREVIOUS_REQUEST_ID: REQ-2026-06-24-uacg-bridge-communication-bootstrap
-PREVIOUS_GATE: BRIDGE_COMMUNICATION_BOOTSTRAP
-PREVIOUS_VERDICT: ACCEPTED_FOR_BRIDGE_BOOTSTRAP
+CREATED: 2026-06-24
+CREATED_BY: architect-gpt
 
-# No Active Claude Request
+# ROUTING LOCK
 
-There is no active Claude task for `UniversalApiConnectorGenerator`.
+ROUTE USED: TITAN_ELITE_4
+WHY: bounded local implementation gate for standalone solution skeleton
+ALLOWED: write only inside C:\Projects\UniversalApiConnectorGenerator and write the Bridge report
+FORBIDDEN: TwinCore, AiIntegrator, claude-vault, AIKB writes, remote repo operations, provider/API calls, production/deployment
+FIRST SAFE ACTION: read Bridge README, verify STATUS.json, then verify the local workspace path
 
-Master Specification v0.2 is approved as the architecture baseline, but implementation is not open.
+# READ FIRST
 
-If Slava writes `промт`, Claude must read this file and stop without execution because:
+1. UniversalApiConnectorGenerator/_BRIDGE/README.md
+2. This active request
+3. UniversalApiConnectorGenerator/_BRIDGE/STATUS.json
 
-```text
-REQUEST_ID: NONE
-STATE: IDLE
-```
+# GOAL
 
-# Current Project Gate
+Create the local foundation skeleton for Universal API Connector Generator in:
 
-```text
-GATE: SOURCE_REPOSITORY_SETUP_PENDING
-ARCHITECTURE_BASELINE: MASTER_SPEC_V0_2_APPROVED
-IMPLEMENTATION: NOT_OPEN
-SOURCE_REPO: PENDING_CREATION_OR_VERIFICATION
-LOCAL_WORKSPACE: C:\Projects\UniversalApiConnectorGenerator
-```
+C:\Projects\UniversalApiConnectorGenerator
 
-# Stop Conditions
+This gate creates the solution, projects, references, CLI startup, command stubs, root path handling, build, and minimal tests only.
 
-Do not perform any task while this file remains IDLE.
+# STOP BEFORE START
 
-Forbidden while IDLE:
+Stop with BLOCKED if:
 
-- no source repository creation or source edits by Claude;
-- no implementation or architecture changes;
-- no AIKB writes by Claude;
-- no TwinCore reads or writes;
-- no claude-vault, CLAUDE.md, agents, hooks, settings, or plugin changes;
-- no credentials, paid calls, UPS calls, deployment, PR, merge, or cleanup;
-- no report pasted into chat.
+- the Bridge cannot be read or the report cannot be written;
+- REQUEST_ID / PROJECT / GATE do not match STATUS.json;
+- local workspace is not C:\Projects\UniversalApiConnectorGenerator;
+- the workspace contains unexpected existing product files;
+- dotnet SDK cannot create net10.0 projects.
 
-# Next Authorized Action
+Do not downgrade from net10.0 without a new Architect GPT request.
 
-Wait until Architect GPT publishes a new bounded request with:
+# WRITABLE LOCAL SCOPE
 
-```text
-REQUEST_ID: <non-empty new id>
-STATE: READY_FOR_CLAUDE
+Only:
+
+C:\Projects\UniversalApiConnectorGenerator
+
+# REQUIRED STRUCTURE
+
+Create:
+
+UniversalApiConnectorGenerator.sln
+src/ConnectorGenerator.Cli
+src/ConnectorGenerator.Domain
+src/ConnectorGenerator.Application
+src/ConnectorGenerator.Infrastructure
+src/ConnectorGenerator.Profiles.Rate
+tests/ConnectorGenerator.Tests
+
+Use target framework net10.0.
+
+Project references:
+
+- ConnectorGenerator.Cli -> ConnectorGenerator.Application
+- ConnectorGenerator.Cli -> ConnectorGenerator.Infrastructure
+- ConnectorGenerator.Cli -> ConnectorGenerator.Profiles.Rate
+- ConnectorGenerator.Application -> ConnectorGenerator.Domain
+- ConnectorGenerator.Infrastructure -> ConnectorGenerator.Application
+- ConnectorGenerator.Infrastructure -> ConnectorGenerator.Domain
+- ConnectorGenerator.Profiles.Rate -> ConnectorGenerator.Application
+- ConnectorGenerator.Profiles.Rate -> ConnectorGenerator.Domain
+- ConnectorGenerator.Domain -> no project references
+
+# REQUIRED BEHAVIOR
+
+CLI no args:
+
+- show product name;
+- show available commands;
+- in interactive console, allow basic selection or exit;
+- in redirected/non-interactive input, print menu and exit 0.
+
+Headless commands:
+
+- inspect: safe stub, exit 0;
+- generate: safe stub, no files generated, exit 2 review-required;
+- verify: safe stub, exit 0.
+
+Root folders:
+
+- resolve workspace root, not bin/Debug;
+- create or resolve data, logs, output folders under the workspace root;
+- do not create external folders.
+
+# MINIMAL CODE SHAPE
+
+Keep it simple. Suggested files:
+
+- Cli Program.cs
+- Application command result / exit code types
+- Application workspace path contract
+- Infrastructure workspace path provider
+- Domain diagnostic severity enum or marker
+- Profiles.Rate profile marker
+- Tests for workspace path provider and command stubs
+
+Do not add OpenAPI parsing, NSwag, provider integrations, SQLite schema, UPS ingestion, generated package code, or paid/external calls.
+
+# COMMANDS TO RUN
+
+Run and capture evidence:
+
+- dotnet --list-sdks
+- dotnet restore
+- dotnet build
+- dotnet test
+- dotnet run --project src/ConnectorGenerator.Cli -- inspect
+- dotnet run --project src/ConnectorGenerator.Cli -- generate
+- dotnet run --project src/ConnectorGenerator.Cli -- verify
+- dotnet run --project src/ConnectorGenerator.Cli
+
+For the no-args command, avoid hanging. If needed, pipe input or use non-interactive mode evidence.
+
+# REPORT
+
+Write the full report to:
+
+UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
+
+The report must include:
+
+REQUEST_ID: REQ-2026-06-24-uacg-local-foundation-skeleton-v0-1
+STATUS: READY_FOR_GPT_AUDIT or BLOCKED
 PROJECT: UniversalApiConnectorGenerator
-```
+GATE: LOCAL_FOUNDATION_SKELETON_V0_1
+PROMPT_PATH: UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md
+REPORT_PATH: UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
 
-Expected next project-level step before implementation is source repository creation/verification. Implementation still requires explicit owner wording:
+Sections:
 
-```text
-APPROVED FOR IMPLEMENTATION
-```
+- Route Used
+- Workspace Verification
+- Files Created or Modified
+- Solution Structure
+- Project References
+- Commands Run and Outputs
+- Build/Test Result
+- CLI Smoke Result
+- Boundary Check
+- Blockers
+- Next Safe Step
 
-Until then, Claude should answer only:
+In Claude chat reply only:
 
-```text
-BLOCKED / BRIDGE_IDLE
-```
+Bridge report ready. Tell GPT: отчёт.
