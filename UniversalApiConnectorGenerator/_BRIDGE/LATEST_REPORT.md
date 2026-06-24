@@ -2,10 +2,19 @@ REQUEST_ID: NONE
 STATUS: NO_REPORT
 PROJECT: UniversalApiConnectorGenerator
 GATE: ARCHITECTURE_DISCOVERY
-UPDATED: 2026-06-23
+PROMPT_PATH: UniversalApiConnectorGenerator/_BRIDGE/PROMPTS/ACTIVE_REQUEST.md
+REPORT_PATH: UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
+COMPATIBILITY_PATH: UniversalApiConnectorGenerator/_BRIDGE/LATEST_REPORT.md
+UPDATED: 2026-06-24
 
-# No Claude Report Yet
+# Compatibility Report Pointer
 
-The project bridge is initialized. No Claude execution has run and no report is ready for audit.
+The canonical Claude report is:
 
-Do not treat reports from TwinCore or the global bridge as current project evidence.
+```text
+UniversalApiConnectorGenerator/_BRIDGE/REPORTS/LATEST_REPORT.md
+```
+
+When Slava writes `отчёт`, Architect GPT reads and audits that canonical file.
+
+No Claude report exists yet.
