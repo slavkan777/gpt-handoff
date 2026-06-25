@@ -1,179 +1,175 @@
-REQUEST_ID: REQ-2026-06-25-uacg-ai-integrator-azure-preflight-v0-1
+REQUEST_ID: REQ-2026-06-25-uacg-ai-integrator-initial-import-v0-1
 STATUS: READY_FOR_GPT_AUDIT
 PROJECT: UniversalApiConnectorGenerator
-GATE: AI_INTEGRATOR_AZURE_PREFLIGHT_V0_1
+GATE: AI_INTEGRATOR_INITIAL_IMPORT_V0_1
 TARGET_AZURE_REPO: https://dev.azure.com/twincore-net/twincore-framework/_git/AI-Integrator
+TARGET_BRANCH: feature/uacg-initial-import
+PR_TARGET_BRANCH: main
 LOCAL_SOURCE_WORKSPACE: C:\Projects\UniversalApiConnectorGenerator
-MODE: AZURE_DEVOPS_PREFLIGHT_READONLY
-TARGET_FRAMEWORK: net9.0-temporary (final target net10.0, later migration)
+TARGET_WORKSPACE: C:\Projects\AI-Integrator
 COMPLETED_BY: claude
 COMPLETED: 2026-06-25
 
-# AI-Integrator Azure preflight (read-only) — report
+# AI-Integrator initial import — report
 
-> Read-only preflight before publishing the standalone Universal API Connector Generator into the
-> AI-Integrator Azure DevOps repo. Nothing was published to the Azure repo. All checks passed.
+> Imported the standalone Universal API Connector Generator into the AI-Integrator Azure repo at root,
+> on branch feature/uacg-initial-import, with build/test evidence, then committed, pushed, and opened a
+> PR into main. NOT merged. No force. No policy/Boards/pipeline changes. No TwinCore edits.
 
 ## 1. Route Used
 
-DIRECT_MACRO (one brain, read-only). No subagents, no implementation, no import/publish of project code.
+TITAN_ELITE_4. Atlas (build/import) + an independent Argus auditor (read-only) before the push/PR.
+Athena/Hermes N/A (no product-logic change beyond a faithful import; no UI). No self-acceptance.
 
 ## 2. Routing Lock Verification — PASS
 
-Verified against the authoritative bridge STATUS.json (origin/main tip `555c9ea`):
-- REQUEST_ID = `REQ-2026-06-25-uacg-ai-integrator-azure-preflight-v0-1` — matches.
-- PROJECT = `UniversalApiConnectorGenerator` — matches.
-- GATE = `AI_INTEGRATOR_AZURE_PREFLIGHT_V0_1` — matches.
-- PROMPT_PATH / REPORT_PATH — match STATUS.json.
-- STATE = `READY_FOR_CLAUDE`, mode = `AZURE_DEVOPS_PREFLIGHT_READONLY`.
+Verified against bridge STATUS.json (origin/main tip 700243e):
+REQUEST_ID = REQ-2026-06-25-uacg-ai-integrator-initial-import-v0-1, PROJECT = UniversalApiConnectorGenerator,
+GATE = AI_INTEGRATOR_INITIAL_IMPORT_V0_1, STATE = READY_FOR_CLAUDE, mode = AZURE_DEVOPS_INITIAL_IMPORT,
+targetWorkspace = C:\Projects\AI-Integrator, targetBranch = feature/uacg-initial-import, prTargetBranch = main.
+All match. REPORT_PATH writable.
 
-(An earlier attempt was correctly held as BLOCKED because the bridge had not yet been synced to this gate;
-the Architect then pushed the canonical prompt + STATUS.json (`555c9ea`), so the gate is now validly open.)
+## 3. Starting State
 
-## 3. Bridge Verification — PASS
+- Azure repo AI-Integrator: branch main only, HEAD 5c1ac55 ("Added README.md, .gitignore (VisualStudio)").
+  Only 2 tracked files (.gitignore, README.md) — effectively empty/dedicated. No pre-existing solution.
+  No pre-existing feature/uacg-initial-import branch.
+- Local source C:\Projects\UniversalApiConnectorGenerator: builds 0/0, tests 29/29 (net9.0). Not a git repo.
+- Cloned the repo to C:\Projects\AI-Integrator; created feature/uacg-initial-import from origin/main.
 
-- Bridge readable at `gpt-handoff/UniversalApiConnectorGenerator/_BRIDGE/` (via `git show origin/main:…`).
-- STATUS.json, README.md, and the canonical REQ prompt all read successfully.
-- Report path writable (this report is published to `_BRIDGE/REPORTS/LATEST_REPORT.md`).
-- No BRIDGE_UNAVAILABLE condition.
+## 4. Files Imported (50 changed; root-level)
 
-## 4. Local Workspace Verification — PASS
+- UniversalApiConnectorGenerator.sln
+- src/ (5 projects, source only): ConnectorGenerator.{Cli, Application, Domain, Infrastructure, Profiles.Rate}
+  — 31 files (*.cs + *.csproj).
+- tests/ — ConnectorGenerator.Tests (6 *.cs + .csproj) + fixtures (api/rate-minimal.yaml, api/malformed.yaml) — 9 files.
+- docs/ (7): ARCHITECTURE_UA.md, USER_AGENT_SCENARIOS_UA.md, USER_DEMO_GUIDE_UA.md, USER_FULL_GUIDE_UA.md,
+  USER_FULL_GUIDE_UA.html, USER_FULL_GUIDE_UA.pdf, MANUAL_UPS_SANDBOX_USER_VALIDATION_REPORT_UA.md.
+- README.md (replaced placeholder), .gitignore (merged).
 
-- `C:\Projects\UniversalApiConnectorGenerator` exists; `UniversalApiConnectorGenerator.sln` present.
-- `src/`: ConnectorGenerator.{Cli, Domain, Application, Infrastructure, Profiles.Rate} — all 5 present.
-- `tests/`: ConnectorGenerator.Tests + `fixtures/` present.
-- `docs/`: ARCHITECTURE_UA.md, USER_AGENT_SCENARIOS_UA.md, USER_FULL_GUIDE_UA.(md|html|pdf),
-  MANUAL_UPS_SANDBOX_USER_VALIDATION_REPORT_UA.md, plus one legacy **personal-named** demo-guide
-  markdown (see §13/§15 — rename to `USER_DEMO_GUIDE_UA.md` on import).
-- Runtime/output dirs present and NOT for import: `data/`, `logs/`, `output/`.
-- Local workspace is **not** a git repo.
-- SDKs: 8.0.422 and 9.0.304; no .NET 10 SDK → local target stays `net9.0` (final net10.0 later).
+## 5. Files Excluded
 
-## 5. Local Build/Test Evidence — PASS
+bin/, obj/, .vs/, .idea/, *.user, *.suo, logs/, output/ (generated scan/generate runs), data/ runtime,
+temp files, *.stackdump, secrets/local-settings. The source workspace's data/, logs/, output/ were never
+copied; any bin/obj that rode along with src/tests were stripped before staging. The explicit-list commit
+(`git add UniversalApiConnectorGenerator.sln docs src tests .gitignore README.md`) staged 50 files, all
+source/doc/test — verified zero artifacts.
 
-- `dotnet restore <sln>` → exit 0 (all up to date).
-- `dotnet build <sln> -c Debug --no-restore` → `0 Warning(s) / 0 Error(s)`, exit 0.
-- `dotnet test <sln> -c Debug --no-build` → `Passed! Failed: 0, Passed: 29, Skipped: 0, Total: 29`,
-  exit 0, net9.0.
+## 6. Privacy Rename Result — PASS
 
-## 6. Local Publish-Readiness Assessment — READY (with one rename)
+- Renamed the legacy personal-named demo-guide file to docs/USER_DEMO_GUIDE_UA.md (in the import; source workspace left untouched).
+- All references to the old filename updated (0 remaining references to the old personal-named filename in the import).
+- Case-insensitive personal-name scan (the legacy first name + Cyrillic variants) across the import content + filenames: 0 matches.
+- Additionally sanitized one absolute local-user path (a local secrets directory) inside the UPS
+  validation report to a generic `~/.claude/secrets/` — no machine/user path leaks remain.
 
-- Standalone solution; builds and tests clean; the generated review package compiles with zero
-  external/project references (per prior gates). Self-contained — suitable to live in its own repo.
-- Documentation package present (UA): architecture, full guide (md/html/pdf), user-agent scenarios,
-  UPS manual-validation report.
-- One pre-import fix required: rename the legacy personal-named demo-guide file to
-  `USER_DEMO_GUIDE_UA.md` and update references (already done in the TwinCore vendored copy; the
-  standalone source workspace was not updated).
-- Runtime/generated dirs (`data/`, `logs/`, `output/`) and build artifacts must be excluded.
+## 7. README/.gitignore Reconciliation
 
-## 7. Azure Repo Access Result — PASS
+- README.md: the Azure init README was the default Azure template (TODO stubs). Replaced with a real
+  project README (UA) covering: name, purpose, standalone note, not-Rate-only, .NET 9 now / net10 later,
+  restore/build/test + inspect/generate/verify commands, honest limitations (no live UPS, no creds, no LLM
+  runtime dependency, not production), and docs links (USER_FULL_GUIDE_UA, USER_AGENT_SCENARIOS_UA,
+  USER_DEMO_GUIDE_UA, ARCHITECTURE_UA).
+- .gitignore: kept the existing VisualStudio template and appended a project block (bin/ obj/ .vs/ .idea/
+  *.user *.suo logs/ output/ data/*.db data/*.db-* *.log .env *.secret* secrets.* appsettings.*.local.json)
+  plus *.stackdump (Git-Bash crash-dump guard). Not overwritten.
 
-- `git ls-remote <repo>` → exit 0, no interactive prompt (`GIT_TERMINAL_PROMPT=0`). ACCESS_OK = yes.
-- REMOTE_URL_CONFIRMED = yes. No secrets/tokens printed or stored.
-
-## 8. Azure Repo Branch/Tree Result
-
-- DEFAULT_BRANCH = `main` (only branch). HEAD = refs/heads/main = `5c1ac559…`.
-- EXISTING_BRANCHES_VISIBLE: `main` only.
-- Single commit: `5c1ac55 "Added README.md, .gitignore (VisualStudio) files"` (standard repo init).
-- Tracked files (2): `.gitignore`, `README.md`.
-- Inspected via a temporary read-only shallow clone under the session scratchpad (inspection only).
-
-## 9. Repo Empty or Existing Content Assessment
-
-- REPO_EMPTY = effectively yes (only init scaffolding: README.md + VisualStudio .gitignore).
-- EXISTING_TOP_LEVEL_FILES: `.gitignore`, `README.md`.
-- EXISTING_SOLUTIONS: none.
-- ANY_RISK_OF_OVERWRITE: **low** — only `README.md` collides (reconcile content), and the existing
-  VisualStudio `.gitignore` must be merged with the project's ignore rules. No source/solution to clobber.
-
-## 10. Proposed Safe Import Location
-
-Repo is dedicated and effectively empty, and the owner asked for it as a separate solution
-("окремий sln") → import the standalone solution at **repo root** (not a subfolder).
+## 8. Commands Run and Exit Codes
 
 ```text
-AI-Integrator/ (root)
-|- UniversalApiConnectorGenerator.sln
-|- src/      (5 projects, source only)
-|- tests/    (ConnectorGenerator.Tests + fixtures)
-|- docs/     (UA docs; legacy demo guide renamed to USER_DEMO_GUIDE_UA.md)
-|- README.md (reconciled with the existing init README)
-`- .gitignore (project rules merged into the existing VisualStudio template)
+# source verify
+dotnet restore <src sln> -> 0 ; dotnet build -> 0 (0/0) ; dotnet test -> 0 (29/29)
+git ls-remote --heads <AI-Integrator> -> main only
+# prepare
+git clone <AI-Integrator> C:\Projects\AI-Integrator -> 0 ; git switch -c feature/uacg-initial-import -> 0
+# import verify (in C:\Projects\AI-Integrator)
+dotnet restore -> 0 ; dotnet build -> 0 (0/0) ; dotnet test --no-build -> 0 (29/29)
+inspect --source tests/fixtures/api/rate-minimal.yaml -> 0
+generate --source ... --profile rate -> 2 (review required, 6 markers)
+verify (no --package) -> 0 (stub)
+# commit/push/PR
+git add <explicit 6-path list> ; git commit -> 0 (490d973, 50 files) ; git push -u origin feature/uacg-initial-import -> 0
+az repos pr create (feature -> main) -> 0 (PR 4404, active)
 ```
 
-## 11. Proposed Next Gate
+## 9. Build/Test Result — PASS
 
-`AI_INTEGRATOR_INITIAL_IMPORT_V0_1` (separate, explicitly authorized): perform the actual import
-(copy source-only tree), open a PR into `main`. Read-only preflight ends here; import is NOT part of this gate.
+Source AND imported repo: build 0 warnings / 0 errors; test Passed 29 / Failed 0 / Skipped 0 (net9.0).
 
-## 12. Proposed Branch / Commit / PR Plan
+## 10. CLI Smoke Result — PASS
 
-- Branch: `feature/uacg-initial-import`
-- PR target: `main` (default).
-- Commit message: `initial Universal API Connector Generator standalone solution`.
-- Merge: normal merge; no squash unless repo policy requires; no source-branch delete unless repo default;
-  no policy bypass. (Boards/work-item linking in this org currently 401s for the available credential —
-  link via web UI or a Boards-scoped PAT if needed.)
+inspect exit 0 ("inspect OK. Artifacts: ...\output\<run>\scan"); generate --profile rate exit 2
+("review package created, review required, 6 marker(s)"); verify (no --package) exit 0 (stub). The
+output/ artifacts produced by smoke are gitignored and were not staged.
 
-## 13. Files/Folders To Import
+## 11. Security/Privacy Scan Result — PASS
 
-- `UniversalApiConnectorGenerator.sln`
-- `src/` (all 5 projects, source only)
-- `tests/` (ConnectorGenerator.Tests + `fixtures/`)
-- `docs/` (rename legacy personal-named demo guide → `USER_DEMO_GUIDE_UA.md`; keep the rest)
-- `README.md` (reconciled), `.gitignore` (merged)
+- High-entropy secret tokens (sk-ant-/ghp_/glpat-/xoxb-/AKIA/private-key headers): 0.
+- Personal name (legacy first name + Cyrillic): 0 (content + filenames).
+- Absolute local-user path: 0 after sanitization.
+- The UPS validation report mentions env-var NAMES only (UPS_CLIENT_ID/UPS_CLIENT_SECRET/UPS_BASE_URL) +
+  the public sandbox host wwwcie.ups.com — documentation, not secret values. No secret value printed/stored.
 
-## 14. Files/Folders To Exclude
+## 12. Git Status Before Commit
 
-- `bin/`, `obj/`
-- `.vs/`, `.idea/`
-- `*.user`, `*.suo`
-- `logs/` (runtime logs)
-- `output/` (generated scan/generate run artifacts)
-- `data/` runtime contents (keep only `.gitkeep` if the app needs the dir)
-- any secrets / local user settings / temp files (none found in workspace)
+` M .gitignore`, ` M README.md`, `?? UniversalApiConnectorGenerator.sln`, `?? docs/`, `?? src/`, `?? tests/`.
+No bin/obj/output/logs/.vs/.idea/data, no stray files.
 
-## 15. Risks / Ambiguities
+## 13. Commit Result
 
-- **Privacy (action):** the source `docs/` still contains a legacy **personal-named** demo-guide
-  filename; on import it must be renamed to `USER_DEMO_GUIDE_UA.md` (org repo must stay personal-name-free).
-- **README/.gitignore reconciliation:** the repo already has both — decide merge vs replace, don't blind-overwrite.
-- **net9.0 vs net10.0:** import stays net9.0; net10 migration is a separate later gate.
-- **No live UPS validation:** still blocked by missing sandbox credentials; no production claim.
-- **README "Швидкий старт" path:** source README references the old workspace root path; harmless, can be
-  updated during import.
+Commit 490d973 on feature/uacg-initial-import (parent 5c1ac55). Message: "initial Universal API Connector
+Generator standalone solution". 50 files changed, 2761 insertions(+), 20 deletions(-). Author: Vyacheslav
+Krakovskiy (no AI identification, no Co-Authored-By). Explicit file-list add (not `git add -A`).
 
-## 16. Blockers / Manual Actions Needed
+## 14. Push Result
 
-- None blocking this read-only preflight. The gate is verified open and complete.
-- For the NEXT (import) gate: authorize `AI_INTEGRATOR_INITIAL_IMPORT_V0_1`; the import must perform the
-  doc rename first and exclude the artifacts in §14.
+`git push -u origin feature/uacg-initial-import` -> exit 0; `[new branch] feature/uacg-initial-import ->
+feature/uacg-initial-import`; upstream tracking set. No force.
 
-## 17. Boundary Check
+## 15. PR Result
 
-Explicit yes/no (scope = Azure repo / local project / TwinCore, per the gate's FORBIDDEN list):
+PR #4404 created, status active, isDraft false, source refs/heads/feature/uacg-initial-import ->
+target refs/heads/main. Title: "Initial Universal API Connector Generator standalone solution".
+URL: https://dev.azure.com/twincore-net/twincore-framework/_git/AI-Integrator/pullrequest/4404
+Not merged. No work-item link attempted (Boards edits are forbidden this gate and the org credential lacks
+Boards scope).
 
-- Source code edited in local project: NO
-- Azure repo modified: NO
-- Branch created: NO
-- Commit created: NO  (Azure repo / project; the only commit was publishing THIS report to the gpt-handoff Bridge repo — the required reporting action)
-- Push performed: NO  (Azure repo / project; same note as above — Bridge report publish only)
-- PR created: NO
+## 16. Boundary Check
+
+- Local source workspace edited: NO
+- Azure repo branch created: YES (feature/uacg-initial-import)
+- Azure repo main modified directly: NO
+- Commit created on feature branch: YES (490d973)
+- Push performed to feature branch: YES
+- PR created: YES (#4404)
+- Merge performed: NO
 - TwinCore-framework source edited: NO
+- TwinCore.sln edited: NO
 - Old AiIntegrator/G0/G1/G2 continued: NO
 - Secrets printed/stored: NO
 - Live UPS/provider call: NO
+- DeepSeek/paid LLM call: NO
 - Deployment/production claim: NO
+- AIKB edited: NO
+- claude-vault edited: NO
 
-Other: no AIKB writes, no claude-vault edits, no copying/importing project files into the Azure repo.
-Only the temporary read-only inspection clone (scratchpad) + local build/test artifacts were created locally.
+(The only commit+push beyond the Azure feature branch is this Bridge report to the gpt-handoff handoff repo
+— the required reporting action.)
+
+## 17. Blockers / Deviations
+
+- No blockers. PR is open and ready for review.
+- Independent QA (Argus, read-only) initially returned FAIL on one item: a stray `grep.exe.stackdump`
+  created by Argus's own crashing Git-Bash grep would have been staged by a blanket add. Fixed (deleted +
+  `*.stackdump` gitignored + explicit file-list add), re-audited -> ARGUS: SAFE. This is recorded for honesty;
+  it was an audit artifact, not an import defect.
+- Benign: Git reported LF->CRLF normalization warnings on staging (autocrlf); content intact.
+- The doc set includes the UPS manual-validation report (sanitized). If GPT prefers docs to contain only the
+  user guides, that report can be removed in a follow-up — flagged, not assumed.
 
 ## 18. Next Safe Step
 
-1. Architect GPT audits this report (`отчёт`); Slava gives final acceptance.
-2. On acceptance, open the import gate `AI_INTEGRATOR_INITIAL_IMPORT_V0_1`: rename the legacy
-   personal-named doc, import the source-only tree at repo root on `feature/uacg-initial-import`,
-   open a PR into `main` (no policy bypass, exclude §14 artifacts).
-3. Separate later gates: net9.0 → net10.0 migration; live UPS sandbox validation once credentials exist.
+1. Architect GPT audits this report (отчёт) + the PR; Slava gives final acceptance.
+2. A human/authorized role completes (merges) PR #4404 into main if accepted — NOT done by me this gate.
+3. Later separate gates: net9.0 -> net10.0 migration once a .NET 10 SDK is installed; live UPS sandbox
+   validation once credentials exist; optional GitHub mirror.
