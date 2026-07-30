@@ -1,0 +1,3 @@
+# Build artifacts from the NSwag/Kiota build trial — do not commit
+**/bin/
+**/obj/

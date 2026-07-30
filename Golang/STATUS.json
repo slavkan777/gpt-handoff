@@ -1,0 +1,17 @@
+{
+  "project": "GolangInterviewPreparation",
+  "repository": "slavkan777/gpt-handoff",
+  "path": "Golang/",
+  "state": "READY_FOR_PHANTOM_SMOKE_TEST",
+  "artifacts": [
+    "01_Official_CV_EN.md",
+    "02_Phantom_Candidate_Brain_EN_v3.txt",
+    "03_Phantom_Vacancy_Technical_Brain_EN_v3.txt",
+    "04_Canonical_Project_Legend.md",
+    "05_Go_Project_Architecture.md",
+    "06_Interview_Strategy.md",
+    "07_Demo_and_Portfolio.md"
+  ],
+  "sourceSafety": "sanitized-no-client-code-no-secrets",
+  "updatedAt": "2026-07-27"
+}

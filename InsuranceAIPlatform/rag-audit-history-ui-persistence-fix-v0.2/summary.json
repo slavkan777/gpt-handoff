@@ -1,0 +1,57 @@
+{
+  "requestId": "REQ-2026-06-04-insuranceai-rag-audit-history-ui-persistence-fix-v0-2",
+  "project": "InsuranceAIPlatform",
+  "gate": "RAG_AUDIT_HISTORY_UI_PERSISTENCE_FIX_AND_PRE_MANUAL_ACCEPTANCE_V0.2",
+  "status": "READY_FOR_AUDIT",
+  "completed": "2026-06-04",
+  "completedBy": "claude",
+  "scope": "frontend + e2e only (no backend change; audit endpoint already existed)",
+  "productRepoState": { "branch": "rag/local-foundation-mega-v0.1", "committed": false, "pushed": false },
+  "verification": {
+    "dotnetTest": "158/158 passed, 0 skipped (exit 0)",
+    "frontendBuild": "npm run build exit 0",
+    "e2e": {
+      "command": "npx playwright test 22-rag-evidence --config playwright.mock.config.ts --reporter=list",
+      "exitCode": 0,
+      "passed": 8,
+      "skipped": 0,
+      "persistenceTest": "rag-audit-row count = 2 before AND after page.reload()",
+      "apiMode": "MOCK"
+    },
+    "noBackendTouched": "find server -name *.cs -newermt '15 minutes ago' => empty",
+    "filesTouched": [
+      "src/components/claim/RagAuditHistoryPanel.tsx",
+      "src/features/rag/ragSlice.ts",
+      "src/features/rag/ragSaga.ts",
+      "src/features/rag/ragSelectors.ts",
+      "src/api/backendInsuranceApi.ts",
+      "src/api/mockInsuranceApi.ts",
+      "src/pages/AiEvidencePage.tsx",
+      "e2e/22-rag-evidence.spec.ts"
+    ]
+  },
+  "persistenceChain": {
+    "backendPersists": "RagAuditTrace rows (verified v0.1)",
+    "backendApi": "GET /api/claims/{claimId}/rag/audit?limit=10",
+    "mockApi": "2 deterministic rows, stable across reload",
+    "uiRehydration": "useEffect dispatch fetchAuditHistory on every mount (survives page.reload)",
+    "e2eProves": "UI reload-persistence in MOCK; backend DB persistence verified v0.1"
+  },
+  "uiLabels": {
+    "MECHANICAL_PASS": true,
+    "SEMANTIC_PASS": true,
+    "NEGATIVE_PASS": true,
+    "PERSISTENCE_PASS": true
+  },
+  "screenshots": [
+    "test-results/rag-08-persistence-before-reload.png",
+    "test-results/rag-09-persistence-after-reload.png"
+  ],
+  "boundariesHonored": [
+    "no backend .cs changed", "no product-repo commit/push", "no Azure", "no deploy",
+    "no secrets", "no PII", "no global _BRIDGE", "no TwinCore", "advisory tone preserved"
+  ],
+  "knownLimitations": [
+    "e2e reload-persistence demonstrated in MOCK mode; LIVE-backend browser e2e not re-run this gate (backend DB persistence verified v0.1)"
+  ]
+}

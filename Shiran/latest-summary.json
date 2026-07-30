@@ -1,0 +1,32 @@
+{
+  "project": "Shiran",
+  "task": "bootstrap-audit-readonly",
+  "requestId": "REQ-2026-06-11-shiran-bootstrap-audit-readonly",
+  "status": "BLOCKED",
+  "taskType": "bootstrap-audit",
+  "gate": "PROJECT_BOOTSTRAP_AUDIT_READ_ONLY",
+  "mode": "READ_ONLY",
+  "handoff": "github",
+  "repo": "slavkan777/gpt-handoff",
+  "bridge": "project-specific",
+  "publicSanitized": true,
+  "aikbProjectRegistered": false,
+  "aikbCheckedAgainst": "local AIKB clone main@5faab63 (2026-06-10); remote unverifiable (MCP PAT invalid)",
+  "sourceRepoProvided": false,
+  "sourceRepoVerified": false,
+  "handoffChannelExistedBefore": false,
+  "blockedReasons": [
+    "AIKB folder 01_PROJECTS/Shiran missing (project unregistered)",
+    "source repo remote/branch/path never provided in routing lock",
+    "READ-FIRST file GLOBAL_BOOTSTRAP_MODE_RULE.md does not exist in AIKB (template drift)",
+    "github MCP PAT invalid - remote AIKB unverifiable, MCP publishing unavailable"
+  ],
+  "implementationPerformed": false,
+  "sourceCodeChanged": false,
+  "aikbUpdated": false,
+  "globalBridgeUsedAsReportLocation": false,
+  "supersedes": null,
+  "nextGate": "shiran-registration-gate (architect-gpt)",
+  "completedBy": "claude",
+  "completed": "2026-06-11"
+}

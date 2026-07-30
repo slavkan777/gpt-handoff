@@ -1,0 +1,42 @@
+{
+  "requestId": "REQ-2026-06-05-insuranceai-business-process-acceptance-sweep-v0-1",
+  "gate": "BUSINESS_PROCESS_ACCEPTANCE_SWEEP_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "selfAccepted": false,
+  "productSourceChanged": false,
+  "commit": "none (HEAD 912e841 unchanged)",
+  "pushed": false,
+  "scenarioResults": {
+    "A_manager_happy_path": "pass",
+    "B_evidence_quality": "pass",
+    "C_degraded_continuity": "pass",
+    "D_cross_claim_separation": "pass",
+    "E_repeated_actions_audit": "pass",
+    "F_insufficient_evidence": "pass (CLM-1061 conf 0%, 0 citations, human-review wording)",
+    "G_partial_coverage": "NOT_COVERED (no seeded partial-coverage claim + deterministic mock generator)",
+    "H_similar_claims": "pass (claim-level only; in-process ranking, not Qdrant - truthful limitation)",
+    "I_readability": "pass-with-caveat (confidence 1400% hurts readability)",
+    "J_demo_flow": "pass-with-caveats",
+    "K_error_state": "pass (honest degraded; confidence bug is the one real defect)",
+    "L_legal_decision_boundary": "pass (advisory-only, no binding/payout/fraud wording)"
+  },
+  "productBugsFound": [
+    {
+      "severity": "MEDIUM",
+      "title": "Confidence renders 1400% in real-backend mode",
+      "cause": "UI does confidence*100 (ClaimEvidenceIntelligencePanel.tsx:303); mock returns 0-1 fraction, real backend returns 0-100 int (backendInsuranceApi.ts:374 raw passthrough)",
+      "impact": "manager-facing credibility; no crash/leak/legal impact",
+      "fixed": false
+    }
+  ],
+  "dataGaps": ["no partial-coverage seeded claim (G)", "50/56 claims have zero RAG chunks"],
+  "recommendedFixGates": ["CONFIDENCE_CONTRACT_FIX (small)", "real generator + seeded nuance cases", "plain-language status labels (optional)"],
+  "legalSafety": "pass - advisory only, no binding/payout/rejection/fraud wording",
+  "manualAcceptanceRecommendation": "business-ready with ONE fix (confidence display) before stakeholder demo",
+  "uiSweep": "7 passed (50.8s)",
+  "transientFilesDeleted": ["playwright.acceptance.config.ts", "e2e/_business-sweep.spec.ts"],
+  "envLocalRevertedToMock": true,
+  "updated": "2026-06-05"
+}

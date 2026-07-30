@@ -1,0 +1,17 @@
+{
+  "bridge": "gpt-handoff/Shiran/_BRIDGE",
+  "scope": "project",
+  "project": "Shiran",
+  "state": "REPORT_READY",
+  "activeRequestId": "REQ-2026-06-11-shiran-bootstrap-audit-readonly",
+  "activeRequestType": "bootstrap-audit",
+  "gate": "PROJECT_BOOTSTRAP_AUDIT_READ_ONLY",
+  "targetReportPath": "Shiran/_BRIDGE/LATEST_REPORT.md",
+  "projectReportPath": "Shiran/bootstrap-audit-readonly/report.md",
+  "compatibilityReportPath": "Shiran/latest-report.md",
+  "lastReportId": "REQ-2026-06-11-shiran-bootstrap-audit-readonly",
+  "lastReportStatus": "BLOCKED",
+  "supersedes": null,
+  "updated": "2026-06-11",
+  "updatedBy": "claude"
+}

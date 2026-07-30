@@ -1,0 +1,29 @@
+{
+  "requestId": "REQ-2026-06-06-insuranceai-azure-sql-rag-migrate-seed-redeploy-mega-v0-1",
+  "gate": "AZURE_SQL_RAG_MIGRATE_SEED_AND_REDEPLOY_MEGA_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "BLOCKED",
+  "completedBy": "claude",
+  "azureMutated": false,
+  "firewallRuleCreated": false,
+  "blocker": {
+    "what": "No secret-safe DDL credential path to Azure SQL InsuranceAIPlatform from my workstation",
+    "evidence": [
+      "sql-connection secret is passwordless MI-token connection string (len 173, no Password/Authentication/ActiveDirectory keywords); app uses AZURE_CLIENT_ID (Managed Identity iap-demo-api-mi)",
+      "SQL server has NO Entra admin (az sql server ad-admin list = [])",
+      "my identity info.msdn.com@gmail.com has NO Key Vault data-plane access (secret list denied)",
+      "no SQL DB login for me; gate forbids pasting a secret in chat"
+    ],
+    "type": "access/ownership decision, not a technical defect"
+  },
+  "toolingReady": { "dotnet-ef": true, "sqlcmd": true, "dbMigrator": "present", "myClientIp": "176.36.240.192", "firewall": "only AllowAllAzureServices" },
+  "didNotDo": "no Entra admin set, no KV grant, no firewall rule, no migration, no image push, no containerapp update, no SWA change (all would exceed allowed changes or require unavailable creds)",
+  "secretHandling": "sql-connection retrieved for auth-method classification ONLY; value never printed/stored",
+  "unblockOptions": {
+    "option1_recommended": "Slava runs DbMigrator with his own admin connection string (idempotent: AddRagFoundation + RagSeeder), then next prompt I deploy+smoke",
+    "option2": "Slava grants me access (set SQL Entra admin + DDL DB user for info.msdn.com@gmail.com, OR Key Vault Secrets User if a SQL admin connstring is stored) then I do migrate+deploy+smoke next prompt"
+  },
+  "rollbackTargetForDeploy": "iap-demo-api--0000002",
+  "deployReadyAfterSql": "docker build server/Dockerfile -> push GHCR -> az containerapp update --image --set-env-vars Rag__QdrantEnabled=false Rag__LocalLlamaEnabled=false -> smoke -> SWA backend mode",
+  "selfAccepted": false
+}

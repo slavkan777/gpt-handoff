@@ -1,0 +1,17 @@
+{
+  "project": "AI_Load_Profitability_Advisor",
+  "gate": "planning-specification",
+  "requestId": "NONE",
+  "state": "NO_ACTIVE_REQUEST",
+  "activeRequestPath": "AI_Load_Profitability_Advisor/_BRIDGE/ACTIVE_REQUEST.md",
+  "latestReportPath": "AI_Load_Profitability_Advisor/_BRIDGE/LATEST_REPORT.md",
+  "gateReportPath": "",
+  "sourceRepo": "slavkan777/twincore-load-profitability-advisor",
+  "sourceBranch": "",
+  "sourceCommitBefore": "",
+  "sourceCommitAfter": "",
+  "handoffCommit": "",
+  "nextActor": "Slava",
+  "updatedAt": "2026-07-28T23:59:00+03:00",
+  "blockedReason": "Source repository creation and owner review are not yet completed."
+}

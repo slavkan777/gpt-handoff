@@ -1,0 +1,14 @@
+{
+  "bridge": "gpt-handoff/Template/_BRIDGE",
+  "scope": "project-specific (does NOT touch global _BRIDGE, TwinCore, or InsuranceAIPlatform)",
+  "state": "REPORT_READY",
+  "selfInitiated": true,
+  "activeRequestId": "REQ-2026-06-05-template-v51-molecular-study",
+  "activeProject": "Template",
+  "targetReportPath": "Template/_BRIDGE/LATEST_REPORT.md",
+  "projectReportPath": "Template/latest-report.md",
+  "lastReportId": "REQ-2026-06-05-template-v51-molecular-study",
+  "lastReportStatus": "READY_FOR_AUDIT",
+  "updated": "2026-06-05",
+  "updatedBy": "claude"
+}

@@ -1,0 +1,16 @@
+{
+  "project": "Template",
+  "reportId": "REQ-2026-06-05-template-v51-molecular-study",
+  "status": "READY_FOR_AUDIT",
+  "selfInitiated": true,
+  "task": "Molecular study of UNIVERSAL_TEMPLATE_ALL_IN_ONE_V5_1_GIANT.md",
+  "keyFindings": [
+    "File on disk is valid UTF-8; chat mojibake only",
+    "Consistent with architect-bridge memory + ai-kb PROJECT_BRIDGE_PROTOCOL v1.1",
+    "Section 0 vs 12 drift: project-specific bridge primary wins",
+    "Local Claude operating policy is stricter than section 5 (Anthropic-only models)",
+    "claude-vault pillar unverified"
+  ],
+  "globalBridgeUntouched": true,
+  "updated": "2026-06-05"
+}

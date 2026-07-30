@@ -1,0 +1,30 @@
+{
+  "requestId": "REQ-2026-06-05-insuranceai-playwright-manual-acceptance-sweep-v0-1",
+  "gate": "PLAYWRIGHT_MANUAL_ACCEPTANCE_SWEEP_V0.1",
+  "project": "InsuranceAIPlatform",
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "selfAccepted": false,
+  "productBugsFound": 0,
+  "productSourceChanged": false,
+  "commit": "none (HEAD 912e841 unchanged)",
+  "pushed": false,
+  "sweepRun": "7 passed (real backend, A,B,C,E,F,G,D)",
+  "regressionRun": "spec22 mock 12 passed",
+  "caseResults": {
+    "A_startup_no_console_errors": "pass",
+    "B_clm1006_happy_path_qdrant": "pass",
+    "C_infra_api_eq_ui_collection_populated": "pass",
+    "D_fallback_stop_qdrant_no_fake_restart": "pass",
+    "E_cross_claim_clm1009_no_leakage": "pass",
+    "F_rapid_clicks_nav_reload_no_crash": "pass",
+    "G_responsive_desktop_mobile": "pass",
+    "H_regression_spec22_mock_12_12": "pass"
+  },
+  "harnessFinding": "first attempt showed vector=disabled due to frontend mock mode (stale vite / .env precedence); fixed by forcing VITE_INSURANCE_API_MODE=backend. NOT a product bug. Acceptance note: ensure UI is in backend mode.",
+  "transientFilesDeleted": ["playwright.acceptance.config.ts", "e2e/_acceptance-sweep.spec.ts"],
+  "envLocalRevertedToMock": true,
+  "manualAcceptanceRecommendation": "READY",
+  "boundariesHonored": ["no product changes","no commit","no push","no main","no Azure","no deploy","no paid","no secrets","no PII","no Ollama","no migration","no fake pass"],
+  "updated": "2026-06-05"
+}

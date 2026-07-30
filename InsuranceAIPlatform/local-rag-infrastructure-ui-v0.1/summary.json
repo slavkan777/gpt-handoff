@@ -1,0 +1,40 @@
+{
+  "requestId": "REQ-2026-06-04-insuranceai-local-rag-infra-ui-v0-1",
+  "project": "InsuranceAIPlatform",
+  "gate": "LOCAL_RAG_INFRASTRUCTURE_UI_DEMO_V0.1",
+  "status": "READY_FOR_AUDIT",
+  "completed": "2026-06-04",
+  "completedBy": "claude",
+  "scope": "backend (status + reindex endpoints, no schema change) + frontend (Evidence Intelligence Stack panel) + e2e",
+  "productRepoState": { "branch": "rag/local-foundation-mega-v0.1", "committed": false, "pushed": false },
+  "verification": {
+    "dotnetTest": "160/160 passed, 0 skipped (exit 0; 158 + 2 new)",
+    "frontendBuild": "npm run build exit 0",
+    "e2e": {
+      "command": "npx playwright test 22-rag-evidence --config playwright.mock.config.ts",
+      "exitCode": 0, "passed": 12, "skipped": 0,
+      "newTests": ["infra MECHANICAL", "infra SEMANTIC", "infra ACTION reindex", "infra NEGATIVE no-live-model"]
+    },
+    "liveSmokeLocalReal": {
+      "getInfrastructure": "200 — sql healthy 8/50/21/4; index healthy CLM-1006 13/13 local-hash-embed-v0.1/256; runtime disabled enabled=false",
+      "postReindex": "200 — idempotent, index stays healthy",
+      "missingClaim404": true,
+      "noEndpointUrlLeak": true
+    }
+  },
+  "providerLabels": { "infrastructureAndReindex": "LOCAL_REAL", "reasoningRuntime": "disabled/mock" },
+  "endpoints": [
+    "GET /api/claims/{claimId}/rag/infrastructure",
+    "POST /api/claims/{claimId}/rag/infrastructure/reindex"
+  ],
+  "uiTestids": ["rag-infra-stack","rag-infra-sql","rag-infra-index","rag-infra-runtime","rag-infra-check-btn","rag-infra-reindex-btn"],
+  "boundariesHonored": [
+    "no commit/push/deploy", "no schema change / no EF migration", "no Azure", "no paid AI / no live model",
+    "no secrets / no endpoint URL", "no other project", "no global _BRIDGE", "no TwinCore"
+  ],
+  "knownLimitations": [
+    "mock returns illustrative fixed counts (index 50/50 global, audit 2); live endpoint returns real claim-scoped counts (CLM-1006 index 13/13, audit 4); both healthy; e2e asserts mock shape",
+    "reasoning runtime disabled by design",
+    "reindex is claim-scoped, not global rebuild"
+  ]
+}

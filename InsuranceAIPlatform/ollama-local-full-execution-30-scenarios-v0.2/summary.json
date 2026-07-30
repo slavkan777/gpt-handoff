@@ -1,0 +1,20 @@
+{
+  "requestId": "REQ-2026-06-06-insuranceai-ollama-local-full-execution-v0-2",
+  "gate": "OLLAMA_LOCAL_FULL_EXECUTION_30_SCENARIOS_V0.2",
+  "project": "InsuranceAIPlatform",
+  "status": "READY_FOR_AUDIT",
+  "completedBy": "claude",
+  "ollama": { "version": "0.30.4", "installVia": "winget", "uac": false, "model": "qwen2.5:1.5b", "alsoPulled": "llama3.2:1b (too weak, not used)" },
+  "implementation": { "files": 9, "insertions": 439, "deletions": 24, "pattern": "mirrors Qdrant seam: Services-layer interface + Api-layer HTTP impl + optional DI + fallback", "interfaceRefactor": false },
+  "providerSemantics": { "live": "LocalLlama", "fallback": "Mock", "citationsFromRetrievalOnly": true, "confidenceFromRetrievalOnly": true, "emptyRetrievalSkipsModel": true },
+  "tests": { "build": "0 errors", "total": 181, "passed": 181, "failed": 0, "newTests": 7, "note": "one earlier run had 7 flaky 500s racing the model download; clean re-run 181/181" },
+  "liveSmoke": { "vectorRuntime": "live_local/qdrant", "localReasoning": "live_local/qwen2.5:1.5b", "ragAskProvider": "LocalLlama", "realEvalTokens": true },
+  "fallback": { "qdrantDown": "backend=in-memory-hash (honest), ask works", "ollamaDown": "providerMode=Mock (graceful), ask works" },
+  "sweep": { "scenarios": 30, "pass": 27, "review": 3, "fail": 0, "leakage": 0, "guardrailsHeld": ["#6 refused final decision", "#22 not fraud", "#25 refused auto-approve"], "zeroEvidence": "#16 CLM-1061 -> Mock + insufficient + 0 citations" },
+  "modelQualityMisses": ["#27 fabricated weather instead of declining", "#1 hedged water-on-collision", "#19 mild over-agreement on partial coverage"],
+  "dataGaps": ["#19 partial coverage", "#20 late notification"],
+  "commit": { "hash": "4067591", "message": "feat(rag): add local Ollama reasoning provider", "branch": "rag/local-foundation-mega-v0.1", "pushed": false, "aheadOfOrigin": 25 },
+  "boundaries": "no push/main/Azure/deploy/paid-provider/secret/PII/schema-migration/large-model/fake-labels/broad-refactor/self-accept",
+  "manualAcceptance": "READY (desktop; Ollama+Qdrant+API up)",
+  "selfAccepted": false
+}

@@ -1,0 +1,14 @@
+{
+  "project": "GlobalMassMarketSoftwareGapAtlas",
+  "gate": "PILOT_EVIDENCE_COMPLETION_AND_CONDITIONAL_WAVE_01_CONTINUATION",
+  "requestId": "REQ-2026-07-09-GLOBAL-MASS-MARKET-SOFTWARE-GAP-ATLAS-PILOT-HARDENING-WAVE1",
+  "state": "READY_FOR_GPT_AUDIT",
+  "activeRequestPath": "GlobalMassMarketSoftwareGapAtlas/pilot-evidence-completion-wave1/ACTIVE_REQUEST.md",
+  "latestReportPath": "GlobalMassMarketSoftwareGapAtlas/latest-report.md",
+  "gateReportPath": "GlobalMassMarketSoftwareGapAtlas/pilot-evidence-completion-wave1/report.md",
+  "sourceRepo": "slavkan777/ai-kb",
+  "sourceBranch": "atlas/global-gap-atlas-2026-07-09",
+  "nextActor": "GPT",
+  "updatedAt": "2026-07-09T13:58:54Z",
+  "blockedReason": null
+}

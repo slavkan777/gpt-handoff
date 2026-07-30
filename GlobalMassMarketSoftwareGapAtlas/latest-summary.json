@@ -1,0 +1,13 @@
+{
+  "requestId": "REQ-2026-07-09-GLOBAL-MASS-MARKET-SOFTWARE-GAP-ATLAS-PILOT-HARDENING-WAVE1",
+  "project": "GlobalMassMarketSoftwareGapAtlas",
+  "gate": "PILOT_EVIDENCE_COMPLETION_AND_CONDITIONAL_WAVE_01_CONTINUATION",
+  "verdict": "READY_FOR_GPT_AUDIT",
+  "methodQuality": "71/100 METHOD_CONDITIONAL_PASS",
+  "pilots": {"V0236": "DEEP_RESEARCH_READY", "V0149": "WATCH", "V0683": "WATCH", "V0182": "HOLD", "V0198": "HOLD"},
+  "calibrationBatch": {"screened": 10, "watch": 4, "hold": 5, "kill": 1},
+  "wave01": {"target": 150, "screened": 18, "pending": 132},
+  "buildApproved": false,
+  "branch": "atlas/global-gap-atlas-2026-07-09",
+  "updatedAt": "2026-07-09T13:58:54Z"
+}
