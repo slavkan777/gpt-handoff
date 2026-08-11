@@ -116,6 +116,27 @@ Matrix coverage: A initial-adopt scope · B persistence/reuse · C+C2 generated 
 
 No existing test was weakened or deleted.
 
+**Proof-asset identity (§8 closing requirement).** All 7 proof assets bound by the inherited support contract still match their frozen bytes exactly — this repair added a test file rather than editing any bound proof:
+
+| Bound proof asset | frozen | live | match |
+|---|---|---|---|
+| `tests/Warden.Tests/ContractGroundingTests.cs` | `a11fe73d779e` | `a11fe73d779e` | ✔ |
+| `tests/Warden.Tests/ControlAndSecurityTests.cs` | `aca246234e3b` | `aca246234e3b` | ✔ |
+| `tests/Warden.Tests/EvidenceTests.cs` | `df68f2050b4b` | `df68f2050b4b` | ✔ |
+| `tests/Warden.Tests/FindingLifecycleTests.cs` | `d8e9fa8ff46c` | `d8e9fa8ff46c` | ✔ |
+| `tests/Warden.Tests/IdentityTests.cs` | `c2ffb685acb8` | `c2ffb685acb8` | ✔ |
+| `tests/Warden.Tests/StateMachineAndLineageTests.cs` | `03d18f758408` | `03d18f758408` | ✔ |
+| `tests/Warden.Tests/TerminationTests.cs` | `5191b87adc6d` | `5191b87adc6d` | ✔ |
+
+**Candidate WARDEN gap, reported rather than silently downgraded (§8/§10).** The repair's own proof-bearing file **cannot** be bound through the canonical support-contract mechanism at this Gate. `gate child` reset the child's `supportContractSha256` (`frozen support sha : (NOT FROZEN)`), and the on-disk contract is the parent's 105 criteria — none of which reference the new tests. Binding would first require materialising repair-specific acceptance criteria on the child Gate, i.e. a SPEC/contract activity this repair Macro does not authorise and §6 warns against as scope expansion.
+
+So the EXT-019 protection does **not** currently extend to a post-close repair Gate's own new proof. Exact bytes are published below for the reviewer instead:
+
+| Repair proof-bearing file | SHA-256 |
+|---|---|
+| `tests/Warden.Tests/SourceScopeAndHelpSafetyTests.cs` | `c1b5dd6fc624f6816f3cd189b4e4e68e64fb707ffeda511f2a49c63f4a52e9ff` |
+| `src/Warden.Core/Kernel/SourceScopeAuthority.cs` | `90595e210c2d41815290e08da9cf3dad0a20ecace88fedab7e5325765ae73cdf` |
+
 ## J. DISPOSABLE CARRIER PROOF (InsuranceAIPlatform copy)
 
 Real product repo untouched throughout — no `.warden` created there.
@@ -180,7 +201,8 @@ KERNEL DECISION: NOT_CLEAN_MISSING_MANDATORY_EVIDENCE
 1. **`WARDEN_DEFECT` (P3, disclosed, not repaired — out of scope):** `gate child` resets `FINDINGS.json`, `EVIDENCE.json` and `AUDITS.json` for the child, and the parent's copies are not archived alongside its `GateStatus` in `.warden/lineage/`. The parent's *status*, owner acceptance and external-audit log survive. I took an independent backup before opening the child. §6 forbids repairing unrelated mechanics here.
 2. **`ENVIRONMENT_ISSUE` (P3):** WARDEN cannot capture BUILD evidence for itself while running from its own build output (self-lock). Workaround: run the CLI from a detached copy. Worth a future ergonomics note, not a defect in this repair.
 3. **`EXECUTOR_ISSUE` (P3):** my `git archive | tar` legacy materialisation was not byte-faithful (§K). Corrected by path-set comparison; disclosed.
-4. No new material WARDEN defect was discovered that invalidates this repair.
+4. **`WARDEN_DEFECT` (P2, candidate — reported, not repaired):** a post-close repair Child Gate cannot bind its OWN new proof-bearing test through the canonical support-contract mechanism (§I). `gate child` clears the child's frozen support sha and the inherited contract has no criterion for the repair's tests, so the EXT-019 "same selector != same proof method" protection does not reach the evidence proving this very repair. Exact byte SHAs are published for the reviewer instead. Repairing this properly means letting a repair Gate declare repair-scoped criteria + proof assets without re-materialising a full SPEC — a separate Owner-authorised boundary, not this one.
+5. No new material WARDEN defect was discovered that invalidates this repair.
 
 ## O. PROCESS SCORECARD
 
@@ -234,6 +256,15 @@ Files changed: `src/Warden.Core/Model/SourceState.cs`, `src/Warden.Core/Kernel/F
 | Immediate predecessor | `EXT-AUDIT-13152-CODEX-20260811-DELTA-4` (parent's final PASS) |
 
 Review surface: configurable initial source boundary · scope persistence and reuse by capture/diff/check · anti-shrink identity binding · generated-artifact defaults · legacy compatibility · mutating `--help` safety · directly affected evidence-freshness/source-identity laws.
+
+**Proof-bearing files for the reviewer to pin (not bindable at this Gate — see §I/§N.4):**
+
+| File | SHA-256 |
+|---|---|
+| `tests/Warden.Tests/SourceScopeAndHelpSafetyTests.cs` | `c1b5dd6fc624f6816f3cd189b4e4e68e64fb707ffeda511f2a49c63f4a52e9ff` |
+| `src/Warden.Core/Kernel/SourceScopeAuthority.cs` | `90595e210c2d41815290e08da9cf3dad0a20ecace88fedab7e5325765ae73cdf` |
+
+Changed files under review: `SourceState.cs`, `Fingerprinter.cs`, `SourceScopeAuthority.cs` (new), `Adoption.cs`, `CommandRouter.cs`, `Commands.cs`, `Help.cs`, `SourceScopeAndHelpSafetyTests.cs` (new).
 
 ## R. FINAL VERDICT
 
