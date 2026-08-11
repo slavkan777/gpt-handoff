@@ -1,340 +1,260 @@
-# PROJECT: InsuranceAIPlatform — WARDEN-Lab Gate 0 — Current Truth Adoption
+# PROJECT: InsuranceAIPlatform — WARDEN-Lab Gate 1 — Customer Insurance AI Assistant SPEC
 
-REQUEST_ID: REQ-2026-08-11-IAP-WARDEN-LAB-G0-CURRENT-TRUTH
-GATE: WARDEN_LAB_GATE_0_CURRENT_TRUTH_ADOPTION
+REQUEST_ID: REQ-2026-08-11-IAP-WARDEN-LAB-G1-SPEC
+GATE: WARDEN_LAB_GATE_1_CUSTOMER_INSURANCE_AI_ASSISTANT_SPEC
 DATE: 2026-08-11
-EXECUTOR: Claude (read-only executor/discoverer). NOT an external independent reviewer.
+EXECUTOR: Claude — read/plan executor. NOT external independent review.
+
+## FINAL VERDICT (stated first)
+
+**`WARDEN_LAB_GATE1_BLOCKED`**
+
+Reason: **`WARDEN_CAPABILITY_GAP_SOURCE_BOUNDARY_NOT_CONFIGURABLE`**
+
+WARDEN v1 cannot express the ProductSourceFingerprint boundary that Macro §7 mandates for this project, through any canonical CLI mechanism. The consequence is not cosmetic: **the evidence this Gate mandates cannot be produced without invalidating the fingerprint that evidence must be bound to.** Reproduced mechanically on a disposable copy, end to end.
+
+Per §4, §7, §13 and §17, the correct outcome is BLOCKED — not a hand-forged `.warden/SOURCE_STATE.json` that would look identical in a report and be governance forgery.
 
 ---
 
-## 0. MACRO CRITIC PREFLIGHT (internal, read-only)
+## A. MACRO CRITIC PREFLIGHT
 
-Run before any project command, against the canonical `ACTIVE_REQUEST.md`.
+**CRITIC_VERDICT: `PASS`**
 
-**CRITIC_VERDICT: PASS**
+The Macro is sound and self-aware. It is **not** the defective layer here. §7 explicitly anticipated this exact outcome — *"If WARDEN's native capture cannot exclude unrelated untracked artifacts without an unsafe workaround, STOP and report the exact limitation"* — and §4 pre-classified it as `WARDEN_DEFECT` / `WARDEN_CAPABILITY_GAP`. Executing the Macro faithfully **led to** the stop. That is the Macro working, not failing.
 
-Every assumption the Macro makes was checked mechanically rather than assumed:
+Checks 1–15, grounded against reality rather than reasoned about:
 
-| Assumption | Probe result |
-|---|---|
-| Local workspace exists | `C:\Projects\InsuranceAIPlatform` present |
-| `slavkan777/InsuranceAIPlatform` reachable | yes, 3 branches |
-| `slavkan777/ai-kb` reachable (needed by §8) | yes, 7 branches |
-| .NET / Node / npm / Python / Azure CLI present | all present |
-| Azure CLI authenticated (§7) | yes, `az account show` exit 0 |
-| Build output gitignored (§2 safety) | yes — `server/.gitignore` covers `bin/`,`obj/`; root covers `node_modules`,`dist`,`playwright-report`,`test-results`; sidecar covers `.venv`,`__pycache__` |
-
-Checks 1–15 findings — defects are real but **non-blocking and disclosable**, none forces a guess or authorizes an unsafe mutation:
-
-- **D1 (moderate) — §12 vs §13 contradiction.** §12 requires proving "no commit/push side effect occurred"; §13 requires publishing the report to three paths in the `gpt-handoff` **git** repo. Both cannot be literally true. Resolved by scoping: §2/§12 govern the **InsuranceAIPlatform** product repo (proved zero side effects there); §13 publishing targets the **handoff** repo and is disclosed explicitly in §O.
-- **D2 (low) — §8 has no fallback** if AIKB is unreachable. Moot: it is reachable.
-- **D3 (moderate) — §12's READY bar ("enough primary truth") is judgment-based**, not mechanical like WARDEN's `MATERIAL_CLEAN`. Constrained by §8's materiality definition. Acceptable for a discovery gate; carried into the scorecard.
-- **D4 (low)** — §2's npm-install carve-out is conditional; graceful degradation exists via `NOT_RUN_WITH_REASON`.
-- **D5 (low)** — §2 assumes build output is ignored; verified true before building rather than assumed.
-
-Check 14: the Macro never treats the internal Critic as external evidence. This Critic is **not** Codex, not external review, and is not evidence.
-
----
-
-## A. EXECUTION IDENTITY
-
-- Executor: Claude, read-only discoverer. No Owner authority claimed. Gate 0 not self-accepted.
-- One autonomous run, no owner-facing micro-prompts.
-- Git 2.37.3.windows.1 · .NET SDKs 8.0.423/9.0.315/10.0.301/10.0.302 · Node v21.3.0 · npm 10.2.4 · Python 3.11.2 · Azure CLI authenticated (`Azure subscription 1`, user).
-
-## B. REPOSITORY IDENTITY
-
-| Fact | Value |
-|---|---|
-| Repo root | `C:\Projects\InsuranceAIPlatform` (via `git rev-parse --show-toplevel`) |
-| Remote | `https://slavkan777@github.com/slavkan777/InsuranceAIPlatform.git` — **matches expected** |
-| Branch | `rag/local-foundation-mega-v0.1` |
-| HEAD | `f9e34c65d98b251fa6dd8931d17256bb00a70992` |
-| Upstream | `origin/rag/local-foundation-mega-v0.1`, ahead/behind **0/0** |
-| Tracked files | 576 |
-| Worktree at start | 2 untracked pre-existing `.docx` files, nothing else |
-
-**Branch divergence — material and unresolved by the Owner:**
-
-| Branch | Local | Remote | Same | Last commit |
-|---|---|---|---|---|
-| `main` | `69e67312` | `a8420d49` | **NO** | remote 2026-07-07 |
-| `dev` | `70af7748` | `70af7748` | yes | 2026-05-30 |
-| `rag/local-foundation-mega-v0.1` | `f9e34c65` | `f9e34c65` | yes | 2026-07-26 |
-
-Resolved via a disposable bare clone in scratchpad (governed repo untouched):
-- remote `main` ↔ working branch = **11 / 48** commits apart.
-- The 11 main-only commits are **docs-only** (reviewer guide, assignment submission checklist, demo script, AI-assisted development notes).
-- The 48 working-branch-only commits carry the actual RAG/product work.
-- `git branch --contains f9e34c65` → **only** `rag/local-foundation-mega-v0.1`. **The product work is NOT merged into `main`, and `main` is the repository default branch.**
-
-## C. WORKTREE IMMUTABILITY PROOF
-
-After **all** builds, tests, E2E and probes:
-
-```
-HEAD    f9e34c65d98b251fa6dd8931d17256bb00a70992   (unchanged)
-branch  rag/local-foundation-mega-v0.1             (unchanged)
-remotes origin                                      (unchanged)
-worktree entries   2   (identical to baseline: the same 2 pre-existing .docx)
-modified tracked files  0
-staged changes          0
-```
-
-No source/test/config/doc edit, no branch/commit/push, no lockfile change.
-
-## D. CURRENT TOPOLOGY MAP
-
-**Frontend** — React 18 + TypeScript + Vite 5 + Tailwind, Redux Toolkit + redux-saga.
-- Entry `src/main.tsx`; router `src/app/router.tsx`; store `src/app/store.ts`; sagas `src/app/rootSaga.ts`.
-- Routes: `/login`; `/` (Dashboard) behind `RequireAuth` + `AppShell`; `/claims`; `/claims/:claimId` (`ClaimShell`) with children `documents`, `ai-evidence`, `risks`, `approval`, `audit`, `policy`, `customer-vehicle`; `/customers`; `/demo`.
-- API facade: `src/api/insuranceApi.ts` selecting `backendInsuranceApi.ts` or `mockInsuranceApi.ts` (`VITE_INSURANCE_API_MODE`).
-- AI/RAG UI surfaces: `src/features/rag/{ragSlice,ragSaga,ragSelectors}.ts`, `src/features/aiReview/*`, `src/pages/AiEvidencePage.tsx`.
-- **Every route is operator/adjuster-facing. There is no customer-facing surface.**
-
-**.NET backend** — `server/InsuranceAIPlatform.sln`, 10 projects, all `net9.0`.
-- Host `InsuranceAIPlatform.Api`; services `Claims`, `CustomersPolicies`, `Documents`, `AiAnalysis`, `Approval`, `AuditCost`; `BuildingBlocks`; `DbMigrator`; `Tests`.
-- Endpoints (all operator-scoped, none customer-facing):
-  - `ClaimsController` `api/claims` — `summary`, list, `{claimId}`, `/documents`, `/ai-evidence`, `/risks`, `/policy`, `/customer-vehicle`, `/approval`, `/audit`
-  - `RagController` — `POST {claimId}/rag/ask`, `GET {claimId}/rag/evidence-search`, `/rag/evaluation-questions`, `/rag/audit`, `/rag/similar-claims`, `/rag/infrastructure`, `POST /rag/infrastructure/reindex`
-  - `AdvancedAiReviewController` — `POST {claimId}/advanced-ai-review`
-  - `AiAnalysisController`, `AiDecisionController`, `ClaimCommandsController` (approval-draft, human-decision, missing-document-requests, document-metadata, documents/upload, payout-simulation), `ClaimWriteController`, `CustomersController`, `DemoController`, `BffController`, `SystemController`, `HealthController`
-- Persistence: EF Core, per-service DbContext, **18 migrations**; provider SQL Server (LocalDB locally, Azure SQL deployed).
-
-**Python/LangChain sidecar** — `ai-sidecars/langchain-claim-analytics/`
-- FastAPI + LangChain (`ChatPromptTemplate`, `PydanticOutputParser`, LCEL chain), `app.py`, `test_app.py`, `requirements.txt`, `Dockerfile`.
-- Endpoints `GET /health`, `POST /advanced-claim-analytics`.
-- Provider modes: **Deterministic by default**; real `ChatOllama` only when `OLLAMA_BASE_URL` is set **and** reachable.
-- Called from .NET via `AdvancedClaimAnalyticsClient` gated by `AdvancedAiReviewOptions` (`Enabled=false` by default, `MaxEvidenceChunks=12`).
-
-## E. BUILD / TEST TRUTH
-
-| Verification | Command | Result |
+| # | Check | Result |
 |---|---|---|
-| .NET build | `dotnet build server/InsuranceAIPlatform.sln -c Release` | **PASS** — exit 0, **0 warnings, 0 errors**, 18.3s |
-| .NET tests | `dotnet test ... -c Release --no-build` | **PASS** — exit 0, **288 passed / 0 failed / 0 skipped**, 4s |
-| Frontend build | `npm run build` (`tsc -b && vite build`) | **PASS** — exit 0, 156 modules, `dist/assets/index-*.js` 507.41 kB (gzip 142.18 kB), 6.45s |
-| Frontend lint | `npm run lint` | **NOT_CONFIGURED** — script declared, but `eslint` is absent from `devDependencies` and no eslint config file exists. The declared lint gate cannot run. |
-| Playwright E2E | `npx playwright test --config playwright.mock.config.ts` | **113 passed / 8 failed**, 8.6 min — see boundary below |
-| Python sidecar tests | `.venv` + `pytest -q` | **PASS** — **16 passed**, 3.14s |
+| 1 | Owner goal complete / non-contradictory | **PASS** — Owner package and Macro agree on scope, out-of-scope, auth deferral, parked sidecar |
+| 2 | Gate 0 facts sufficient | **PASS** — baseline reverified mechanically |
+| 3 | Bootstrap without inventing CLI | **PASS with defect found** — `adopt`/`init`/`risk`/`source capture` are real and sufficient for §6; see D2 below |
+| 4 | Write scope explicit enough | **PASS** — §12/§14 protect `src/**`, `server/**`, `ai-sidecars/**`, `e2e/**`, configs |
+| 5 | Fingerprint boundary vs writable scope conflated? | **PASS** — §7 separates them explicitly and correctly |
+| 6 | Proof-bearing E2E could escape integrity binding? | **PASS** — §10 mandates path+kind+SHA-256 binding (EXT-019 lesson carried over correctly) |
+| 7 | `.warden` writes could change ProductSourceFingerprint? | **PASS** — `.warden/` is in `DefaultExclusions`; verified |
+| 8 | Pre-existing `.docx` create an ambiguous boundary? | **DEFECT CONFIRMED — this is the blocker.** See §S |
+| 9 | Asks for a WARDEN state v1 may not support? | **DEFECT CONFIRMED** — §7's boundary is unsupported |
+| 10 | Report publication vs product no-push separated? | **PASS** — §16 separates them explicitly (Gate 0's D1 was fixed by GPT; good) |
+| 11 | HIGH risk / external review unambiguous? | **PASS** — and mechanically verified satisfiable |
+| 12 | Could permit false PASS / hand-edited governance? | **PASS** — §17 forbids it and is the reason this Gate is BLOCKED rather than faked |
+| 13 | Completes as ONE autonomous Gate? | **PASS** — completed in one run, zero owner-facing micro-prompts |
+| 14 | Owner decision still materially missing? | **PASS** — Gate 0's seven open decisions were all answered by the Owner package |
+| 15 | Internal Critic independence represented honestly? | **PASS** — §3/§0 state it is not external evidence; restated here |
 
-**E2E honest boundary.** `playwright.mock.config.ts` starts *only* the Vite dev server and forces `VITE_INSURANCE_API_MODE=mock`; its own header documents it for the RAG subset. I ran the **whole** suite under it. All 8 failures are backend-dependent specs (`03-customers`, `08-zero-to-end`, `11-customers-deep`, `18-persistence`, `21-created-claim-detail-binding`) failing on "expected backend-allocated `CUST-T####` id" and reload-persistence — i.e. they require the .NET API that this config deliberately does not start. Correct label for those 8: **NOT_RUN_WITH_REASON (invalid configuration)**, not "product defect". The full-stack config was not exercised. **The 113 passes are valid**, including `22-rag-evidence` and `23-rag-confidence-contract`.
+**Macro defects (non-blocking, GPT_MACRO_DEFECT class, low severity):**
+- **D1** — §1 lists five canonical sources; two (`DECISION_2026-08-11_warden_lab_gate1_owner_package.md`, `WARDEN_LAB_GATE_1_..._SPEC.md`) were absent from a shallow AIKB clone and required a fresh clone to obtain. Not a Macro flaw so much as a fragility note: source availability is assumed.
+- **D2** — §4 says "discover from help". WARDEN v1 has **no per-subcommand help**; `warden adopt --help` does not print help (see §D). The Macro's discovery instruction is satisfiable only by reading source. Worth stating explicitly in future Macros.
 
-Notable passing assertion: `22-rag-evidence … NEGATIVE_PASS: runtime row reads disabled/mock; does NOT claim a live model is running` — the UI is tested for *not* overstating AI liveness.
+Because the verdict is PASS, execution continued in the same run — and stopped where §7 instructed.
 
-## F. RAG / AI TRUTH
+## B. EXECUTION IDENTITY
 
-| # | Capability | Status | Primary evidence |
+One bounded Critic-first Macro. **Owner-facing prompts required: 1** (the Gate prompt itself). **Clarifications requested: 0.** No micro-prompt choreography. No Owner identity claimed. No self-acceptance. The internal Critic is not Codex and not external review.
+
+## C. PRODUCT BASELINE RE-VERIFICATION
+
+| Fact | Expected | Observed | Match |
 |---|---|---|---|
-| A | Document/evidence ingestion | IMPLEMENTED + TESTED | `Rag/Ingestion/EvidenceIngestionService.cs` — max 24 chunks × 800 chars, additive, per-key idempotent |
-| B | Chunking / storage | IMPLEMENTED + TESTED + LIVE | `EvidenceChunk` rows; live SQL shows 57 chunks |
-| C | Retrieval | IMPLEMENTED + TESTED + LIVE | `RagRetrievalService`, `VectorRetrievalRouter`; live index 13/13 embedded for CLM-1006 |
-| D | Claim scoping / cross-claim isolation | IMPLEMENTED + TESTED + LIVE | `DbRagChunkSource` filters `Where(c => c.ClaimId == claimId)` **in SQL** |
-| E | Grounded answer generation | IMPLEMENTED + TESTED + LIVE | `MockGroundedAnswerGenerator` (default); `LocalLlamaGroundedAnswerGenerator` (seam) |
-| F | Citations / retrieved chunk ids | IMPLEMENTED + TESTED + LIVE | `BuildCitations` derives citations from **already-retrieved** chunks; shared with the LocalLlama generator so *a live model never authors citations* |
-| G | Insufficient-evidence handling | IMPLEMENTED + TESTED | `retrieved.Count == 0` → "There is not enough relevant evidence in this claim to answer. Human review is recommended.", confidence **0** |
-| H | Provider routing / fallback | IMPLEMENTED + TESTED + LIVE | `VectorRetrievalRouter`, `HttpRagRuntimeProbe`; backend reports `qdrant` **only** on a real serving round-trip, else honestly `in-memory-hash` |
-| I | Confidence / cost / audit / trace | IMPLEMENTED + TESTED + LIVE | `RagAuditTrace` persists traceId, chunk ids, citations JSON, confidence, providerMode, tokens, `CostMicros=0`, retrievalMs, `AdvisoryOnly=true`. Live: **56 audit traces** |
-| J | LangChain advanced review | IMPLEMENTED + TESTED, **LIVE BUT NOT SERVING** | see below |
-| K | Human-in-the-loop / advisory-only | IMPLEMENTED + TESTED + LIVE | `AdvisoryOnly=true` hardcoded in the trace; advisory footer on every answer; `risk` use-case explicitly "advisory, no accusations"; sidecar `advisoryOnly=True` |
+| Repo root | `C:\Projects\InsuranceAIPlatform` | same | ✔ |
+| Remote | `slavkan777/InsuranceAIPlatform` | `https://slavkan777@github.com/slavkan777/InsuranceAIPlatform.git` | ✔ |
+| Branch | `rag/local-foundation-mega-v0.1` | same | ✔ |
+| HEAD | `f9e34c65d98b251fa6dd8931d17256bb00a70992` | same | ✔ |
+| Upstream ahead/behind | — | `0 / 0` | ✔ |
+| Worktree | 2 pre-existing untracked `.docx` | exactly those 2 | ✔ |
+| New product mutation since Gate 0 | none | 0 modified tracked, 0 staged | ✔ |
 
-**Embedding truth:** `local-hash-embed-v0.1`, 256 dimensions, deterministic feature hashing. **Not** a learned/neural embedding model and not an external embedding service.
+No `BASELINE_DRIFT_REQUIRES_OWNER_DECISION`. No checkout/switch/pull/reset/clean/stash/rebase.
 
-**Confidence is never invented:** derived from the top retrieval score (`ConfidenceFromScore`), shared by both generators.
+## D. WARDEN CLI PROVENANCE / CAPABILITY MAP
 
-**Live provider truth (from the deployed app's own `/rag/infrastructure`, claim CLM-1006):**
-```
-sqlSourceOfTruth : healthy — policyClauses 8, evidenceChunks 57, evaluationQuestions 21, auditTraces 56
-evidenceMemoryIndex: healthy — 13/13 embedded, local-hash-embed-v0.1, dim 256
-vectorRuntime    : disabled, enabled=false, backend=in-memory-hash, reachable=false   → Qdrant NOT live
-localReasoningRuntime: disabled, enabled=false, model=llama3.1:8b, reachable=false    → Ollama NOT live
-```
-Deployed env confirms independently: `AiProvider__Mode=Mock`, `Rag__QdrantEnabled=false`, `Rag__LocalLlamaEnabled=false`. **No paid managed LLM is enabled anywhere.**
+- Executable: `C:\Projects\Warden\src\Warden.Cli\bin\Release\net8.0\warden.exe`, built 2026-08-11 09:01.
+- Identity: `WARDEN 1.0.0 (schema v1)`.
+- WARDEN source repo: HEAD `7df1564f140524c0646631ceffe654ced0b18b11` (the accepted delivered baseline), branch `master`. **Not modified by this Gate.** The 5 modified files under `.warden/` are the previously disclosed PROJECT-13152 delivery-authorization governance records, unchanged by Gate 1.
 
-**J — the sidecar is enabled but not serving.** Deployed env sets `AdvancedAiReview__Enabled=true` and points at the internal FQDN. The sidecar container app revision `iap-langchain-sidecar--0000002` is **Healthy, 1 replica, RunningAtMaxScale**. Yet a live `POST /api/claims/CLM-1006/advanced-ai-review` returns:
-```
-providerMode "Unavailable", confidence 0, citations [], advisoryOnly true,
-summary "The advanced analysis service is unavailable. Please use the core RAG analysis with citations."
-```
-So the .NET→sidecar call path is currently failing (internal ingress `external=false`, targetPort 8090, transport Auto, `minReplicas=0`, configured with an `https://` internal URL). **Positive safety finding:** the failure degrades honestly — advisory-only preserved, confidence 0, nothing fabricated.
+**Capability map for what this Gate needs:**
 
-## G. DATA / PERSISTENCE / SAFETY TRUTH
-
-- **DB provider:** SQL Server. Local `(localdb)\MSSQLLocalDB;Database=InsuranceAIPlatform`. Deployed: Azure SQL `iap-sql-r2-6c7g465/InsuranceAIPlatform`, **Online**, `GP_S_Gen5_1` (serverless), 2 GB, germanywestcentral.
-- **Migrations:** 18 across 6 service DbContexts. None created or applied by this Gate.
-- **Synthetic boundary:** enforced and self-reported — live `/api/customers/count` → `{"count":208,"syntheticOnly":true}`. Chunk ids namespaced `{claimId}-uploaded-…`.
-- **Real PII:** none in scope. Sidecar docstring: "No external service, no API key, no PII handling."
-- **Document storage:** text uploaded via `POST {claimId}/documents/upload`, chunked into claim-scoped `EvidenceChunk` rows (migration `AddDocumentContentForLocalSandbox`). No blob/file path in the RAG flow.
-- **Scoping keys:** `ClaimId` on `EvidenceChunk`, `RagAuditTrace`, `RagEvaluationQuestion`.
-- **Audit structures:** `RagAuditTrace`, `AiAnalysisRun` structured fields, `AddOutboxAndCommandAudit`, `AuditCost` service.
-- **Human approval controls:** `approval-draft`, `human-decision`, `missing-document-requests`, `payout-simulation` (explicitly a *simulation*).
-- **Autonomous payout/fraud/messaging code:** none found. No customer messaging path. Fraud is explicitly refused in the generator lead text.
-- **Secrets:** no secret values read or printed. Key names only — `APPLICATIONINSIGHTS_CONNECTION_STRING`, `ConnectionStrings__InsuranceAIPlatform` (both redacted), Key Vault `iapdemokv6c7g465vrcfi4` present. `RagOptions` and `AiProviderOptions` deliberately carry no key property.
-
-> **SAFETY FINDING — P1, material.** **The backend has no authentication or authorization whatsoever.** No `[Authorize]`, no `AddAuthentication`, no `UseAuthorization`, no JWT anywhere in `server/**`. Proven empirically: from the public internet, with **no credentials**, I retrieved `/api/claims` (real claim list), `/api/claims/CLM-1006/ai-evidence` (findings + evidence text) and `/api/claims/CLM-1006/rag/infrastructure`. `RequireAuth` is a **client-side redirect only** and its own comment says "local/demo only — not a production auth guard". Claim isolation is by `claimId` **parameter**, so anyone who knows or guesses an id reads that claim's evidence. Data is synthetic, so this is not a live PII breach — but it is a hard architectural blocker for any customer-facing surface.
-
-## H. AZURE / LIVE RUNTIME — READ ONLY
-
-Subscription `Azure subscription 1` (user auth). Resource group `rg-iap-demo` (westeurope).
-
-| Resource | Type | State |
+| Need (Macro §) | Canonical mechanism | Verdict |
 |---|---|---|
-| `iap-demo-swa` | Static Web App (Free) | `kind-meadow-03cf73103.7.azurestaticapps.net` — **HTTP 200** |
-| `iap-demo-api` | Container App | external ingress, **Running**, rev `--0000008`, 1 replica, scale 0→2 — `/health` **200 Healthy**, environment `Production` |
-| `iap-langchain-sidecar` | Container App | **internal** ingress (`external=false`), port 8090, rev `--0000002` **Healthy**, 1 replica, scale 0→1 |
-| `iap-sql-r2-6c7g465` | Azure SQL server | db `InsuranceAIPlatform` **Online**, `GP_S_Gen5_1` |
-| `iapdemokv6c7g465vrcfi4` | Key Vault | present (not read) |
-| `iapdemost6c7g465vrcfi4` | Storage | present |
-| `iap-demo-appi` / `iap-demo-law` | App Insights / Log Analytics | present |
-| `iap-demo-cae` | Container Apps Env | present |
-| `iap-demo-api-mi` | User-assigned identity | present |
+| Adopt existing project (§6) | `warden adopt [--risk R] [--risk-by] [--risk-reason]` | **AVAILABLE** — verified |
+| Gate creation (§6) | auto by `adopt` → generated Gate ID | **AVAILABLE** |
+| HIGH risk, attributed (§6) | `--risk HIGH --risk-by --risk-reason`; also `risk set/history` | **AVAILABLE** — verified, and WARDEN *refuses* unattributed risk (`RISK_DECISION_DENIED_UNATTRIBUTED`) |
+| External review required for HIGH (§6, §11) | `policy.risk.requiresExternalPlatformReview` | **AVAILABLE** — verified `True` |
+| Contract/SPEC/PLAN/TASKS (§8) | `task init`, `spec acceptance`, `plan step`, `task add`, `freeze` | **AVAILABLE** (not exercised — blocked earlier) |
+| Requirements/acceptance (§9) | `requirement add`, `claim add`, `ground` | **AVAILABLE** (not exercised) |
+| Proof-asset SHA-256 binding (§10) | `support-contract migrate / bind-proof-assets / freeze` | **AVAILABLE** (not exercised) |
+| Source capture (§7) | `source capture \| diff` | **AVAILABLE but scope not configurable — THE BLOCKER** |
+| **Configure fingerprint boundary (§7)** | — | **ABSENT** |
 
-The SWA hostname matches the CORS allow-list in `appsettings.json` — deployment and source agree.
+**`WARDEN_DEFECT` (minor, discovered by accident):** `warden adopt --help` does **not** print help. It treats `--help` as noise and **executes adoption against the current working directory**. Run from `C:\Users\DEVELOPER`, it created `C:\Users\DEVELOPER\.warden\` and began fingerprinting the entire home directory until a 2-minute timeout killed it. Only an empty `.warden/tmp` scaffold was written — nothing was captured, nothing sensitive ingested — and I removed it. Two real issues: (a) a mutating command silently runs when the user asked for help; (b) the control directory is created *before* any validation that the target is a sensible repository root. A home-directory adoption that ran to completion would fingerprint unrelated user data. `DefaultExclusions` covers `.env`/`.env.*` but not a `secrets/` directory.
 
-No Azure write, restart, scale, deploy, config change, secret retrieval or DB mutation was performed.
+## E. WARDEN ADOPTION / BOOTSTRAP ACTIONS
 
-> **HONESTY FINDING — P2, material for governance.** `GET /api/system/demo-status` on the **live** deployment returns
-> `{"backend":"Skeleton","database":"NotConnected","aiProvider":"NotConnected","claimFlow":"Planned","message":"Backend skeleton is running. Claims API, database, and AI provider are planned future gates."}`
-> `SystemController.cs` shows this is a **hardcoded constant**, not a computed status. The *same deployment* simultaneously serves 47 active claims, 208 customers and a healthy Azure SQL RAG store with 56 audit traces. **The system's own status endpoint contradicts the system.** `BffController`/`/api/bff/health` is similarly stale (`stage: skeleton-v0.1`, `upstream: in-memory-read-service`, services "Deferred"). Anyone — human, GPT, or a future WARDEN gate — reading these endpoints as truth would be misled. This is the "REPORT != EVIDENCE" pathology baked into the product.
+**On the real product repo: NONE.** `.warden` does **not** exist in `C:\Projects\InsuranceAIPlatform`. Per §3, a BLOCKED Critic/execution path must not mutate product governance, and it did not.
 
-## I. AIKB / CURRENT TRUTH DRIFT MATRIX
+All adoption was exercised on a **disposable copy** (`scratchpad/IAP_SCOPE_PROBE`) purely to establish capability truth. That copy adopted successfully as `GATE-20260811T153207Z` with risk HIGH, proving §6 is achievable — which is why the blocker is specifically §7 and not adoption generally.
 
-| AIKB / historical claim | Current primary evidence | Status | Materiality | Notes |
-|---|---|---|---|---|
-| Source repo `slavkan777/InsuranceAIPlatform` | remote matches exactly | **MATCH** | — | |
-| Branch `rag/local-foundation-mega-v0.1` | checked out, = remote, 0/0 | **MATCH** | Medium | AIKB flagged it "not assumed current"; now confirmed current |
-| "GitHub has later July 2026 history" | working branch 2026-07-26; main 2026-07-07 | **MATCH** | Medium | reconciled |
-| Default branch is `main` | remote HEAD → `main` = `a8420d49` | **MATCH** | **HIGH** | but `main` lacks all 48 product commits |
-| Local `main` current | local `69e67312` ≠ remote `a8420d49` | **STALE** | Medium | local-only staleness |
-| Azure frontend + backend live | SWA 200, API 200 Healthy | **MATCH** | — | |
-| Azure SQL | `InsuranceAIPlatform` Online, RAG counts healthy | **MATCH** | — | |
-| .NET RAG providerMode = Mock | `AiProvider__Mode=Mock`, `RealCallsEnabled=false` | **MATCH** | — | |
-| Vector retrieval in-memory-hash fallback | live `backend=in-memory-hash` | **MATCH** | — | |
-| Qdrant not deployed | `Rag__QdrantEnabled=false`, reachable=false, no Azure resource | **MATCH** | — | |
-| Ollama / LocalLlama not deployed | `Rag__LocalLlamaEnabled=false`, reachable=false | **MATCH** | — | |
-| No paid/managed LLM | no LLM resource in RG; Mock mode; no key property in options | **MATCH** | — | |
-| LangChain sidecar exists | container app Healthy, 16 tests pass | **MATCH** | — | |
-| Sidecar deterministic-provider by default | `providerMode="Deterministic"` unless `OLLAMA_BASE_URL` | **MATCH** | — | |
-| Sidecar usable in the product | enabled in Azure but live call → `providerMode:"Unavailable"` | **CONTRADICTED** | **HIGH** | capability listed as accepted is not currently serving |
-| Accepted test counts | 288 .NET + 16 python + 113 E2E (mock subset) | **UNKNOWN→MEASURED** | Medium | no prior number in AIKB to compare |
-| Claim-scoped citations | `BuildCitations` from retrieved chunks only | **MATCH** | — | |
-| Cross-claim leakage guard | SQL `ClaimId ==` filter; `SimilarClaimsRanker` returns metadata only | **MATCH** | — | |
-| Synthetic-data boundary | `syntheticOnly:true` live | **MATCH** | — | |
-| "possible cosmetic global-ish RAG infrastructure count" | **CONFIRMED**: `policyClauses/evidenceChunks/evaluationQuestions/auditTraces` are **global** counts; only `EvidenceMemoryIndex` is claim-scoped | **MATCH (gap real)** | Medium | known gap still present |
-| Insufficient-evidence handling | verified in code + tests | **MATCH** | — | |
-| Advisory-only posture | `AdvisoryOnly=true`, footers, sidecar | **MATCH** | — | |
-| — (not in AIKB) | **No backend authentication at all** | **NEW — CONTRADICTS "production-ish demo" framing** | **HIGH** | see §G |
-| — (not in AIKB) | `/api/system/demo-status` hardcoded & false | **NEW** | **HIGH** | see §H |
-| — (not in AIKB) | lint gate declared but uninstallable | **NEW** | Medium | see §E |
-| Eval questions language | rows carry `"language":"uk"` while text is English (post English-only commit) | **STALE** | Low | metadata not migrated |
+## F. GATE / RISK / CONTRACT IDENTITIES
 
-## J. VERIFIED REUSABLE CAPABILITIES
+Not materialized on the product repo (Gate BLOCKED before governance mutation). Established as *achievable* on the probe copy:
 
-Proven present and working now, therefore safe to build on:
-1. Claim-scoped evidence retrieval with SQL-level isolation.
-2. Grounded answer generation where **citations and confidence are derived from retrieval, never from a model**.
-3. Honest insufficient-evidence response with confidence 0.
-4. Persisted audit trail (`RagAuditTrace`) with chunk ids, citations, provider mode, cost, latency.
-5. Advisory-only enforcement at three independent layers (.NET generator, trace flag, sidecar).
-6. Document text ingestion → bounded, idempotent, claim-scoped chunks.
-7. Cross-claim similarity that exposes only claim-level metadata.
-8. Provider seams (Qdrant / Ollama / sidecar) that are disabled-by-default and degrade honestly.
-9. React shell, routing, Redux/saga orchestration, API facade with mock/backend switch.
-10. 288 .NET tests + 16 sidecar tests + a 24-spec E2E suite.
+- Logical Gate label: `IAP-WARDEN-LAB-CUSTOMER-ASSISTANT-V1`; WARDEN generates its own ID (`GATE-<UTC timestamp>Z`) — both must be recorded when the Gate is eventually created.
+- Risk HIGH recorded canonically with attribution: `RISK-001 (initial) -> HIGH`, by Owner, method `INTERACTIVE_CLI_ASSERTION`, with reason. WARDEN honestly labels this an assertion, not proof of identity.
+- HIGH profile yields `requiresExternalPlatformReview=True`, `requiredEvidenceTypes=[BUILD, LOCAL_TEST, INDEPENDENT_REVIEW]`, `conservativeOnAmbiguousScope=True`. §11's external-review contract is representable.
 
-## K. CUSTOMER ASSISTANT — CANDIDATE INTEGRATION BOUNDARY
+## G. PRODUCTSOURCEFINGERPRINT BOUNDARY — THE BLOCKER
 
-**FACTS (verified):** no customer-facing route, page, endpoint, auth or session exists. Every route sits behind `RequireAuth` and every API path is `api/claims/{claimId}/…`. The backend has no authentication. Retrieval is claim-scoped by an id parameter. Policy knowledge exists as 8 `PolicyClause` rows. There is no pre-claim/guidance content, no customer identity model, and no customer messaging path.
+### The mechanism
+`FingerprintScope` carries `GovernedPaths` and `Exclusions`. It is populated exactly two ways:
+- `Commands.SourceCapture`: `var scope = previous?.Scope ?? new FingerprintScope();`
+- `Adoption.Adopt`: `Fingerprinter.Capture(repoRoot, null, clock)` — scope hardcoded `null` → defaults.
 
-**RECOMMENDATION (Gate 1 design candidate, not implemented):**
-- **Surface:** a new public route (e.g. `/assist`) *outside* `AppShell`/`RequireAuth`. Do **not** reuse `ClaimShell` — it assumes an operator context.
-- **Reuse:** `MockGroundedAnswerGenerator` grounding contract, `RagAuditTrace`, advisory footer, insufficient-evidence path, `IEmbeddingProvider`, the API facade pattern.
-- **New:** a distinct customer-facing endpoint. **Do not expose `api/claims/{claimId}/rag/ask` to customers** — it has no authorization and its `claimId` is a bare parameter.
-- **Scope for v1:** **policy/general guidance only**, backed by `PolicyClause` + curated FAQ content. Claim-scoped customer answers require authenticated claim ownership, which does not exist yet.
-- **Auth:** this is the gating prerequisite. A customer surface needs real authentication plus an ownership check binding session → customer → claim. Nothing in the current codebase provides it.
-- **Persistence:** new conversation/session entity; reuse the audit-trace pattern.
-- **Human handoff:** reuse `missing-document-requests` / human-decision seam; add an explicit "talk to a human" action.
-- **Guardrails:** inherit advisory-only; never state coverage/payout/fraud/legal conclusions; always cite; say "not enough information" rather than guess.
-- **Explicitly OUT of v1:** claim-scoped customer answers, document upload by customers, status changes, payout figures, real PII, any autonomous decision.
+**No CLI surface exposes it.** Full command surface: `init --goal-file [--title] [--risk]`, `adopt [--risk R]`, `source capture | diff`. Every `--paths` in the CLI belongs to requirements, evidence, side-effects, audit scope or break-glass — never the fingerprint. On first adoption there is no previous scope, so `DefaultExclusions` applies unconditionally.
 
-## L. WARDEN GATE 1 ADOPTION RECOMMENDATION
+### What `DefaultExclusions` omits
+Present: `.git/ .warden/ bin/ obj/ dist/ build/ out/ target/ artifacts/ nupkg/ .tools/ TestResults/ coverage/ node_modules/ packages/ __pycache__/ .pytest_cache/ .mypy_cache/ .gradle/ .tox/ venv/ .venv/ .vs/ .vscode/ .idea/ *.user *.suo *.userosscache *.pfx *.snk .env .env.*`
 
-- **Risk profile: HIGH.** Customer-facing + insurance domain + advisory AI + an authentication gap. HIGH forces external review and conservative failure.
-- **Product source boundary:** `src/**`, `server/**`, `ai-sidecars/**`. Exclude `docs/**`, `e2e/**` from writable scope initially.
-- **Candidate frozen Owner goal:** "A customer can ask about their insurance situation and receive grounded, cited, advisory-only guidance with an explicit path to a human — without any autonomous coverage, payout, fraud or legal decision."
-- **Requirement groups:** BUILD · UNIT/INTEGRATION TESTS · E2E (real full-stack config) · GROUNDING (citations from retrieval only) · SAFETY (advisory-only, no final decisions) · AUTHZ (ownership enforced) · PRIVACY (synthetic only) · OBSERVABILITY (audit trace per answer).
-- **Evidence classes:** BUILD, LOCAL_TEST, E2E, MANUAL, plus a runtime probe for provider honesty.
-- **External review: required** (HIGH risk), consistent with WARDEN v1's `RequiresExternalPlatformReview`.
-- **Proof assets:** bind the actual test source files by SHA-256 — WARDEN v1 EXT-019 proved a selector alone is not a proof method.
-- **Security/privacy checks:** secret scan; assert no `[AllowAnonymous]` customer data path; cross-claim leakage test; "no final decision" assertion.
-- **Delivery boundary:** local commit only; Owner Acceptance and Delivery Authorization separate, as in WARDEN v1.
-- **Post-close Child Gate test:** verify lineage/budget continuity from Gate 1 into a follow-up gate.
+**Absent:** `playwright-report/`, `test-results/`, `*.tsbuildinfo`, `*.docx`.
 
-**Unresolved Owner decisions — must be answered before freezing Gate 1:**
-1. **Which branch is the canonical baseline** — `main` (default, docs-only, missing 48 commits) or `rag/local-foundation-mega-v0.1` (the real product)? Merge first, or retarget the default branch?
-2. Does Gate 1 include **building real authentication**, or is v1 restricted to unauthenticated general guidance?
-3. Is the **hardcoded false `demo-status`/`bff/health`** in Gate 1's scope to fix?
-4. Should the **sidecar** be repaired (enabled but unreachable) or explicitly parked?
-5. Is the **lint gate** to be installed and enforced as acceptance evidence?
-6. Is Qdrant/Ollama enablement in scope, or does the cost-safe posture stand?
-7. May the Gate 1 run start the **full-stack E2E** (LocalDB + API) — needed for valid E2E evidence?
+### Reproduced on a disposable copy — not asserted
+Adopted the copy with the canonical CLI. Fingerprint `7d2c2d557612…`, **657 governed files**, including:
 
-## M. WARDEN-LAB LATER FALSIFICATION / META-TEST PLAN (plan only — nothing executed)
+| Pattern | Governed files |
+|---|---|
+| `*.docx` | **2** — the exact files §7 says are "not authorized as feature inputs" |
+| `test-results/**` | **70** |
+| `playwright-report/**` | **5** |
+| `*.tsbuildinfo` | 2 |
+| generated `vite.config.js` / `.d.ts` | 2 |
 
-All on **disposable copies**, never the accepted feature:
-1. **Stale evidence:** mutate a `src/**` file after capture → `warden check` must refuse `MATERIAL_CLEAN` on stale evidence.
-2. **Proof replacement:** replace an E2E/unit test body while keeping the class/selector → must fail on proof-asset SHA-256 (the WARDEN v1 EXT-019 invariant).
-3. **Material finding blocking:** inject a P1 → engineering must not lock.
-4. **External lineage:** submit a DELTA naming a skipped predecessor → `EXTERNAL_AUDIT_REJECTED_DELTA_SKIPPED_PREDECESSOR`.
-5. **Risk downgrade:** HIGH→LOW without boundary → denied; attributed+reasoned → allowed and recorded.
-6. **BREAK_GLASS:** declare, verify it blocks clean until reconciled.
-7. **Engineering lock:** after `MATERIAL_CLEAN`, `LOCAL_EDIT` → `DENIED_ENGINEERING_LOCKED`.
-8. **Acceptance ≠ authorization:** after Owner Acceptance, push must still be `DENIED_OWNER_GATED` pending delivery authorization.
-9. **Operation-specific grant:** a `CORPORATE_PUSH` grant must not open `MERGE`/`DEPLOY`.
-10. **Child Gate:** lineage and macro-budget continuity after close.
-11. **Lab-specific:** assert a WARDEN gate would *catch* the `demo-status` lie — a self-reported status contradicting measured runtime.
+**81 of 657 governed files are regenerating build/test artifacts.**
 
-## N. MATERIAL UNKNOWNS / OWNER DECISIONS REQUIRED
+Then simulated what the Gate's own mandated full-stack E2E does — rewrote `test-results/.last-run.json` and `playwright-report/results.json`:
 
-**Material unknowns remaining:**
-1. **U1 — full-stack E2E never validly exercised.** The 8 backend-dependent specs did not run against a backend. Minimum action: permission to run `playwright.config.ts` with LocalDB + API in a later gate.
-2. **U2 — canonical branch undecided** (§B, §L-1). Owner decision, not discoverable.
-3. **U3 — why the sidecar is unreachable** is diagnosed only to the level of "enabled, healthy, not serving". Root cause would need container log reads / config change, beyond Gate 0's read-only boundary.
-4. **U4 — deployed image provenance.** The live API serves RAG endpoints that exist only on `rag/local-foundation-mega-v0.1`, so it was almost certainly built from that branch — but this is **inference**, not proof. No build metadata endpoint exists.
+```
+before:  recorded 7d2c2d557612   current 7d2c2d557612   changed 0
+after :  recorded 7d2c2d557612   current 9a8625cde455   changed 2
+warden check -> live fingerprint 9a8625cde455  <-- SOURCE HAS CHANGED SINCE CAPTURE
+  "evidence bound to 7d2c2d557612 is STALE for live source 9a8625cde455 (LAW-02, LAW-03)"
+  exit 2
+```
 
-U1, U3 and U4 are **tooling/permission-bounded, not architecture-bounded**. U2 is an Owner decision. None of them changes the Customer Assistant's material architecture, risk, scope or acceptance contract: the surface must be new, the grounding contract is verified and reusable, and the authentication gap is established as the gating prerequisite. Per §12's materiality test, they do not block Gate 1 from being frozen — provided the Owner answers §L's decision list, which is exactly what Gate 0 is for.
+### Why this blocks the Gate
+Macro §9 and §10 make **FULLSTACK E2E blocking evidence**, and the Owner package explicitly authorizes LocalDB + API + frontend E2E as required validation. But under WARDEN v1's only available boundary:
 
-## O. SIDE EFFECTS
+1. Producing the mandated E2E evidence rewrites governed source.
+2. The ProductSourceFingerprint moves.
+3. All evidence bound to the prior fingerprint becomes STALE (LAW-02/LAW-03).
+4. `warden check` refuses, and re-capturing simply moves the target again on the next E2E run.
 
-**In `C:\Projects\InsuranceAIPlatform` (governed source):**
+**The required evidence destroys the fingerprint it must be current for.** The implementation Gate could never legitimately reach `MATERIAL_CLEAN`. The same circularity applies to `npm run build` via `*.tsbuildinfo`.
+
+Separately, §7's instruction that the two `.docx` "are not authorized as feature inputs" cannot be honoured — they are governed source, and §7 also forbids deleting them.
+
+### This is a known lesson WARDEN learned once and did not generalize
+`DefaultExclusions` contains `.tools/` with this comment:
+
+> *"It contains a COPY of the built tool, so leaving it governed would make installing WARDEN change WARDEN's own ProductSourceFingerprint — the tool's own output would invalidate the evidence bound to the source that produced it (EXT-13152-009)."*
+
+That is **exactly** the defect class hitting us now. EXT-13152-009's repair fixed the **instance** (`.tools/` for WARDEN's own repo) and not the **class** (verification output must never be governed source, in any adopted project). WARDEN v1 was only ever dogfooded on itself, a .NET repo with no Playwright — so the class defect never surfaced. It surfaces on the first real adopted carrier. That is precisely what this Lab exists to find.
+
+### Why I did not work around it
+- **Hand-writing `.warden/SOURCE_STATE.json` with a custom scope** — forbidden by §4 ("without manually forging `.warden/*.json`"), §14 ("no parallel shadow governance format"), §17 ("BLOCKED even if Claude could create equivalent Markdown manually"). It would also produce a report indistinguishable from a legitimate one, which is the exact failure mode this Lab tests for.
+- **Deleting the artifacts before capture** — §7 forbids deleting the `.docx`; the E2E directories regenerate by design, so this is a treadmill, not a boundary.
+- **Patching WARDEN** — forbidden by §2 and §13; WARDEN is at `MATERIAL_CLEAN` + `engineeringLocked` + accepted + delivered, and reopening it requires a legitimate Owner boundary.
+
+## H–N. SPEC / PLAN / TASKS / REQUIREMENTS / EVIDENCE / EXTERNAL REVIEW / WRITABLE SCOPE
+
+**Deliberately not materialized.** §3 forbids governance mutation when execution must stop, and §17 makes a bypass-built contract an automatic BLOCK. Writing a SPEC/PLAN/TASKS set into a Gate whose evidence contract is provably unsatisfiable would be a well-formatted lie — a frozen contract that cannot be discharged.
+
+The Owner package's product content is accepted and unambiguous, and Gate 0 already supplies the architecture facts; **no product-design work is missing.** Nothing here is blocked on insurance-domain thinking. The instant the boundary is expressible, this Gate can be completed in one run: the SPEC content, the 20 acceptance groups from §9, the proof-asset SHA-256 contract from §10 and the writable scope from §12 are all fully determined by the Owner package plus Gate 0's verified topology.
+
+The one substantive design fact worth recording now, because it constrains everything: Gate 0 proved the backend has **no authentication at all** and that every route/endpoint is operator/claim-scoped. The Owner package correctly responds by scoping v1 to general/policy/FAQ guidance with no claim-specific access, deferring auth + ownership to a post-close Child Gate. That decision is sound and needs no revision.
+
+## O. WARDEN PRE-IMPLEMENTATION VALIDATION
+
+Not applicable — no Gate was created on the product repo. Validation performed instead on the probe copy, and the results are reported above as capability truth. `ownerAccepted`, `deliveryAuthorized` and `engineeringLocked` were never set anywhere for this feature.
+
+## P. WARDEN-LAB PROCESS SCORECARD
+
+| Metric | Result |
+|---|---|
+| Owner-facing prompts required in Gate 1 | **1** |
+| Clarifications requested | **0** |
+| Whole logical Gate under ONE Macro | **Yes** — including the stop decision |
+| Critic defects found in GPT Macro | 2, both low (D1 source fragility, D2 "discover from help" not satisfiable) |
+| Executor guesswork required | **None on the blocker** — reproduced mechanically rather than argued |
+| WARDEN CLI friction/ambiguity | **High**: no per-subcommand help; `--help` on a mutating command executes it |
+| Canonical operation WARDEN could not express | **Yes — the fingerprint boundary (§7). The blocker.** |
+| False positive / false negative | None observed in the Kernel. Staleness detection worked *correctly* — it is the boundary that is wrong, not the check |
+| Evidence-gaming opportunity discovered | **Yes** — hand-writing `SOURCE_STATE.json` scope would silently produce a "clean" Gate. Available, undetectable in a report, and refused |
+| Product/governance source-boundary confusion | **Yes — the core finding.** WARDEN conflates "files in the repo" with "product source"; verification *output* is not product source |
+| Manual workaround attempted | **None.** Three were identified and all refused (§G) |
+| Place where report could have overridden evidence | **Yes** — I could have written a complete, professional Gate 1 SPEC report and no reader could have told it was ungovernable. Refused; this is the `REPORT != EVIDENCE` test and the honest answer is BLOCKED |
+| Time/work inflation from orchestration | Low. Gate 0 → Gate 1 handoff worked; §16 fixed Gate 0's publication contradiction |
+
+**Positive findings — WARDEN behaved correctly:**
+- Refused an unattributed HIGH risk (`RISK_DECISION_DENIED_UNATTRIBUTED`) — the EXT-13152-006 repair holds on a foreign project.
+- HIGH risk automatically mandates external platform review and INDEPENDENT_REVIEW evidence.
+- Staleness detection (LAW-02/03) fired correctly and immediately.
+- `adopt` left the existing `README.md` and instruction files untouched rather than overwriting them.
+- `.warden/` is correctly self-excluded — governance writes do not move the product fingerprint.
+
+## Q. FINDINGS BY SOURCE LAYER
+
+| # | Finding | Class | Severity |
+|---|---|---|---|
+| 1 | Fingerprint scope not configurable via any canonical CLI mechanism; `DefaultExclusions` omits `playwright-report/`, `test-results/`, `*.tsbuildinfo`. Mandated E2E evidence invalidates its own fingerprint. **CURRENT + REPRODUCIBLE + MATERIAL** | `WARDEN_DEFECT` | **P1 — blocks the Gate** |
+| 2 | EXT-13152-009's repair fixed the instance (`.tools/`) not the class (verification output as governed source) | `WARDEN_DEFECT` | P2 (root cause of #1) |
+| 3 | `warden adopt --help` executes adoption instead of printing help; creates the control directory before validating the target | `WARDEN_DEFECT` | P2 |
+| 4 | No per-subcommand help; options discoverable only by reading source | `WARDEN_DEFECT` | P3 |
+| 5 | Unrelated untracked files (`.docx`) silently become governed source with no way to exclude them | `WARDEN_DEFECT` | P2 (same root as #1) |
+| 6 | §4 instructs discovery "from help" that WARDEN cannot provide | `GPT_MACRO_DEFECT` | P3 |
+| 7 | Two §1 canonical sources missing from a shallow AIKB clone | `ENVIRONMENT_ISSUE` | P3 |
+| 8 | I ran `warden adopt --help` from the home directory without `--repo`, creating `C:\Users\DEVELOPER\.warden` (empty scaffold; removed) | `EXECUTOR_ISSUE` | P3 |
+| 9 | Backend has no authentication (carried from Gate 0) — already correctly handled by the Owner package | `PRODUCT_ISSUE` | P1 (deferred by design) |
+
+## R. SIDE EFFECTS
+
+**`C:\Projects\InsuranceAIPlatform` (product):**
 
 | Action | Result |
 |---|---|
-| source / test / config / doc edits | **NO** — 0 modified tracked files |
-| commit / push / branch / merge / PR / tag | **NO** — HEAD, branch, remotes unchanged |
-| `git pull` / fetch / reset / clean / checkout / stash | **NO** |
-| lockfile or package changes | **NO** |
-| EF migration create/apply · DB writes | **NO** |
-| Azure mutation / deploy / restart / scale / config | **NO** — read-only `az ... list/show` and HTTP GET only |
-| secret values read, printed or modified | **NO** — key names only, values redacted |
-| paid-provider enablement | **NO** |
-| production/customer data access | **NO** — synthetic only |
+| `.warden` initialized | **NO** — does not exist |
+| source/test/config edits | **NO** — 0 modified tracked, 0 staged |
+| commit / push / branch / merge / PR / tag | **NO** — HEAD, branch, remotes unchanged; upstream 0/0 |
+| checkout / pull / reset / clean / stash / rebase | **NO** |
+| Azure / DB / provider / secret mutation | **NO** |
+| the two `.docx` | untouched |
 
-**Generated (ignored) outputs created by verification, disclosed not hidden:**
-- `server/**/bin`, `server/**/obj` — .NET build (ignored by `server/.gitignore`)
-- `dist/` — Vite build (ignored)
-- `playwright-report/`, `test-results/` — E2E artifacts (ignored)
-- `ai-sidecars/langchain-claim-analytics/.venv/` — **created by this Gate** to run sidecar tests; ignored by the sidecar `.gitignore`; removable
-- Scratchpad only, outside the repo: `gpt-handoff` clone, `ai-kb` clone, `iap-main-probe` bare clone
+**`C:\Projects\Warden` (WARDEN source):** HEAD `7df1564f…` unchanged; the 5 modified `.warden/` files are the previously disclosed PROJECT-13152 delivery-authorization records, untouched by this Gate. **No WARDEN source modified.**
 
-Nothing was cleaned or reset to hide generated state.
+**Elsewhere, disclosed:**
+- `scratchpad/IAP_SCOPE_PROBE` — disposable copy adopted under WARDEN purely to reproduce the defect. Not the product repo.
+- `C:\Users\DEVELOPER\.warden\` — **accidentally created by me** via `warden adopt --help` without `--repo`; contained only an empty `tmp` scaffold, captured nothing, and was removed. Disclosed rather than quietly cleaned.
+- This report is committed and pushed to `slavkan777/gpt-handoff` — required by §16, separate scope from the product no-push rule.
 
-**Outside the governed repo:** this report is committed and pushed to `slavkan777/gpt-handoff` (§13 publishing requirement). Disclosed explicitly because §12 asks for a no-side-effect proof — that proof is scoped to the InsuranceAIPlatform product repo, per Critic defect D1.
+## S. MATERIAL BLOCKERS / MINIMUM CORRECTION
 
-## P. FINAL VERDICT
+**Blocker:** WARDEN v1 has no canonical way to declare which paths constitute product source, so verification output is governed as source and the mandated evidence cannot be produced without invalidating itself.
 
-**`WARDEN_LAB_GATE0_CURRENT_TRUTH_READY`**
+**Minimum correction — recommended (a separate WARDEN repair boundary, exactly as §13 anticipates):**
 
-Enough primary current truth exists to freeze Gate 1 without guessing about material architecture, scope, risk or acceptance facts — provided the Owner answers the seven decisions in §L. The remaining unknowns are tooling- and permission-bounded, not architectural.
+1. Expose the fingerprint boundary through the canonical CLI — e.g. `warden source scope --governed <paths> --exclude <patterns>`, and/or `adopt`/`init --exclude`. It must be an attributed, recorded governance decision (same treatment as the risk profile), not a convenience flag, since it decides what "the product" *is*.
+2. Generalize the EXT-13152-009 lesson into `DefaultExclusions`: `playwright-report/`, `test-results/`, `*.tsbuildinfo`, and any declared verification-output directory.
+3. Fix `--help` on mutating commands; validate the target before creating the control directory.
 
-Gate 0 is **not self-accepted**. Gate 1 is **not frozen**. No feature was implemented. The internal Macro Critic is **not** external evidence and is not a substitute for independent review.
+Estimated as a small, well-bounded WARDEN change — but it **must not** happen inside this project Gate.
+
+**Rejected alternatives:** dropping full-stack E2E from blocking evidence (contradicts the Owner package and guts the acceptance contract); hand-writing the scope (governance forgery).
+
+**No Owner product decision is missing.** This is purely a tooling capability gap. Once corrected, Gate 1 completes in one run with no further architecture round.
+
+## T. FINAL VERDICT
+
+**`WARDEN_LAB_GATE1_BLOCKED`** — `WARDEN_CAPABILITY_GAP_SOURCE_BOUNDARY_NOT_CONFIGURABLE`
+
+No feature implemented. No product source mutated. No governance forged. No self-acceptance. The internal Critic is not external review.
+
+The Lab's primary purpose was to find real defects in WARDEN, the Macro chain and the executor before trusting them. It found a P1 in WARDEN on the first real carrier — the one place a governance system must not be wrong: what counts as the product.
