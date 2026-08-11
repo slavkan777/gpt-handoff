@@ -1,111 +1,340 @@
-REQUEST_ID: REQ-2026-06-08-insuranceai-azure-langchain-sidecar-deployment-and-smoke-v0-1
-STATUS: READY_FOR_AUDIT
-TASK_TYPE: project-azure-langchain-sidecar-deployment-and-smoke
-PROJECT: InsuranceAIPlatform
-GATE: AZURE_LANGCHAIN_SIDECAR_DEPLOYMENT_AND_SMOKE_V0.1
-COMPLETED_BY: claude
+# PROJECT: InsuranceAIPlatform — WARDEN-Lab Gate 0 — Current Truth Adoption
 
-# Azure LangChain sidecar deployment + smoke — VERDICT: READY_FOR_AUDIT
+REQUEST_ID: REQ-2026-08-11-IAP-WARDEN-LAB-G0-CURRENT-TRUTH
+GATE: WARDEN_LAB_GATE_0_CURRENT_TRUTH_ADOPTION
+DATE: 2026-08-11
+EXECUTOR: Claude (read-only executor/discoverer). NOT an external independent reviewer.
 
-One-line: the previously-PARTIAL LangChain advanced-claim-analytics feature is now **live on the Azure demo**. A separate **internal** Python FastAPI LangChain sidecar Container App was deployed in the existing environment; the .NET backend was rebuilt at the feature commit, flag-enabled, and pointed at the sidecar (new healthy revision); the SWA was rebuilt with the panel and redeployed. **All six smoke checks (A–F) pass on live Azure**, including the browser UI button → live API → sidecar → structured advisory panel with **citations scoped to the current claim only** and advisory-only safety. The core .NET RAG is untouched and still works (CLM-1006 regression PASS). Claude does **not** self-accept — this is ready for Architect GPT audit and Slava's final acceptance.
+---
 
-## Routing Lock Verification
-- PROJECT InsuranceAIPlatform. SOURCE_REPO `C:/Projects/InsuranceAIPlatform`, remote `slavkan777/InsuranceAIPlatform`, branch `rag/local-foundation-mega-v0.1`. HEAD before `2259946`, after `0b47346` (this gate added only the sidecar Dockerfile/.dockerignore). `origin/main` of source repo untouched. Handoff repo `slavkan777/gpt-handoff`, paths under `InsuranceAIPlatform/`. No main, no merge, no force.
+## 0. MACRO CRITIC PREFLIGHT (internal, read-only)
 
-## Starting State
-- Source branch tip `2259946` (prior LangChain gate, PARTIAL), tree clean. Required ancestry verified: HEAD is a descendant of `89e8516` (EN-default i18n), `211d50f` (SWA CORS allow), `70af774` (Azure SQL persistence) — so rebuilding API+frontend from HEAD is a superset of all live features (no regression).
-- Azure before: backend `iap-demo-api--0000004` (image `ghcr.io/slavkan777/insuranceai-api:rag-ingest-c457734-20260606233951`, **built at c457734 — did NOT contain the AdvancedAiReview endpoint**); no `AdvancedAiReview*` env vars; Container Apps env `iap-demo-cae` (West Europe); SWA `iap-demo-swa` backend-wired but its bundle had `advanced-ai-review` count = 0 (panel not deployed). No ACR in the subscription (registry = GHCR).
+Run before any project command, against the canonical `ACTIVE_REQUEST.md`.
 
-## Owner Decision / Topology
-- Owner (Slava, via the gate-specific ACTIVE_REQUEST authored by Architect GPT) approved finishing the feature using a **separate dev/test Container App** for the sidecar — explicitly NOT the second-container-in-backend topology. Implemented exactly that: new app `iap-langchain-sidecar` with **internal** ingress in the existing `iap-demo-cae` environment / `rg-iap-demo`.
+**CRITIC_VERDICT: PASS**
 
-## Source Changes
-- NEW `ai-sidecars/langchain-claim-analytics/Dockerfile` (python:3.12-slim, non-root, uvicorn :8090) + `.dockerignore`. Commit `0b47346` on `rag/local-foundation-mega-v0.1`, pushed (`2259946..0b47346`). No application code changed this gate (endpoint/client/panel already existed at `2259946`). No CORS change needed — already config-driven and the SWA origin was already allowed (verified live preflight).
+Every assumption the Macro makes was checked mechanically rather than assumed:
 
-## Commands Run (key)
-- `git` verify/commit/push; `dotnet test` (Release); `npm run build` (backend mode); `docker build`/`docker push` (API + sidecar); `az containerapp create` (sidecar), `az containerapp update` (backend image+env), `az containerapp revision/replica list`, `az containerapp logs show`; `npx @azure/static-web-apps-cli deploy`; `curl` smoke; headless Playwright (`node`).
+| Assumption | Probe result |
+|---|---|
+| Local workspace exists | `C:\Projects\InsuranceAIPlatform` present |
+| `slavkan777/InsuranceAIPlatform` reachable | yes, 3 branches |
+| `slavkan777/ai-kb` reachable (needed by §8) | yes, 7 branches |
+| .NET / Node / npm / Python / Azure CLI present | all present |
+| Azure CLI authenticated (§7) | yes, `az account show` exit 0 |
+| Build output gitignored (§2 safety) | yes — `server/.gitignore` covers `bin/`,`obj/`; root covers `node_modules`,`dist`,`playwright-report`,`test-results`; sidecar covers `.venv`,`__pycache__` |
 
-## Local Verification (before Azure changes)
-- Sidecar smoke (local :8090): `/health` → healthy, framework=langchain, providerMode=Deterministic, advisoryOnly=true; `POST /advanced-claim-analytics` (2 chunks) → structured review, 2 claim-scoped citations, evidenceStrength moderate, conf 49.
-- `dotnet test` (Release) → **188 passed / 0 failed**.
-- Frontend `npm run build` → success; built bundle verified: `advanced-ai-review`=1, `azurecontainerapps`=2 (live API baked), `localhost:5284`=0 (no mock-default leak).
-- Source scan over changed files (Dockerfile/.dockerignore) → no secret patterns.
-- Both images built (exit 0).
+Checks 1–15 findings — defects are real but **non-blocking and disclosable**, none forces a guess or authorizes an unsafe mutation:
 
-## Image Build / Push (GHCR, unique tags)
-- API: `ghcr.io/slavkan777/insuranceai-api:adv-ai-2259946-20260608211714` — digest `sha256:88942901141a7ef5c4cba074c57d630d0cad077cfc8fd8c5db07fb1407100910`.
-- Sidecar: `ghcr.io/slavkan777/insuranceai-langchain-sidecar:adv-ai-2259946-20260608211714` — digest `sha256:461befc172e7ad571d7a709f2734b33763193ad26598d5719d066d5c741ee868`.
-- Note: the env-file GHCR PAT was denied by GHCR; push succeeded via the machine's existing valid docker credential (helper `desktop`). GitHub has no REST endpoint to flip a user package to public (404), so the sidecar package stays **private** and the sidecar Container App pulls it via a registry credential stored as the Azure-managed secret `ghcrio-slavkan777` (token never written to any file/log/report).
+- **D1 (moderate) — §12 vs §13 contradiction.** §12 requires proving "no commit/push side effect occurred"; §13 requires publishing the report to three paths in the `gpt-handoff` **git** repo. Both cannot be literally true. Resolved by scoping: §2/§12 govern the **InsuranceAIPlatform** product repo (proved zero side effects there); §13 publishing targets the **handoff** repo and is disclosed explicitly in §O.
+- **D2 (low) — §8 has no fallback** if AIKB is unreachable. Moot: it is reachable.
+- **D3 (moderate) — §12's READY bar ("enough primary truth") is judgment-based**, not mechanical like WARDEN's `MATERIAL_CLEAN`. Constrained by §8's materiality definition. Acceptable for a discovery gate; carried into the scorecard.
+- **D4 (low)** — §2's npm-install carve-out is conditional; graceful degradation exists via `NOT_RUN_WITH_REASON`.
+- **D5 (low)** — §2 assumes build output is ignored; verified true before building rather than assumed.
 
-## Azure Resources Touched
-- CREATED: Container App `iap-langchain-sidecar` (rg-iap-demo, env iap-demo-cae, internal ingress :8090).
-- UPDATED: Container App `iap-demo-api` → new revision `iap-demo-api--0000005` (new image + 2 env vars).
-- UPDATED: Static Web App `iap-demo-swa` production content (redeploy).
-- No new RG, no ACR, no SQL/AI/Qdrant/Ollama/OpenAI resource.
+Check 14: the Macro never treats the internal Critic as external evidence. This Critic is **not** Codex, not external review, and is not evidence.
 
-## Sidecar Deployment State
-- `iap-langchain-sidecar` provisioning Succeeded; revision `iap-langchain-sidecar--nqj6jlh` Healthy, RunningAtMaxScale, active. Console logs: `Uvicorn running on http://0.0.0.0:8090`, `Application startup complete`. Ingress **internal** (external=false). minReplicas=1, maxReplicas=1, 0.5 vCPU / 1 GiB.
+---
 
-## Backend Deployment State
-- `iap-demo-api--0000005` active, **Healthy, 100% traffic**; old `0000004` drained to 0 then deprovisioned (graceful, no outage). Image = the new API tag. Env now includes `AdvancedAiReview__Enabled=true` and `AdvancedAiReview__SidecarBaseUrl=https://iap-langchain-sidecar.internal.bluehill-ebdd0494.westeurope.azurecontainerapps.io` (existing SQL/Mock/RAG env preserved). Live `/health` → 200.
+## A. EXECUTION IDENTITY
 
-## SWA Deployment State
-- Rebuilt from HEAD with `VITE_INSURANCE_API_MODE=backend` + `VITE_INSURANCE_API_BASE_URL=<live API>`, `staticwebapp.config.json` copied into `dist/`, deployed via SWA CLI 2.0.9 (token from `az staticwebapp secrets list`, never printed). Live bundle now `index-f4pJt1G8.js` with `advanced-ai-review`=1.
+- Executor: Claude, read-only discoverer. No Owner authority claimed. Gate 0 not self-accepted.
+- One autonomous run, no owner-facing micro-prompts.
+- Git 2.37.3.windows.1 · .NET SDKs 8.0.423/9.0.315/10.0.301/10.0.302 · Node v21.3.0 · npm 10.2.4 · Python 3.11.2 · Azure CLI authenticated (`Azure subscription 1`, user).
 
-## Azure Smoke Matrix
-| # | Check | Result |
+## B. REPOSITORY IDENTITY
+
+| Fact | Value |
+|---|---|
+| Repo root | `C:\Projects\InsuranceAIPlatform` (via `git rev-parse --show-toplevel`) |
+| Remote | `https://slavkan777@github.com/slavkan777/InsuranceAIPlatform.git` — **matches expected** |
+| Branch | `rag/local-foundation-mega-v0.1` |
+| HEAD | `f9e34c65d98b251fa6dd8931d17256bb00a70992` |
+| Upstream | `origin/rag/local-foundation-mega-v0.1`, ahead/behind **0/0** |
+| Tracked files | 576 |
+| Worktree at start | 2 untracked pre-existing `.docx` files, nothing else |
+
+**Branch divergence — material and unresolved by the Owner:**
+
+| Branch | Local | Remote | Same | Last commit |
+|---|---|---|---|---|
+| `main` | `69e67312` | `a8420d49` | **NO** | remote 2026-07-07 |
+| `dev` | `70af7748` | `70af7748` | yes | 2026-05-30 |
+| `rag/local-foundation-mega-v0.1` | `f9e34c65` | `f9e34c65` | yes | 2026-07-26 |
+
+Resolved via a disposable bare clone in scratchpad (governed repo untouched):
+- remote `main` ↔ working branch = **11 / 48** commits apart.
+- The 11 main-only commits are **docs-only** (reviewer guide, assignment submission checklist, demo script, AI-assisted development notes).
+- The 48 working-branch-only commits carry the actual RAG/product work.
+- `git branch --contains f9e34c65` → **only** `rag/local-foundation-mega-v0.1`. **The product work is NOT merged into `main`, and `main` is the repository default branch.**
+
+## C. WORKTREE IMMUTABILITY PROOF
+
+After **all** builds, tests, E2E and probes:
+
+```
+HEAD    f9e34c65d98b251fa6dd8931d17256bb00a70992   (unchanged)
+branch  rag/local-foundation-mega-v0.1             (unchanged)
+remotes origin                                      (unchanged)
+worktree entries   2   (identical to baseline: the same 2 pre-existing .docx)
+modified tracked files  0
+staged changes          0
+```
+
+No source/test/config/doc edit, no branch/commit/push, no lockfile change.
+
+## D. CURRENT TOPOLOGY MAP
+
+**Frontend** — React 18 + TypeScript + Vite 5 + Tailwind, Redux Toolkit + redux-saga.
+- Entry `src/main.tsx`; router `src/app/router.tsx`; store `src/app/store.ts`; sagas `src/app/rootSaga.ts`.
+- Routes: `/login`; `/` (Dashboard) behind `RequireAuth` + `AppShell`; `/claims`; `/claims/:claimId` (`ClaimShell`) with children `documents`, `ai-evidence`, `risks`, `approval`, `audit`, `policy`, `customer-vehicle`; `/customers`; `/demo`.
+- API facade: `src/api/insuranceApi.ts` selecting `backendInsuranceApi.ts` or `mockInsuranceApi.ts` (`VITE_INSURANCE_API_MODE`).
+- AI/RAG UI surfaces: `src/features/rag/{ragSlice,ragSaga,ragSelectors}.ts`, `src/features/aiReview/*`, `src/pages/AiEvidencePage.tsx`.
+- **Every route is operator/adjuster-facing. There is no customer-facing surface.**
+
+**.NET backend** — `server/InsuranceAIPlatform.sln`, 10 projects, all `net9.0`.
+- Host `InsuranceAIPlatform.Api`; services `Claims`, `CustomersPolicies`, `Documents`, `AiAnalysis`, `Approval`, `AuditCost`; `BuildingBlocks`; `DbMigrator`; `Tests`.
+- Endpoints (all operator-scoped, none customer-facing):
+  - `ClaimsController` `api/claims` — `summary`, list, `{claimId}`, `/documents`, `/ai-evidence`, `/risks`, `/policy`, `/customer-vehicle`, `/approval`, `/audit`
+  - `RagController` — `POST {claimId}/rag/ask`, `GET {claimId}/rag/evidence-search`, `/rag/evaluation-questions`, `/rag/audit`, `/rag/similar-claims`, `/rag/infrastructure`, `POST /rag/infrastructure/reindex`
+  - `AdvancedAiReviewController` — `POST {claimId}/advanced-ai-review`
+  - `AiAnalysisController`, `AiDecisionController`, `ClaimCommandsController` (approval-draft, human-decision, missing-document-requests, document-metadata, documents/upload, payout-simulation), `ClaimWriteController`, `CustomersController`, `DemoController`, `BffController`, `SystemController`, `HealthController`
+- Persistence: EF Core, per-service DbContext, **18 migrations**; provider SQL Server (LocalDB locally, Azure SQL deployed).
+
+**Python/LangChain sidecar** — `ai-sidecars/langchain-claim-analytics/`
+- FastAPI + LangChain (`ChatPromptTemplate`, `PydanticOutputParser`, LCEL chain), `app.py`, `test_app.py`, `requirements.txt`, `Dockerfile`.
+- Endpoints `GET /health`, `POST /advanced-claim-analytics`.
+- Provider modes: **Deterministic by default**; real `ChatOllama` only when `OLLAMA_BASE_URL` is set **and** reachable.
+- Called from .NET via `AdvancedClaimAnalyticsClient` gated by `AdvancedAiReviewOptions` (`Enabled=false` by default, `MaxEvidenceChunks=12`).
+
+## E. BUILD / TEST TRUTH
+
+| Verification | Command | Result |
 |---|---|---|
-| A | `/health` 200; `/api/claims` 200 (seeded data); `/api/claims/CLM-1006/rag/infrastructure` 200 (56 SQL chunks, memory index healthy) | **PASS** |
-| B | New synthetic claim `CLM-1032` created; evidence uploaded → "1 RAG evidence chunk ingested"; post-upload advanced review cites exactly `CLM-1032-uploaded-…` | **PASS** |
-| C | `POST /api/claims/CLM-1006/advanced-ai-review` → framework=langchain, advisoryOnly=true, providerMode=Deterministic, confidence 95, 6 citations all `CLM-1006-*`, no 1007/1012 leakage | **PASS** |
-| D | Live UI: login (demo creds) → AI Evidence → button "Запустити розширений огляд" → panel renders; browser→live API 200; confidence 95; citations CLM-1006 only; advisory banner shown; 0 console/network errors | **PASS** |
-| E | Advanced review on `CLM-1032` BEFORE evidence → evidenceStrength none, confidence 0, 0 citations, advisoryOnly true (safe insufficient; no fabricated citations) | **PASS** |
-| F | `POST /api/claims/CLM-1006/rag/ask` → answer + 4 citations + full trace (traceId, retrievedChunkIds, providerMode) — core RAG intact | **PASS** |
+| .NET build | `dotnet build server/InsuranceAIPlatform.sln -c Release` | **PASS** — exit 0, **0 warnings, 0 errors**, 18.3s |
+| .NET tests | `dotnet test ... -c Release --no-build` | **PASS** — exit 0, **288 passed / 0 failed / 0 skipped**, 4s |
+| Frontend build | `npm run build` (`tsc -b && vite build`) | **PASS** — exit 0, 156 modules, `dist/assets/index-*.js` 507.41 kB (gzip 142.18 kB), 6.45s |
+| Frontend lint | `npm run lint` | **NOT_CONFIGURED** — script declared, but `eslint` is absent from `devDependencies` and no eslint config file exists. The declared lint gate cannot run. |
+| Playwright E2E | `npx playwright test --config playwright.mock.config.ts` | **113 passed / 8 failed**, 8.6 min — see boundary below |
+| Python sidecar tests | `.venv` + `pytest -q` | **PASS** — **16 passed**, 3.14s |
 
-## API Proof
-- Smoke C raw fields: `framework=langchain | advisoryOnly=True | providerMode=Deterministic | confidence=95 | claimId=CLM-1006`; citations(6)=`[CLM-1006-application#0, CLM-1006-approval-summary#0, CLM-1006-coverage-check#0, CLM-1006-invoice#0, CLM-1006-invoice#1, CLM-1006-photo-front#0]`; evidenceStrength=strong; anomalies=1; missingItems=0; summary+recommendation present. providerMode=Deterministic (NOT Disabled/Unavailable) proves the live .NET endpoint actually reached the internal sidecar — not the fallback path.
+**E2E honest boundary.** `playwright.mock.config.ts` starts *only* the Vite dev server and forces `VITE_INSURANCE_API_MODE=mock`; its own header documents it for the RAG subset. I ran the **whole** suite under it. All 8 failures are backend-dependent specs (`03-customers`, `08-zero-to-end`, `11-customers-deep`, `18-persistence`, `21-created-claim-detail-binding`) failing on "expected backend-allocated `CUST-T####` id" and reload-persistence — i.e. they require the .NET API that this config deliberately does not start. Correct label for those 8: **NOT_RUN_WITH_REASON (invalid configuration)**, not "product defect". The full-stack config was not exercised. **The 113 passes are valid**, including `22-rag-evidence` and `23-rag-confidence-contract`.
 
-## UI Proof
-- Playwright JSON: `loggedIn=true; buttonPresent=true; buttonText="Запустити розширений огляд"; panelVisible=true; errorVisible=false; apiStatus=200; apiUrlSeen=.../api/claims/CLM-1006/advanced-ai-review; advisoryBannerVisible=true; confidenceDigits=95; citationsVisible=true; citationClaimTokens=["CLM-1006"]; allCitationsScopedToCLM1006=true; consoleErrors=[]; failedReq=[]`. Screenshot captured (see Artifacts).
+Notable passing assertion: `22-rag-evidence … NEGATIVE_PASS: runtime row reads disabled/mock; does NOT claim a live model is running` — the UI is tested for *not* overstating AI liveness.
 
-## Claim-Scoped Citation Proof
-- C (CLM-1006): every citation token is `CLM-1006`; no `CLM-1007`/`CLM-1012`. B (CLM-1032): the only citation is the freshly-ingested `CLM-1032-uploaded-…`. D (browser): citation tokens = `["CLM-1006"]` only. Two independent guards remain in force: the .NET endpoint sends only the claim's own `GetClaimChunksAsync` evidence and re-scopes returned citations to those ids (unit-tested), and the sidecar re-scopes to the input evidence.
+## F. RAG / AI TRUTH
 
-## Negative/Fallback Proof
-- E (no-evidence): structured-but-empty safe result (none/0/0), no fabricated citations, advisoryOnly=true. The .NET fallback path (flag off → "Disabled"; sidecar unreachable → "Unavailable") is unit-tested (3 tests) and preserved; live providerMode honestly reports Deterministic when the real sidecar answers.
+| # | Capability | Status | Primary evidence |
+|---|---|---|---|
+| A | Document/evidence ingestion | IMPLEMENTED + TESTED | `Rag/Ingestion/EvidenceIngestionService.cs` — max 24 chunks × 800 chars, additive, per-key idempotent |
+| B | Chunking / storage | IMPLEMENTED + TESTED + LIVE | `EvidenceChunk` rows; live SQL shows 57 chunks |
+| C | Retrieval | IMPLEMENTED + TESTED + LIVE | `RagRetrievalService`, `VectorRetrievalRouter`; live index 13/13 embedded for CLM-1006 |
+| D | Claim scoping / cross-claim isolation | IMPLEMENTED + TESTED + LIVE | `DbRagChunkSource` filters `Where(c => c.ClaimId == claimId)` **in SQL** |
+| E | Grounded answer generation | IMPLEMENTED + TESTED + LIVE | `MockGroundedAnswerGenerator` (default); `LocalLlamaGroundedAnswerGenerator` (seam) |
+| F | Citations / retrieved chunk ids | IMPLEMENTED + TESTED + LIVE | `BuildCitations` derives citations from **already-retrieved** chunks; shared with the LocalLlama generator so *a live model never authors citations* |
+| G | Insufficient-evidence handling | IMPLEMENTED + TESTED | `retrieved.Count == 0` → "There is not enough relevant evidence in this claim to answer. Human review is recommended.", confidence **0** |
+| H | Provider routing / fallback | IMPLEMENTED + TESTED + LIVE | `VectorRetrievalRouter`, `HttpRagRuntimeProbe`; backend reports `qdrant` **only** on a real serving round-trip, else honestly `in-memory-hash` |
+| I | Confidence / cost / audit / trace | IMPLEMENTED + TESTED + LIVE | `RagAuditTrace` persists traceId, chunk ids, citations JSON, confidence, providerMode, tokens, `CostMicros=0`, retrievalMs, `AdvisoryOnly=true`. Live: **56 audit traces** |
+| J | LangChain advanced review | IMPLEMENTED + TESTED, **LIVE BUT NOT SERVING** | see below |
+| K | Human-in-the-loop / advisory-only | IMPLEMENTED + TESTED + LIVE | `AdvisoryOnly=true` hardcoded in the trace; advisory footer on every answer; `risk` use-case explicitly "advisory, no accusations"; sidecar `advisoryOnly=True` |
 
-## Regression Proof
-- F: CLM-1006 core RAG `rag/ask` still returns cited answers. 188/188 .NET tests green. Feature flag is additive; the panel mounts after the existing RAG panel; SWA bundle is a superset of the prior live bundle (i18n EN-default + CORS-allow + SQL persistence all present in HEAD). Backend cutover was zero-downtime (old revision drained after new became Healthy).
+**Embedding truth:** `local-hash-embed-v0.1`, 256 dimensions, deterministic feature hashing. **Not** a learned/neural embedding model and not an external embedding service.
 
-## Screenshots / Artifacts
-- `azure-langchain-sidecar-deployment-and-smoke-v0.1/ui-advanced-ai-review.png` — full-page screenshot of the live authenticated AI Evidence page with the rendered "Розширений AI-огляд (LangChain)" panel (advisory banner, sections, claim-scoped citations).
+**Confidence is never invented:** derived from the top retrieval score (`ConfidenceFromScore`), shared by both generators.
 
-## Cost / Resource Notes
-- New cost = one always-on sidecar Container App (internal, 0.5 vCPU / 1 GiB, minReplicas=1) — a small constant Consumption-plan charge. Set `--min-replicas 0` to make idle ≈ $0 (matches the API), at the cost of a cold-start on the first advanced-review click after idle (within the 15 s .NET client timeout in practice, but the very first hit after long idle could fall back to "Unavailable"). Kept at 1 for demo/audit reliability; flip to 0 if idle cost matters. API unchanged (minReplicas=0). No SQL/AI/ACR added.
+**Live provider truth (from the deployed app's own `/rag/infrastructure`, claim CLM-1006):**
+```
+sqlSourceOfTruth : healthy — policyClauses 8, evidenceChunks 57, evaluationQuestions 21, auditTraces 56
+evidenceMemoryIndex: healthy — 13/13 embedded, local-hash-embed-v0.1, dim 256
+vectorRuntime    : disabled, enabled=false, backend=in-memory-hash, reachable=false   → Qdrant NOT live
+localReasoningRuntime: disabled, enabled=false, model=llama3.1:8b, reachable=false    → Ollama NOT live
+```
+Deployed env confirms independently: `AiProvider__Mode=Mock`, `Rag__QdrantEnabled=false`, `Rag__LocalLlamaEnabled=false`. **No paid managed LLM is enabled anywhere.**
 
-## Rollback / Cleanup State
-- Rollback target recorded before changes: backend `iap-demo-api--0000004` + image `…:rag-ingest-c457734-20260606233951` + no AdvancedAiReview env. Not needed — all critical smoke passed. To roll back: `az containerapp ingress traffic set -n iap-demo-api -g rg-iap-demo --revision-weight iap-demo-api--0000004=100` (or `az containerapp update --revision` / re-set image+remove env), and `az containerapp update -n iap-langchain-sidecar --min-replicas 0` or delete the sidecar app (created by this gate only). No seeded records deleted.
-- Leftover synthetic data: claim `CLM-1032` (E2E-LANGCHAIN, created via the app's create+upload API for smoke B/E). Harmless + clearly synthetic; left in place (no clean delete endpoint; never touched seeded CLM-1006/1007/1012). Prior gates' CLM-1026..1031 also remain.
+**J — the sidecar is enabled but not serving.** Deployed env sets `AdvancedAiReview__Enabled=true` and points at the internal FQDN. The sidecar container app revision `iap-langchain-sidecar--0000002` is **Healthy, 1 replica, RunningAtMaxScale**. Yet a live `POST /api/claims/CLM-1006/advanced-ai-review` returns:
+```
+providerMode "Unavailable", confidence 0, citations [], advisoryOnly true,
+summary "The advanced analysis service is unavailable. Please use the core RAG analysis with citations."
+```
+So the .NET→sidecar call path is currently failing (internal ingress `external=false`, targetPort 8090, transport Auto, `minReplicas=0`, configured with an `https://` internal URL). **Positive safety finding:** the failure degrades honestly — advisory-only preserved, confidence 0, nothing fabricated.
 
-## Boundaries Honored
-NO main · NO merge · NO production-account changes beyond the authorized dev/test demo · NO force push · NO paid LLM/provider · NO Azure Qdrant/Ollama/OpenAI/DeepSeek resource · NO credentials in files/logs/report (GHCR + SWA tokens via env/var-ref/Azure secret only) · NO real PII (synthetic E2E-LANGCHAIN) · NO schema migration · NO direct DB business writes (app API/EF only) · did NOT replace .NET RAG · did NOT mutate seeded claims · NO final payout/fraud/legal decision (advisory only) · NO unrelated UI rewrite · did NOT edit AIKB (proposed below).
+## G. DATA / PERSISTENCE / SAFETY TRUTH
 
-## Deviations
-- Added the sidecar Dockerfile/.dockerignore (DONE STATE item 3 — they were missing). Committed with a logged `[qa-bypass]` marker (build-verified infra only; gate acceptance is the live smoke matrix audited externally).
-- Sidecar package stays private + Container App uses a registry credential (no public-visibility REST endpoint exists; the env-file PAT was denied). Token stored only as the Azure-managed secret `ghcrio-slavkan777`.
-- Built the new API image at the feature commit (the live image predated the endpoint) — required for the endpoint to exist live; not just an env flip.
+- **DB provider:** SQL Server. Local `(localdb)\MSSQLLocalDB;Database=InsuranceAIPlatform`. Deployed: Azure SQL `iap-sql-r2-6c7g465/InsuranceAIPlatform`, **Online**, `GP_S_Gen5_1` (serverless), 2 GB, germanywestcentral.
+- **Migrations:** 18 across 6 service DbContexts. None created or applied by this Gate.
+- **Synthetic boundary:** enforced and self-reported — live `/api/customers/count` → `{"count":208,"syntheticOnly":true}`. Chunk ids namespaced `{claimId}-uploaded-…`.
+- **Real PII:** none in scope. Sidecar docstring: "No external service, no API key, no PII handling."
+- **Document storage:** text uploaded via `POST {claimId}/documents/upload`, chunked into claim-scoped `EvidenceChunk` rows (migration `AddDocumentContentForLocalSandbox`). No blob/file path in the RAG flow.
+- **Scoping keys:** `ClaimId` on `EvidenceChunk`, `RagAuditTrace`, `RagEvaluationQuestion`.
+- **Audit structures:** `RagAuditTrace`, `AiAnalysisRun` structured fields, `AddOutboxAndCommandAudit`, `AuditCost` service.
+- **Human approval controls:** `approval-draft`, `human-decision`, `missing-document-requests`, `payout-simulation` (explicitly a *simulation*).
+- **Autonomous payout/fraud/messaging code:** none found. No customer messaging path. Fraud is explicitly refused in the generator lead text.
+- **Secrets:** no secret values read or printed. Key names only — `APPLICATIONINSIGHTS_CONNECTION_STRING`, `ConnectionStrings__InsuranceAIPlatform` (both redacted), Key Vault `iapdemokv6c7g465vrcfi4` present. `RagOptions` and `AiProviderOptions` deliberately carry no key property.
 
-## Defects / Gaps Remaining
-- Deterministic analytics by default (no real LLM) → modest confidence wording; the `OLLAMA_BASE_URL` seam (local only) or a managed-LLM provider would enrich output (out of scope — no paid/Ollama this gate).
-- `rag/infrastructure.sqlSourceOfTruth.evidenceChunks` appears to report a global-ish count (56→57 across claims) while the per-claim memory index is correctly scoped; cosmetic display only — the advisory citations themselves are strictly claim-scoped (proven). Worth a follow-up tidy.
-- Proposed AIKB updates (not applied this gate): add the sidecar app + revision 0000005 to CURRENT_STATE; mark the Azure LangChain task READY_FOR_AUDIT in TASK_LEDGER.
+> **SAFETY FINDING — P1, material.** **The backend has no authentication or authorization whatsoever.** No `[Authorize]`, no `AddAuthentication`, no `UseAuthorization`, no JWT anywhere in `server/**`. Proven empirically: from the public internet, with **no credentials**, I retrieved `/api/claims` (real claim list), `/api/claims/CLM-1006/ai-evidence` (findings + evidence text) and `/api/claims/CLM-1006/rag/infrastructure`. `RequireAuth` is a **client-side redirect only** and its own comment says "local/demo only — not a production auth guard". Claim isolation is by `claimId` **parameter**, so anyone who knows or guesses an id reads that claim's evidence. Data is synthetic, so this is not a live PII breach — but it is a hard architectural blocker for any customer-facing surface.
 
-## Slava Manual Checklist
-1. Open `https://kind-meadow-03cf73103.7.azurestaticapps.net`, sign in (`demo@insurance.local` / `Demo123!`), go to a claim → **AI Evidence** → click **"Запустити розширений огляд"** → confirm the structured LangChain panel (advisory banner, confidence, anomalies/missing, recommendation, citations labelled "лише ця справа").
-2. Confirm citations show only the open claim's ids; try the new `CLM-1032` (E2E) to see weak-evidence behaviour, and a claim with no evidence to see the safe insufficient result.
-3. Decide replica cost posture: keep sidecar always-on (reliable) or set `--min-replicas 0` (idle≈$0, cold-start caveat).
+## H. AZURE / LIVE RUNTIME — READ ONLY
 
-## Recommended Next Step
-- Architect GPT audit (`отчёт`). On acceptance: optionally (a) scale the sidecar to zero for cost, (b) apply the proposed AIKB updates, (c) tidy the `rag/infrastructure` global-count display. Feature is otherwise live and demo-ready.
+Subscription `Azure subscription 1` (user auth). Resource group `rg-iap-demo` (westeurope).
 
-GitHub handoff ready. Tell GPT: отчёт.
+| Resource | Type | State |
+|---|---|---|
+| `iap-demo-swa` | Static Web App (Free) | `kind-meadow-03cf73103.7.azurestaticapps.net` — **HTTP 200** |
+| `iap-demo-api` | Container App | external ingress, **Running**, rev `--0000008`, 1 replica, scale 0→2 — `/health` **200 Healthy**, environment `Production` |
+| `iap-langchain-sidecar` | Container App | **internal** ingress (`external=false`), port 8090, rev `--0000002` **Healthy**, 1 replica, scale 0→1 |
+| `iap-sql-r2-6c7g465` | Azure SQL server | db `InsuranceAIPlatform` **Online**, `GP_S_Gen5_1` |
+| `iapdemokv6c7g465vrcfi4` | Key Vault | present (not read) |
+| `iapdemost6c7g465vrcfi4` | Storage | present |
+| `iap-demo-appi` / `iap-demo-law` | App Insights / Log Analytics | present |
+| `iap-demo-cae` | Container Apps Env | present |
+| `iap-demo-api-mi` | User-assigned identity | present |
+
+The SWA hostname matches the CORS allow-list in `appsettings.json` — deployment and source agree.
+
+No Azure write, restart, scale, deploy, config change, secret retrieval or DB mutation was performed.
+
+> **HONESTY FINDING — P2, material for governance.** `GET /api/system/demo-status` on the **live** deployment returns
+> `{"backend":"Skeleton","database":"NotConnected","aiProvider":"NotConnected","claimFlow":"Planned","message":"Backend skeleton is running. Claims API, database, and AI provider are planned future gates."}`
+> `SystemController.cs` shows this is a **hardcoded constant**, not a computed status. The *same deployment* simultaneously serves 47 active claims, 208 customers and a healthy Azure SQL RAG store with 56 audit traces. **The system's own status endpoint contradicts the system.** `BffController`/`/api/bff/health` is similarly stale (`stage: skeleton-v0.1`, `upstream: in-memory-read-service`, services "Deferred"). Anyone — human, GPT, or a future WARDEN gate — reading these endpoints as truth would be misled. This is the "REPORT != EVIDENCE" pathology baked into the product.
+
+## I. AIKB / CURRENT TRUTH DRIFT MATRIX
+
+| AIKB / historical claim | Current primary evidence | Status | Materiality | Notes |
+|---|---|---|---|---|
+| Source repo `slavkan777/InsuranceAIPlatform` | remote matches exactly | **MATCH** | — | |
+| Branch `rag/local-foundation-mega-v0.1` | checked out, = remote, 0/0 | **MATCH** | Medium | AIKB flagged it "not assumed current"; now confirmed current |
+| "GitHub has later July 2026 history" | working branch 2026-07-26; main 2026-07-07 | **MATCH** | Medium | reconciled |
+| Default branch is `main` | remote HEAD → `main` = `a8420d49` | **MATCH** | **HIGH** | but `main` lacks all 48 product commits |
+| Local `main` current | local `69e67312` ≠ remote `a8420d49` | **STALE** | Medium | local-only staleness |
+| Azure frontend + backend live | SWA 200, API 200 Healthy | **MATCH** | — | |
+| Azure SQL | `InsuranceAIPlatform` Online, RAG counts healthy | **MATCH** | — | |
+| .NET RAG providerMode = Mock | `AiProvider__Mode=Mock`, `RealCallsEnabled=false` | **MATCH** | — | |
+| Vector retrieval in-memory-hash fallback | live `backend=in-memory-hash` | **MATCH** | — | |
+| Qdrant not deployed | `Rag__QdrantEnabled=false`, reachable=false, no Azure resource | **MATCH** | — | |
+| Ollama / LocalLlama not deployed | `Rag__LocalLlamaEnabled=false`, reachable=false | **MATCH** | — | |
+| No paid/managed LLM | no LLM resource in RG; Mock mode; no key property in options | **MATCH** | — | |
+| LangChain sidecar exists | container app Healthy, 16 tests pass | **MATCH** | — | |
+| Sidecar deterministic-provider by default | `providerMode="Deterministic"` unless `OLLAMA_BASE_URL` | **MATCH** | — | |
+| Sidecar usable in the product | enabled in Azure but live call → `providerMode:"Unavailable"` | **CONTRADICTED** | **HIGH** | capability listed as accepted is not currently serving |
+| Accepted test counts | 288 .NET + 16 python + 113 E2E (mock subset) | **UNKNOWN→MEASURED** | Medium | no prior number in AIKB to compare |
+| Claim-scoped citations | `BuildCitations` from retrieved chunks only | **MATCH** | — | |
+| Cross-claim leakage guard | SQL `ClaimId ==` filter; `SimilarClaimsRanker` returns metadata only | **MATCH** | — | |
+| Synthetic-data boundary | `syntheticOnly:true` live | **MATCH** | — | |
+| "possible cosmetic global-ish RAG infrastructure count" | **CONFIRMED**: `policyClauses/evidenceChunks/evaluationQuestions/auditTraces` are **global** counts; only `EvidenceMemoryIndex` is claim-scoped | **MATCH (gap real)** | Medium | known gap still present |
+| Insufficient-evidence handling | verified in code + tests | **MATCH** | — | |
+| Advisory-only posture | `AdvisoryOnly=true`, footers, sidecar | **MATCH** | — | |
+| — (not in AIKB) | **No backend authentication at all** | **NEW — CONTRADICTS "production-ish demo" framing** | **HIGH** | see §G |
+| — (not in AIKB) | `/api/system/demo-status` hardcoded & false | **NEW** | **HIGH** | see §H |
+| — (not in AIKB) | lint gate declared but uninstallable | **NEW** | Medium | see §E |
+| Eval questions language | rows carry `"language":"uk"` while text is English (post English-only commit) | **STALE** | Low | metadata not migrated |
+
+## J. VERIFIED REUSABLE CAPABILITIES
+
+Proven present and working now, therefore safe to build on:
+1. Claim-scoped evidence retrieval with SQL-level isolation.
+2. Grounded answer generation where **citations and confidence are derived from retrieval, never from a model**.
+3. Honest insufficient-evidence response with confidence 0.
+4. Persisted audit trail (`RagAuditTrace`) with chunk ids, citations, provider mode, cost, latency.
+5. Advisory-only enforcement at three independent layers (.NET generator, trace flag, sidecar).
+6. Document text ingestion → bounded, idempotent, claim-scoped chunks.
+7. Cross-claim similarity that exposes only claim-level metadata.
+8. Provider seams (Qdrant / Ollama / sidecar) that are disabled-by-default and degrade honestly.
+9. React shell, routing, Redux/saga orchestration, API facade with mock/backend switch.
+10. 288 .NET tests + 16 sidecar tests + a 24-spec E2E suite.
+
+## K. CUSTOMER ASSISTANT — CANDIDATE INTEGRATION BOUNDARY
+
+**FACTS (verified):** no customer-facing route, page, endpoint, auth or session exists. Every route sits behind `RequireAuth` and every API path is `api/claims/{claimId}/…`. The backend has no authentication. Retrieval is claim-scoped by an id parameter. Policy knowledge exists as 8 `PolicyClause` rows. There is no pre-claim/guidance content, no customer identity model, and no customer messaging path.
+
+**RECOMMENDATION (Gate 1 design candidate, not implemented):**
+- **Surface:** a new public route (e.g. `/assist`) *outside* `AppShell`/`RequireAuth`. Do **not** reuse `ClaimShell` — it assumes an operator context.
+- **Reuse:** `MockGroundedAnswerGenerator` grounding contract, `RagAuditTrace`, advisory footer, insufficient-evidence path, `IEmbeddingProvider`, the API facade pattern.
+- **New:** a distinct customer-facing endpoint. **Do not expose `api/claims/{claimId}/rag/ask` to customers** — it has no authorization and its `claimId` is a bare parameter.
+- **Scope for v1:** **policy/general guidance only**, backed by `PolicyClause` + curated FAQ content. Claim-scoped customer answers require authenticated claim ownership, which does not exist yet.
+- **Auth:** this is the gating prerequisite. A customer surface needs real authentication plus an ownership check binding session → customer → claim. Nothing in the current codebase provides it.
+- **Persistence:** new conversation/session entity; reuse the audit-trace pattern.
+- **Human handoff:** reuse `missing-document-requests` / human-decision seam; add an explicit "talk to a human" action.
+- **Guardrails:** inherit advisory-only; never state coverage/payout/fraud/legal conclusions; always cite; say "not enough information" rather than guess.
+- **Explicitly OUT of v1:** claim-scoped customer answers, document upload by customers, status changes, payout figures, real PII, any autonomous decision.
+
+## L. WARDEN GATE 1 ADOPTION RECOMMENDATION
+
+- **Risk profile: HIGH.** Customer-facing + insurance domain + advisory AI + an authentication gap. HIGH forces external review and conservative failure.
+- **Product source boundary:** `src/**`, `server/**`, `ai-sidecars/**`. Exclude `docs/**`, `e2e/**` from writable scope initially.
+- **Candidate frozen Owner goal:** "A customer can ask about their insurance situation and receive grounded, cited, advisory-only guidance with an explicit path to a human — without any autonomous coverage, payout, fraud or legal decision."
+- **Requirement groups:** BUILD · UNIT/INTEGRATION TESTS · E2E (real full-stack config) · GROUNDING (citations from retrieval only) · SAFETY (advisory-only, no final decisions) · AUTHZ (ownership enforced) · PRIVACY (synthetic only) · OBSERVABILITY (audit trace per answer).
+- **Evidence classes:** BUILD, LOCAL_TEST, E2E, MANUAL, plus a runtime probe for provider honesty.
+- **External review: required** (HIGH risk), consistent with WARDEN v1's `RequiresExternalPlatformReview`.
+- **Proof assets:** bind the actual test source files by SHA-256 — WARDEN v1 EXT-019 proved a selector alone is not a proof method.
+- **Security/privacy checks:** secret scan; assert no `[AllowAnonymous]` customer data path; cross-claim leakage test; "no final decision" assertion.
+- **Delivery boundary:** local commit only; Owner Acceptance and Delivery Authorization separate, as in WARDEN v1.
+- **Post-close Child Gate test:** verify lineage/budget continuity from Gate 1 into a follow-up gate.
+
+**Unresolved Owner decisions — must be answered before freezing Gate 1:**
+1. **Which branch is the canonical baseline** — `main` (default, docs-only, missing 48 commits) or `rag/local-foundation-mega-v0.1` (the real product)? Merge first, or retarget the default branch?
+2. Does Gate 1 include **building real authentication**, or is v1 restricted to unauthenticated general guidance?
+3. Is the **hardcoded false `demo-status`/`bff/health`** in Gate 1's scope to fix?
+4. Should the **sidecar** be repaired (enabled but unreachable) or explicitly parked?
+5. Is the **lint gate** to be installed and enforced as acceptance evidence?
+6. Is Qdrant/Ollama enablement in scope, or does the cost-safe posture stand?
+7. May the Gate 1 run start the **full-stack E2E** (LocalDB + API) — needed for valid E2E evidence?
+
+## M. WARDEN-LAB LATER FALSIFICATION / META-TEST PLAN (plan only — nothing executed)
+
+All on **disposable copies**, never the accepted feature:
+1. **Stale evidence:** mutate a `src/**` file after capture → `warden check` must refuse `MATERIAL_CLEAN` on stale evidence.
+2. **Proof replacement:** replace an E2E/unit test body while keeping the class/selector → must fail on proof-asset SHA-256 (the WARDEN v1 EXT-019 invariant).
+3. **Material finding blocking:** inject a P1 → engineering must not lock.
+4. **External lineage:** submit a DELTA naming a skipped predecessor → `EXTERNAL_AUDIT_REJECTED_DELTA_SKIPPED_PREDECESSOR`.
+5. **Risk downgrade:** HIGH→LOW without boundary → denied; attributed+reasoned → allowed and recorded.
+6. **BREAK_GLASS:** declare, verify it blocks clean until reconciled.
+7. **Engineering lock:** after `MATERIAL_CLEAN`, `LOCAL_EDIT` → `DENIED_ENGINEERING_LOCKED`.
+8. **Acceptance ≠ authorization:** after Owner Acceptance, push must still be `DENIED_OWNER_GATED` pending delivery authorization.
+9. **Operation-specific grant:** a `CORPORATE_PUSH` grant must not open `MERGE`/`DEPLOY`.
+10. **Child Gate:** lineage and macro-budget continuity after close.
+11. **Lab-specific:** assert a WARDEN gate would *catch* the `demo-status` lie — a self-reported status contradicting measured runtime.
+
+## N. MATERIAL UNKNOWNS / OWNER DECISIONS REQUIRED
+
+**Material unknowns remaining:**
+1. **U1 — full-stack E2E never validly exercised.** The 8 backend-dependent specs did not run against a backend. Minimum action: permission to run `playwright.config.ts` with LocalDB + API in a later gate.
+2. **U2 — canonical branch undecided** (§B, §L-1). Owner decision, not discoverable.
+3. **U3 — why the sidecar is unreachable** is diagnosed only to the level of "enabled, healthy, not serving". Root cause would need container log reads / config change, beyond Gate 0's read-only boundary.
+4. **U4 — deployed image provenance.** The live API serves RAG endpoints that exist only on `rag/local-foundation-mega-v0.1`, so it was almost certainly built from that branch — but this is **inference**, not proof. No build metadata endpoint exists.
+
+U1, U3 and U4 are **tooling/permission-bounded, not architecture-bounded**. U2 is an Owner decision. None of them changes the Customer Assistant's material architecture, risk, scope or acceptance contract: the surface must be new, the grounding contract is verified and reusable, and the authentication gap is established as the gating prerequisite. Per §12's materiality test, they do not block Gate 1 from being frozen — provided the Owner answers §L's decision list, which is exactly what Gate 0 is for.
+
+## O. SIDE EFFECTS
+
+**In `C:\Projects\InsuranceAIPlatform` (governed source):**
+
+| Action | Result |
+|---|---|
+| source / test / config / doc edits | **NO** — 0 modified tracked files |
+| commit / push / branch / merge / PR / tag | **NO** — HEAD, branch, remotes unchanged |
+| `git pull` / fetch / reset / clean / checkout / stash | **NO** |
+| lockfile or package changes | **NO** |
+| EF migration create/apply · DB writes | **NO** |
+| Azure mutation / deploy / restart / scale / config | **NO** — read-only `az ... list/show` and HTTP GET only |
+| secret values read, printed or modified | **NO** — key names only, values redacted |
+| paid-provider enablement | **NO** |
+| production/customer data access | **NO** — synthetic only |
+
+**Generated (ignored) outputs created by verification, disclosed not hidden:**
+- `server/**/bin`, `server/**/obj` — .NET build (ignored by `server/.gitignore`)
+- `dist/` — Vite build (ignored)
+- `playwright-report/`, `test-results/` — E2E artifacts (ignored)
+- `ai-sidecars/langchain-claim-analytics/.venv/` — **created by this Gate** to run sidecar tests; ignored by the sidecar `.gitignore`; removable
+- Scratchpad only, outside the repo: `gpt-handoff` clone, `ai-kb` clone, `iap-main-probe` bare clone
+
+Nothing was cleaned or reset to hide generated state.
+
+**Outside the governed repo:** this report is committed and pushed to `slavkan777/gpt-handoff` (§13 publishing requirement). Disclosed explicitly because §12 asks for a no-side-effect proof — that proof is scoped to the InsuranceAIPlatform product repo, per Critic defect D1.
+
+## P. FINAL VERDICT
+
+**`WARDEN_LAB_GATE0_CURRENT_TRUTH_READY`**
+
+Enough primary current truth exists to freeze Gate 1 without guessing about material architecture, scope, risk or acceptance facts — provided the Owner answers the seven decisions in §L. The remaining unknowns are tooling- and permission-bounded, not architectural.
+
+Gate 0 is **not self-accepted**. Gate 1 is **not frozen**. No feature was implemented. The internal Macro Critic is **not** external evidence and is not a substitute for independent review.
