@@ -1,18 +1,18 @@
 {
   "bridge": "gpt-handoff/InsuranceAIPlatform/_BRIDGE",
-  "scope": "project-specific (does NOT touch global gpt-handoff/_BRIDGE or TwinCore)",
-  "state": "REPORT_READY",
-  "activeRequestId": "REQ-2026-06-08-insuranceai-azure-langchain-sidecar-deployment-and-smoke-v0-1",
-  "activeRequestType": "project-azure-langchain-sidecar-deployment-and-smoke",
+  "scope": "project-specific",
+  "state": "REQUEST_READY",
+  "activeRequestId": "REQ-2026-08-11-IAP-WARDEN-LAB-G0-CURRENT-TRUTH",
+  "activeRequestType": "READ_ONLY_CURRENT_TRUTH_ADOPTION",
   "activeProject": "InsuranceAIPlatform",
-  "gate": "AZURE_LANGCHAIN_SIDECAR_DEPLOYMENT_AND_SMOKE_V0.1",
+  "gate": "WARDEN_LAB_GATE_0_CURRENT_TRUTH_ADOPTION",
   "targetReportPath": "InsuranceAIPlatform/_BRIDGE/LATEST_REPORT.md",
-  "projectReportPath": "InsuranceAIPlatform/azure-langchain-sidecar-deployment-and-smoke-v0.1/report.md",
+  "projectReportPath": "InsuranceAIPlatform/warden-lab-gate-0-current-truth-adoption/report.md",
   "latestReportPath": "InsuranceAIPlatform/latest-report.md",
   "lastReportId": "REQ-2026-06-08-insuranceai-azure-langchain-sidecar-deployment-and-smoke-v0-1",
   "lastReportStatus": "READY_FOR_AUDIT",
-  "publishState": "REPORT_PUBLISHED",
-  "result": "READY_FOR_AUDIT (Slava final acceptor; Claude does not self-accept). The previously-PARTIAL LangChain feature is now LIVE on Azure. Deployed a separate INTERNAL Python FastAPI LangChain sidecar Container App 'iap-langchain-sidecar' (rev nqj6jlh, Healthy, internal ingress :8090) in the existing env iap-demo-cae; rebuilt the .NET API at the feature commit (the live image predated the endpoint), flag-enabled (AdvancedAiReview__Enabled=true + SidecarBaseUrl=internal sidecar) -> new healthy backend revision iap-demo-api--0000005 (100% traffic, old 0000004 drained, zero downtime); rebuilt+redeployed the SWA with the Advanced AI Review panel (backend-mode bundle). ALL 6 Azure smokes PASS: A health (api+rag infra); B new synthetic claim CLM-1032 + uploaded evidence -> 1 claim-scoped chunk + review cites it; C POST /api/claims/CLM-1006/advanced-ai-review -> framework=langchain, advisoryOnly=true, providerMode=Deterministic, conf 95, 6 citations all CLM-1006, no 1007/1012 leakage; D live UI (login demo creds -> AI Evidence -> button -> structured panel, browser->API 200, conf 95, citations CLM-1006 only, advisory banner, 0 console/network errors); E no-evidence -> none/0/0 safe (no fabricated citations); F CLM-1006 core RAG rag/ask still works. Images on GHCR (api+sidecar, unique tags, digests in report). Source: commit 0b47346 (added sidecar Dockerfile/.dockerignore only) on feature branch rag/local-foundation-mega-v0.1, main untouched, no force, secret-scan clean. dotnet 188/188. Boundaries: no main/merge/force, no paid/Ollama/Qdrant/OpenAI resource, no secrets in files/logs (GHCR+SWA tokens via env/var-ref/Azure secret ghcrio-slavkan777 only), no real PII (synthetic E2E-LANGCHAIN), no schema migration, .NET RAG untouched, seeded claims untouched, advisory-only. Rollback target recorded (iap-demo-api--0000004); not needed. Cost: one always-on internal sidecar (0.5 vCPU minReplicas=1) - can scale to 0 for idle~$0 (cold-start caveat). Public URL: https://kind-meadow-03cf73103.7.azurestaticapps.net/ . Screenshot: azure-langchain-sidecar-deployment-and-smoke-v0.1/ui-advanced-ai-review.png. NEXT: Architect GPT audit (otchet).",
-  "updated": "2026-06-08",
-  "updatedBy": "claude"
+  "publishState": "ACTIVE_REQUEST_PUBLISHED",
+  "result": "Owner authorized WARDEN-Lab Gate 0. Existing InsuranceAIPlatform is the first real WARDEN-Lab carrier. Current gate is read-only existing-project current-truth adoption; no source implementation, Azure/DB mutation, secret/provider changes, delivery, or Customer Insurance AI Assistant build is authorized. Claude must discover real repo/branch/HEAD/topology/build/tests/RAG/LangChain/Azure-readable truth, produce AIKB drift matrix, recommend Gate 1 boundary, and return WARDEN_LAB_GATE0_CURRENT_TRUTH_READY or WARDEN_LAB_GATE0_BLOCKED.",
+  "updated": "2026-08-11",
+  "updatedBy": "GPT / WARDEN orchestration"
 }
