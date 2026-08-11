@@ -1,0 +1,16 @@
+{
+  "bridge": "gpt-handoff/Warden/_BRIDGE",
+  "scope": "WARDEN repair only",
+  "state": "REQUEST_READY",
+  "activeRequestId": "REQ-2026-08-11-WARDEN-LAB-REPAIR-SOURCE-SCOPE",
+  "activeRequestType": "BOUNDED_WARDEN_CHILD_GATE_REPAIR",
+  "activeProject": "Warden",
+  "gate": "WARDEN-LAB-REPAIR-SOURCE-SCOPE-AND-CLI-HELP-V1",
+  "targetReportPath": "Warden/_BRIDGE/LATEST_REPORT.md",
+  "projectReportPath": "Warden/warden-lab-repair-source-scope-and-cli-help/report.md",
+  "latestReportPath": "Warden/latest-report.md",
+  "publishState": "ACTIVE_REQUEST_PUBLISHED",
+  "result": "Owner authorized bounded repair for the Warden-Lab reproduced source-boundary and CLI-help safety defects. Accepted parent v1 remains historical truth. No InsuranceAI implementation, no commit/push/merge/release/deploy, and no second EXTERNAL_FULL are authorized.",
+  "updated": "2026-08-11",
+  "updatedBy": "GPT / WARDEN orchestration"
+}
